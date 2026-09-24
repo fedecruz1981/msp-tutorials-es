@@ -1,0 +1,214 @@
+---
+title: "Tutorial 4: Procesamiento de señal con pfft~"
+description: "Procesamiento avanzado con pfft~: spectral freezing, time-stretching, pitch shifting, convolution, cross-synthesis, spectral gating, phase vocoder."
+section: "analisis"
+order: 43
+slug: "14-analisis-04-pfft"
+originalUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter04/"
+---
+
+# Tutorial de Análisis 4: Procesamiento de Señal con pfft~
+
+Este tutorial profundiza en **técnicas avanzadas de procesamiento espectral** usando **pfft~**: **spectral freezing**, **time-stretching de alta calidad**, **pitch shifting con formantes**, **convolución**, **cross-síntesis** y **phase vocoder** profesional.
+
+## Repaso: Estructura pfft~ Profesional
+
+### Template base:
+```
+[pfft~ spectral_engine 2048 8 hann]
+  → fftin~ 1 (audio in)
+  → fftin~ 2 (sidechain/IR)
+  → fftout~ 1 (audio out)
+  → fftout~ 2 (analysis out)
+  → [Subpatch: spectral_engine]
+```
+
+### Argumentos óptimos por uso:
+| Aplicación | FFT Size | Overlap | Window |
+|------------|----------|---------|--------|
+| Pitch shift | 2048 | 8 | Hann |
+| Time stretch | 2048 | 8 | Hann |
+| Convolución | 4096 | 4 | Hann |
+| Spectral gate | 1024 | 4 | Hann |
+| Análisis | 4096 | 4 | Kaiser (β=6) |
+
+## 1. Spectral Freezing (Congelación Espectral)
+
+### Concepto:
+Mantener **un frame FFT** indefinidamente → sonido sostenido, "pad" infinito.
+
+### Implementación:
+```
+[fftin~] → [cartopol~] → [freeze gate] → [poltocar~] → [fftout~]
+```
+- **Freeze gate** = 1 (normal), 0 (hold frame actual)
+- **Frame hold** = `sah~` en magnitud/fase con trigger externo
+- **Crossfade** al entrar/salir freeze (evita clicks)
+
+### Control:
+- **MIDI note hold** → Freeze on/off
+- **Fade time** = Crossfade frames (10-100 ms)
+- **Pitch shift** durante freeze = Transposición estática
+
+## 2. Time-Stretching de Alta Calidad (Phase Vocoder)
+
+### Algoritmo Phase Vocoder Mejorado:
+```
+[fftin~] → [cartopol~] 
+    → [framedelta~] (diferencia fase)
+    → [phase correction] (unwrap + rate)
+    → [frameaccum~] (acumula fase corregida)
+    → [poltocar~] → [fftout~]
+```
+
+### Corrección de fase crítica:
+```
+delta_phase = phase[n] - phase[n-1] - expected_delta
+corrected_phase = accumulator + delta_phase_wrapped
+```
+- **expected_delta** = 2π × bin × (hop_size / FFT_size)
+- **Phase unwrapping** = Mantiene continuidad
+
+### Control de Rate (Velocidad):
+- **Rate = 1.0** → Normal
+- **Rate = 0.5** → 2x largo (time stretch)
+- **Rate = 2.0** → 2x rápido
+- **Rate variable** → `line~` / `phasor~` para ramping suave
+
+### Phase Locking (Para tonos armónicos):
+- **Detección picos** → Phase lock a armónicos
+- **Mejora** calidad en material tonal
+- **Implementación**: `peakamp~` + `peakfreq~` → lock bins
+
+## 3. Pitch Shifting con Preservación de Formantes
+
+### Problema: Pitch shift simple = formantes shift (efecto "chipmunk")
+
+### Solución: Formant Preservation
+```
+1. Análisis: FFT → Envelope espectral (formantes)
+2. Pitch shift: Phase vocoder (mag + phase)
+3. Re-aplicación: Formant envelope × shifted spectrum
+```
+
+### Implementación práctica:
+```
+[fftin~] → [cartopol] → [split: mag + phase]
+    Mag → [Spectral Envelope: cepstrum / LPC / peak interp] → Formant Env
+    Mag → [Pitch Shift: phase vocoder] → Shifted Mag
+    Shifted Mag × Formant Env → Corrected Mag
+    Phase → [Phase vocoder] → Shifted Phase
+    [poltocar] → [fftout]
+```
+
+### Factor de transposición:
+- **Semitonos**: `ratio = 2^(semitones/12)`
+- **Ratio directo**: 0.5 (octava abajo) a 2.0 (octava arriba)
+- **Rango práctico**: ±12 semitonos (calidad buena), ±24 (aceptable)
+
+## 4. Convolución Espectral (Zero-latency)
+
+### Partición de IR (Impulse Response):
+```
+IR larga (ej. 10s) → Particionar en frames FFT_size
+    → Almacenar en buffer~ (magnitud + fase por frame)
+    → Convolución: frame × frame (multiplicación compleja)
+    → Overlap-add en salida
+```
+
+### Particionamiento uniforme vs no uniforme:
+- **Uniforme**: Fácil, latencia = FFT_size/hop
+- **No uniforme**: Corto al inicio (transientes), largo al final (cola)
+- **Hybrid**: Time-domain early + Spectral late
+
+### Zero-latency (Hybrid):
+```
+Early (0-20ms): Time-domain direct convolution (tapout~)
+Late (>20ms): Spectral convolution (pfft~)
+```
+
+## 5. Cross-Síntesis (Spectral Morphing)
+
+### Tipos de Cross-Síntesis:
+
+| Tipo | Fórmula | Efecto |
+|------|---------|--------|
+| **Mag A × Phase B** | `mag_A × phase_B` | Timbre A, ritmo B |
+| **Mag B × Phase A** | `mag_B × phase_A` | Timbre B, ritmo A |
+| **Mag A × Mag B** | `mag_A × mag_B` | Intersección espectral |
+| **Cross-fade** | `mix(A,B)` | Transición suave |
+
+### Implementación pfft~ dual:
+```
+[pfft~ cross 2048 8]
+  → fftin~ 1 (Fuente A)
+  → fftin~ 2 (Fuente B)
+  → [cartopol~] × 2
+  → [cross-synth: selector tipo]
+  → [poltocar~] → fftout~
+```
+
+### Control de Morph:
+- **Morph knob** = 0 (A) → 1 (B)
+- **Por banda**: Diferente morph por región freq
+- **Sync**: Phase align en transiciones
+
+## 6. Spectral Gating / Noise Reduction Avanzado
+
+### Multi-band Spectral Gate:
+```
+[fftin~] → [cartopol~] → [Gate per bin]
+    Gate = smoothstep(mag, threshold × noise_profile, knee)
+    → Gain (0-1) per bin
+    → [poltocar~] → [fftout~]
+```
+
+### Noise Profile Learning:
+- **Learn mode**: Captura noise floor (silencio)
+- **Profile** = Promedio temporal magnitud por bin
+- **Adaptive**: Actualiza profile lentamente (tracking)
+
+### Musical Noise Suppression:
+- **Overlap-add smoothing** en gain
+- **Frequency smoothing** (vecinos bins)
+- **Temporal smoothing** (frame-to-frame)
+
+## Patch de ejemplo: Spectral Workstation Pro
+
+Incluye módulos conmutables en **pfft~ master 2048 8**:
+1. **Spectral Freeze** (MIDI hold, fade, pitch)
+2. **Phase Vocoder** (Rate 0.1-4x, phase lock, formant preserve)
+3. **Pitch Shifter** (±24 st, formant preserve, pitch quantization)
+4. **Time Stretcher** (0.125x-8x, transient preserve)
+5. **Convolver** (IR loader, hybrid zero-latency, length trim)
+6. **Cross-Synthesis** (A↔B morph, per-band control)
+7. **Spectral Gate** (Noise reduction, profile learn, musical noise supp)
+8. **Spectral EQ** (64 bandas, drawable curve)
+9. **Spectral Delay** (Delay por banda, feedback, diffusion)
+10. **Analysis Out**: Magnitud/Fase → spectroscope~, peak detect, pitch detect
+
+### Control unificado:
+- **Preset manager** (128 slots)
+- **MIDI/OSC** mapping completo
+- **Automation** (line~ curves para todos params)
+- **CPU monitor** per module
+
+## Resumen
+
+- **pfft~ 2048/8** = Standard pro para pitch/time
+- **Phase vocoder** = Frame delta + accumulate + correction
+- **Formant preservation** = Cepstrum/LPC envelope re-aplicación
+- **Convolución híbrida** = Time-domain early + Spectral late
+- **Cross-síntesis** = Mag A × Phase B + morph control
+- **Spectral gate** = Per-bin threshold + smoothing
+- **CPU** = ~2-5% por pfft~ 2048/8 en CPU moderna
+
+## Ver También
+
+- **pfft~** - Motor espectral principal
+- **frameaccum~ / framedelta~ / framereverse~** - Fase temporal
+- **cartopol~ / poltocar~** - Coordenadas
+- **fftin~ / fftout~ / fftinfo~** - I/O
+- **peakamp~ / peakfreq~** - Detección picos
+- **sigmund~ / pitch~** - Pitch detection (externos)

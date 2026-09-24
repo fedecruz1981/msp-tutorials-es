@@ -1,0 +1,187 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+
+export async function getStaticPaths() {
+  const tutorials = await getCollection('tutorials');
+  return tutorials.map((tutorial) => ({
+    params: { slug: tutorial.data.slug },
+    props: { slug: tutorial.data.slug },
+  }));
+}
+
+const { slug } = Astro.props;
+const tutorial = await getEntry('tutorials', slug);
+const { Content } = await render(tutorial);
+
+const sections = [
+  { title: 'Introducción', slug: 'introduccion' },
+  { title: 'Fundamentos', slug: 'fundamentos' },
+  { title: 'Síntesis aditiva y de modulación', slug: 'sintesis-aditiva-modulacion' },
+  { title: 'Muestreo y grabación', slug: 'muestreo-grabacion' },
+  { title: 'Filtros y síntesis sustractiva', slug: 'filtros-sintesis-sustractiva' },
+  { title: 'Procesamiento de dinámicas', slug: 'procesamiento-dinamicas' },
+  { title: 'MIDI y MSP', slug: 'midi-msp' },
+  { title: 'Polifonía y gestión de recursos', slug: 'polifonia-gestion-recursos' },
+  { title: 'Secuenciación', slug: 'secuenciacion' },
+  { title: 'Panoramización', slug: 'panoramizacion' },
+  { title: 'Análisis', slug: 'analisis' },
+  { title: 'Retardos', slug: 'retardos' },
+  { title: 'Plug-ins', slug: 'plugins' },
+  { title: 'Compresión', slug: 'compresion' },
+];
+
+const currentSection = sections.find(s => tutorial.data.section === s.slug);
+const sectionIndex = sections.findIndex(s => s.slug === tutorial.data.section);
+
+const prevTutorial = tutorial.data.order > 1 ? (await getCollection('tutorials')).find(t => t.data.order === tutorial.data.order - 1) : null;
+const nextTutorial = tutorial.data.order < 63 ? (await getCollection('tutorials')).find(t => t.data.order === tutorial.data.order + 1) : null;
+---
+
+<Layout title={`${tutorial.data.title} | MSP Tutorials ES`} description={tutorial.data.description}>
+  <slot name="sidebar">
+    <Sidebar currentSlug={tutorial.data.slug} />
+  </slot>
+
+  <header class="tutorial-header">
+    <nav class="breadcrumb" aria-label="Navegación">
+      <a href="/">Inicio</a>
+      <span aria-hidden="true">/</span>
+      <a href={`/tutoriales/${currentSection?.slug}/`}>{currentSection?.title}</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{tutorial.data.title}</span>
+    </nav>
+    <h1>{tutorial.data.title}</h1>
+    <p class="tutorial-meta">
+      Capítulo {tutorial.data.order} de 63 · Sección: {currentSection?.title}
+    </p>
+    {tutorial.data.patcherUrl && (
+      <a href={tutorial.data.patcherUrl} class="patcher-download" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Descargar patcher (.maxpat)
+      </a>
+    )}
+  </header>
+
+  <div class="tutorial-content">
+    <Content />
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navegación entre capítulos">
+    {prevTutorial && (
+      <a href={`/tutoriales/${prevTutorial.slug}/`} class="nav-link prev">
+        <span class="nav-label">Capítulo anterior</span>
+        <span class="nav-title">{prevTutorial.data.title}</span>
+      </a>
+    )}
+    {nextTutorial && (
+      <a href={`/tutoriales/${nextTutorial.slug}/`} class="nav-link next">
+        <span class="nav-label">Siguiente capítulo</span>
+        <span class="nav-title">{nextTutorial.data.title}</span>
+      </a>
+    )}
+  </nav>
+
+  <footer class="tutorial-footer">
+    <p>Contenido original: <a href={tutorial.data.originalUrl} target="_blank" rel="noopener">Cycling '74 MSP Tutorials</a></p>
+    <p>Traducción no oficial con fines educativos. Código y sintaxis MSP en inglés original.</p>
+  </footer>
+
+<style>
+  .tutorial-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .breadcrumb a { color: var(--color-text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--color-primary); text-decoration: underline; }
+  .breadcrumb span[aria-current] { color: var(--color-text); font-weight: 500; }
+  .tutorial-header h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: 0.5rem;
+  }
+  .tutorial-meta {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .tutorial-content {
+    /* Content styles are in Layout.astro */
+  }
+
+  .chapter-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+  .nav-link {
+    display: block;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--color-text);
+    flex: 1;
+    min-width: 200px;
+    max-width: 350px;
+    transition: all var(--transition);
+  }
+  .nav-link:hover {
+    border-color: var(--color-primary);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .nav-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .nav-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .nav-link.prev .nav-title::before { content: '← '; }
+  .nav-link.next .nav-title::after { content: ' →'; }
+  .nav-link.next { text-align: right; }
+
+  .tutorial-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+  .tutorial-footer p { margin: 0.5rem 0; }
+  .tutorial-footer a { color: var(--color-primary); }
+
+  @media (max-width: 640px) {
+    .chapter-nav { flex-direction: column; }
+    .nav-link { max-width: none; text-align: center; }
+    .nav-link.next { text-align: center; }
+  }
+</style>
+</Layout>

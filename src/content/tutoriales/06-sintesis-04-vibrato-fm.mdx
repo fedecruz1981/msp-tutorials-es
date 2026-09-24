@@ -1,0 +1,81 @@
+---
+title: "Tutorial 4: Vibrato y FM"
+description: "Vibrato como modulación de frecuencia a baja frecuencia, introducción a la síntesis FM, índice de modulación FM."
+section: "sintesis-aditiva-modulacion"
+order: 13
+slug: "06-sintesis-04-vibrato-fm"
+originalUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter04/"
+---
+
+# Tutorial de Síntesis 4: Vibrato y FM
+
+El **vibrato** es una variación periódica de la **frecuencia** de un sonido (no de su amplitud como el trémolo). Se logra modulando la frecuencia de un oscilador con otro oscilador de baja frecuencia.
+
+## Vibrato
+
+- **Modulador**: LFO (Low Frequency Oscillator) a 5-14 Hz típico
+- **Profundidad**: Desviación de frecuencia en Hz o centavos
+- **Forma de onda**: Seno, triángulo, o aleatoria para vibrato natural
+
+En MSP, el vibrato se implementa conectando un **cycle~** (LFO) al inlet de frecuencia de otro **cycle~** (portadora), usualmente a través de un **\*~** para controlar la profundidad.
+
+## Síntesis FM (Frequency Modulation)
+
+La **síntesis FM** usa la misma arquitectura que el vibrato, pero con el modulador en el rango de **frecuencia de audio**. Fue popularizada por John Chowning y Yamaha (DX7).
+
+### Fórmula básica
+
+```
+salida = A × sen(2π × fc × t + I × sen(2π × fm × t))
+```
+
+Donde:
+- **fc** = Frecuencia de la portadora
+- **fm** = Frecuencia del modulador
+- **I** = Índice de modulación (desviación máxima / fm)
+
+### Índice de Modulación FM
+
+El índice **I** determina la **brillantez** del timbre:
+- **I = 0**: Onda seno pura (sin armónicos)
+- **I = 1-2**: Pocos armónicos, timbre suave
+- **I = 5-10**: Muchos armónicos, timbre brillante
+- **I > 10**: Timbre muy complejo, ruidoide
+
+### Relación de Frecuencias (Ratio)
+
+La relación **fc : fm** determina la **armonicidad** del timbre:
+- **Ratios enteros** (1:1, 1:2, 2:3, etc.) → Timbres armónicos
+- **Ratios no enteros** (1:1.414, etc.) → Timbres inarmónicos, metálicos
+
+### Operadores y Algoritmos
+
+En FM avanzada, múltiples operadores (osciladores) se conectan en **algoritmos**:
+- **Portadoras**: Salida directa de audio
+- **Moduladores**: Modulan a otras portadoras o moduladores
+- **Realimentación (Feedback)**: Un operador se modula a sí mismo
+
+## Patch de ejemplo
+
+Incluye:
+1. Oscilador portadora con control de frecuencia
+2. Oscilador modulador con control de frecuencia y ratio
+3. Control de índice de modulación (0-20)
+4. Selector de forma de onda del modulador
+5. Envolventes ADSR para índice y amplitud
+
+## Resumen
+
+- **Vibrato** = FM a baja frecuencia (\\< 20 Hz)
+- **FM** = Modulación de frecuencia a tasa de audio
+- **Índice I** = Controla brillo/complejidad espectral
+- **Ratio fc:fm** = Determina armónicos vs inarmónicos
+- Base de la síntesis FM comercial (Yamaha DX7, etc.)
+
+## Ver También
+
+- **cycle~** - Oscilador
+- **\*~** - Control de profundidad/índice
+- **line~** - Envolventes
+

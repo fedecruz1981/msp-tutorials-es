@@ -1,0 +1,180 @@
+---
+title: "Tutorial 2: Líneas de retardo con realimentación"
+description: "Feedback avanzado: feedback networks, comb filters, allpass, feedback tone control, ducking feedback, feedback saturation."
+section: "retardos"
+order: 45
+slug: "15-retardos-02-realimentacion"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter02/"
+---
+
+# Tutorial de Retardos 2: Líneas de Retardo con Realimentación
+
+La **realimentación (feedback)** en líneas de retardo crea **resonancias, ecos densos, reverberación, filtros peine**. Este tutorial cubre redes de feedback avanzadas.
+
+## Feedback Básico (Repaso)
+
+```
+[tapout~] → [*~ fb] → [+~] → [tapin~]
+```
+- **fb ∈ [0, 1)**: 0.9 = 20 dB decay, 0.99 = 40 dB decay
+- **Estabilidad**: fb \< 1 siempre (limitador duro)
+
+## Feedback Tone Control (Control tonal en feedback)
+
+### Filtro en el lazo de feedback:
+```
+[tapout~] → [Filtro] → [*~ fb] → [+~] → [tapin~]
+```
+
+### Tipos de filtro en feedback:
+
+| Filtro | Efecto | Uso |
+|--------|--------|-----|
+| **LPF** (Lowpass) | Oscurece repeticiones | Natural, vintage, tape |
+| **HPF** (Highpass) | Aclara, elimina graves | Claridad, evita mud |
+| **BPF** (Bandpass) | Resonancia selectiva | Resonadores, karplus |
+| **Notch** | Elimina frecuencia | Anti-resonancia |
+| **EQ Paramétrico** | Forma libre | Diseño tonal preciso |
+
+### Implementación MSP:
+```
+[tapout~] → [biquad~ type freq Q] → [*~ fb] → [+~] → [tapin~]
+```
+- **biquad~** = Eficiente, coeficientes en tiempo real
+- **svf~** = Morfeable LP/HP/BP/Notch simultáneo
+
+## Comb Filters (Filtros Peine)
+
+### Feedback Comb Filter (FIR/IIR):
+```
+y[n] = x[n] + fb × y[n-D]
+```
+- **D** = Delay samples
+- **Respuesta**: Picos armónicos cada SR/D Hz
+- **fb > 0** = Picos (resonancia)
+- **fb \< 0** = Valles (cancelación)
+
+### Feedforward Comb Filter (FIR):
+```
+y[n] = x[n] + ff × x[n-D]
+```
+- **Sin inestabilidad** (siempre estable)
+- **Respuesta**: Peine invertido
+
+### En MSP:
+- **comb~** = Objeto integrado (delay + feedback + feedforward)
+- **tapin~/tapout~** + biquad~ = Custom
+
+### Aplicaciones:
+- **Karplus-Strong**: fb > 0 + LPF = cuerda
+- **Flanger**: fb moderado + LFO en delay
+- **Reverb temprano**: Múltiples combs paralelos
+
+## Allpass Filters (Filtros Paso-todo)
+
+### Característica:
+- **Respuesta en frecuencia**: Plana (0 dB todo)
+- **Respuesta en fase**: No lineal (dispersión)
+- **Eco disperso** = "Diffusion" en reverb
+
+### Ecuación:
+```
+y[n] = -g × x[n] + x[n-D] + g × y[n-D]
+```
+- **g** = Coeficiente (0 a 1)
+
+### En reverb:
+- **Serie de allpasses** = Diffusion densa
+- **Paralelo de combs** = Resonancia modal
+- **Combinación** = Reverb algorítmico clásico (Schroeder/Moorer)
+
+### En MSP:
+- **allpass~** (externo) o **tapin~/tapout~** + math
+
+## Feedback Networks (Redes de realimentación)
+
+### Múltiples líneas en paralelo:
+```
+Entrada → [Delay 1 fb1] → ┐
+         [Delay 2 fb2] → ├→ Suma → Salida
+         [Delay 3 fb3] → ┘
+```
+- **Delays primos relativos** = Densidad uniforme
+- **FBs diferentes** = Decay multi-etapa
+
+### Matriz de feedback (Feedback Matrix):
+```
+[Out1]   [m11 m12 m13]   [In1]
+[Out2] = [m21 m22 m23] × [In2]
+[Out3]   [m31 m32 m33]   [In3]
+```
+- **Matriz unitaria** = Conserva energía (sin explosión)
+- **Householder / Hadamard** = Matrices ortogonales estándar
+- **Reverb estéreo/5.1** = Matrix 2×2 / 6×6
+
+## Ducking Feedback (Feedback con Ducking)
+
+### Concepto:
+Feedback **baja automáticamente** cuando hay señal de entrada fuerte:
+```
+[Entrada] → [Envelope Follower] → [Scale/Invert] → [Feedback Gain]
+```
+- **Entrada fuerte** → Feedback bajo (claridad)
+- **Entrada baja** → Feedback alto (cola larga)
+
+### Implementación:
+```
+[adc~] → [abs~] → [slide~ 100 1000] → [scale 1 0] → [*~ fb_base] → [fb gain]
+```
+
+## Feedback Saturation (Saturación en feedback)
+
+### Previene explosión + Añade carácter:
+```
+[tapout~] → [tanh~ / softclip~] → [*~ fb] → [tapin~]
+```
+- **Suaviza** transiciones a fb alto
+- **Añade armónicos** (calidez analógica)
+- **Auto-limitante** natural
+
+## Patch de ejemplo: Advanced Feedback Delay
+
+Incluye:
+1. **tapin~ 10000** (10 seg)
+2. **4 líneas paralelas** (Delays primos: 1123, 1567, 2011, 2531 ms)
+4. **Por línea**:
+   - Delay time (ms + tempo sync)
+   - Feedback (0-0.99)
+   - Filter en feedback: LPF/HPF/BPF/Notch/Allpass (selector)
+   - Ducking: Threshold, depth, attack/release
+   - Saturation: tanh drive (0-10 dB)
+5. **Feedback Matrix** (4×4):
+   - Presets: Identity, Hadamard, Diffusion, Custom
+   - Cross-feedback L/R para estéreo
+6. **Master**:
+   - Global feedback scale (0-1)
+   - Ducking global (sidechain input)
+   - Freeze (hold feedback=1, mute input)
+   - Kill switch (feedback=0 instant)
+7. **Visualización**: Impulse response estimate, frequency response
+
+## Resumen
+
+- **Feedback tone** = Filtro en lazo (LPF=natural, HPF=claro, BPF=resonante)
+- **Comb filter** = fb > 0 picos, fb \< 0 valles, comb~ objeto
+- **Allpass** = Fase no lineal, difusión, clave en reverb
+- **Feedback Matrix** = Matriz unitaria = energía conservada
+- **Ducking** = Feedback baja con señal entrada
+- **Saturation** = tanh~ en lazo = calidez + seguridad
+- **Freeze** = fb=1, mute input = sustain infinito
+
+## Ver También
+
+- **comb~** - Comb filter integrado
+- **allpass~** - Allpass (externo)
+- **biquad~** - Filtros en feedback
+- **matrix~** - Matriz de feedback
+- **slide~ / rampsmooth~** - Ducking envelope
+- **tanh~** - Saturación suave
+

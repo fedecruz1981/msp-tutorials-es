@@ -1,0 +1,109 @@
+---
+title: "Tutorial 3: Distorsión"
+description: "Tipos de distorsión: waveshaping, bitcrushing, foldover, saturación analógica, drive, tone shaping."
+section: "procesamiento-dinamicas"
+order: 29
+slug: "09-dinamicas-03-distorsion"
+originalUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter03/"
+---
+
+# Tutorial de Dinámicas 3: Distorsión
+
+La **distorsión** es la alteración intencional de la forma de onda para añadir armónicos, compresión y carácter. En MSP se implementa via **waveshaping**, **reducción de resolución** y **modelado analógico**.
+
+## Tipos de distorsión
+
+### 1. Soft Clipping (Saturación suave)
+```
+salida = tanh(drive × entrada)
+salida = atan(drive × entrada) × (2/π)
+salida = entrada / (1 + |entrada|)  (soft clip racional)
+```
+- **Drive** controla cantidad
+- Añade **armónicos impares** principalmente
+- Tipo: Tube, tape saturation
+
+### 2. Hard Clipping
+```
+salida = clip(entrada, -1, 1)
+salida = max(-1, min(1, entrada))
+```
+- Recorta picos bruscamente
+- **Muchos armónicos** (impares + pares)
+- Tipo: Fuzz, distortion pedal
+
+### 3. Wavefolding (Plegado de onda)
+```
+salida = abs(entrada)  (fold simple)
+salida = sin(ganancia × entrada)  (fold senoidal)
+```
+- "Dobla" la onda sobre sí misma
+- **Rico en armónicos**, timbres metálicos
+- Estilo: West Coast synthesis (Buchla)
+
+### 4. Bitcrushing / Sample Rate Reduction
+```
+salida = floor(entrada × bits) / bits  (cuantización)
+salida = sample_and_hold(entrada, rate)  (reducción tasa)
+```
+- **Bits bajos** (4-8) = ruido de cuantización
+- **Rate bajo** = aliasing, lo-fi
+- Estilo: 8-bit, glitch, retro
+
+### 5. Foldover / Aliasing intencional
+- Sobremuestreo bajo + waveshaping
+- Frecuencias > Nyquist se "plican"
+- Timbres inarmónicos, campanas
+
+## Modelado analógico
+
+### Tube (Válvula)
+- Asimetría: 2º armónico dominante
+- Compresión suave asimétrica
+- `salida = entrada + k × entrada²` (parabólico)
+
+### Tape (Cinta)
+- Saturación + compresión + hiss + wow/flutter
+- Frecuencia media: "bump" ~ 200-500 Hz
+- High-end: roll-off suave
+
+### Transistor / FET
+- Hard clip más simétrico
+- 3er armónico prominente
+- Respuesta más rápida
+
+## Filtro de tono (Tone shaping)
+
+Post-distorsión esencial:
+- **HPF** antes: Elimina graves que ensucian (80-200 Hz)
+- **LPF** después: Suaviza agudos duros (4-8 kHz)
+- **Paramétrico**: "Scoop" medios para metal, boost para blues
+
+## Patch de ejemplo: Multi-FX Distortion
+
+Incluye:
+1. **Pre-gain** + **Pre-HPF** (80 Hz)
+2. **Selector tipo**: Soft/Hard/Fold/Bitcrush/Tube
+3. **Drive** (0-40 dB) con ley logarítmica
+4. **Tone stack**: 3 bandas (Bass/Mid/Treble)
+5. **Post-LPF** (ajustable 2-20 kHz)
+6. **Mix** Dry/Wet (paralelo)
+7. **Output gain** (compensación)
+8. **Oversampling 4x** opcional (poly~)
+
+## Resumen
+
+- **Soft clip** = tanh/atan = tube/tape
+- **Hard clip** = clip = fuzz/distortion
+- **Wavefold** = abs/sin = metálico, West Coast
+- **Bitcrush** = cuantización + rate reduction = lo-fi
+- **Pre/Post filtering** = Esencial para tono usable
+- **Oversampling** = Reduce aliasing en distorsión dura
+
+## Ver También
+
+- **tanh~** - Hyperbolic tangent (externo)
+- **clip~** - Hard clipping
+- **bitshift~** - Bitcrushing (externo)
+- **oversampling** via **poly~**

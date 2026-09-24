@@ -1,0 +1,83 @@
+---
+title: "Tutorial 5: Repaso de fundamentos"
+description: "Ejercicios prácticos de fundamentos MSP: tono tipo guitarra eléctrica, crossfade con tono seno un 12avo arriba, diminuendo global de 30 dB."
+section: "fundamentos"
+order: 9
+slug: "05-basico-05-repaso-fundamentos"
+originalUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter05/"
+---
+
+# Tutorial Básico 5: Repaso de fundamentos
+
+## Ejercicios en los fundamentos de MSP
+
+En este capítulo, sugerimos algunas tareas para que programe que pondrán a prueba su comprensión de los fundamentos de MSP presentados en los tutoriales hasta ahora. Se incluyen algunas pistas para comenzar. Intente estos tres ejercicios progresivos por su cuenta primero, en un archivo nuevo propio. Luego revise el patch de ejemplo para ver una posible solución, y continúe leyendo en este capítulo para una explicación del patch de solución.
+
+### Ejercicio 1
+
+Escriba un patch que reproduzca la nota Mi sobre el Do central durante un segundo, diez veces seguidas, con un timbre tipo guitarra eléctrica. Hágalo de modo que todo lo que tenga que hacer es hacer clic una vez para encender el audio, y una vez para reproducir las diez notas.
+
+Aquí hay algunas pistas:
+
+1. La frecuencia del Mi sobre el Do central es 329.627557 Hz.
+2. Para un 'timbre tipo guitarra eléctrica' puede usar el archivo AIFF *gtr512.aiff* que se usó en el **Tutorial Básico 3**. Necesitará leer ese archivo en un objeto **buffer~**, y acceder al **buffer~** con un objeto **cycle~**.
+3. Su sonido también necesitará una envolvente de amplitud característica de una guitarra: ataque muy rápido, decaimiento rápido, y sostenido bastante estable (solo disminuyendo ligeramente). Intente usar una lista de segmentos de línea (valores objetivo y tiempos de transición) a un objeto **line~**, y usar la salida de **line~** para escalar la amplitud del **cycle~**.
+4. Para reproducir la nota diez veces seguidas, necesitará disparar la envolvente de amplitud repetidamente a una tasa constante. El objeto Max **metro** es muy adecuado para esa tarea. Para detener después de diez notas, su patch debería contar las notas o esperar una cantidad específica de tiempo, luego apagar el **metro**.
+
+### Ejercicio 2
+
+Modifique su primer patch para que, a lo largo de las diez notas repetidas, el sonido de guitarra eléctrica haga crossfade con un tono sinusoidal una 12ava perfecta más alta. Use un crossfade lineal, con la amplitud de un sonido yendo de 1 a 0, mientras el otro sonido va de 0 a 1. (Discutimos otras formas de crossfade en un capítulo futuro.) Envíe el tono de guitarra a la salida de audio izquierda, y el tono seno a la derecha.
+
+Pistas:
+
+1. Necesitará un segundo objeto **cycle~** para producir el tono una 12ava más alta.
+2. Para obtener la frecuencia que es una 12ava perfecta (afinación justa) sobre el Mi, simplemente multiplique 329.627557 por 3. La frecuencia que es una 12ava perfecta temperada igual sobre Mi es 987.7666 Hz. Use la afinación que prefiera.
+3. Además de la envolvente de amplitud para cada nota, necesitará cambiar la amplitud general de cada tono a lo largo de los diez segundos. Esto puede lograrse usando un objeto **\*~** adicional para escalar la amplitud de cada tono, cambiando lentamente el factor de escalado de 1 a 0 para un tono, y de 0 a 1 para el otro.
+
+### Ejercicio 3
+
+Modifique su segundo patch para que, a lo largo de las diez notas repetidas, los dos tonos en crossfade también realicen un **diminuendo** general, disminuyendo a 1/32 de su amplitud original (es decir, por 30 dB).
+
+Pistas:
+
+1. Esto requerirá otro factor de escala de amplitud (presumiblemente otro objeto **\*~**) para reducir la amplitud gradualmente por un factor de .03125.
+2. Observe que si escala la amplitud linealmente de 1 a .03125 en diez segundos, el diminuendo parecerá comenzar lentamente y acelerarse hacia el final. Eso es porque la distancia lineal entre 1 y .5 (una reducción a la mitad) es mucho mayor que la distancia lineal entre .0625 y .03125 (también una reducción a la mitad). Los primeros 6 dB de diminuendo ocurrirán por lo tanto en los primeros 5.16 segundos, pero la última reducción de 6 dB ocurrirá en los últimos .32 segundos. Así que, si quiere que el diminuendo se perciba como lineal, tendrá que ajustar en consecuencia.
+
+## Solución al Ejercicio 1
+
+- Haga doble clic en el objeto **patcher** **p exercise_1** para ver una posible solución a este ejercicio.
+
+Para hacer un oscilador con una forma de onda tipo guitarra, necesita leer el archivo de audio *gtr512.aiff* (o alguna forma de onda similar) en un **buffer~**, y luego referirse a ese **buffer~** con un objeto **cycle~**. (Vea el **Tutorial Básico 3**.)
+
+Observe que hay un límite en la precisión con la que Max puede representar números decimales. Cuando guarda su patch, Max puede cambiar los valores `float` ligeramente. En este caso, no oirá la diferencia.
+
+Si quiere que el archivo de audio se lea en el **buffer~** inmediatamente cuando se carga el patch, puede escribir el nombre del archivo como segundo argumento en el objeto **buffer~**, o puede usar un objeto **loadbang** para disparar un mensaje `read` al **buffer~**. En nuestra solución también elegimos proporcionar la frecuencia desde un **number** box — lo que le permite tocar otras notas — en lugar de como argumento a **cycle~**, así que también enviamos a **cycle~** un valor de frecuencia inicial con **loadbang**.
+
+Ahora que tenemos un oscilador produciendo el tono deseado, necesitamos proporcionar una envolvente de amplitud para dar forma a una nota.
+
+Elegimos la envolvente mostrada a continuación, compuesta de segmentos de línea recta. (Vea el **Tutorial Básico 3**.)
+
+![Envolvente de amplitud 'tipo guitarra'](/images/basicchapter05a.webp "Envolvente de amplitud 'tipo guitarra'")
+
+Esta envolvente de amplitud se impone en la salida de **cycle~** con una combinación de **line~** y **\*~**. Un **metro** se usa para disparar la envolvente una vez por segundo, y el **metro** se apaga después de un retraso de 10 segundos.
+
+## Solución al Ejercicio 2
+
+- Haga doble clic en el objeto **patcher** **p exercise_2** para ver una posible solución a este ejercicio.
+
+Para el canal de salida derecho queremos un tono sinusoidal a tres veces la frecuencia (el tercer armónico del tono fundamental), con la misma envolvente de amplitud. Para hacer crossfade entre los dos tonos, la amplitud del primer tono debe ir de 1 a 0 mientras la amplitud del segundo tono va de 0 a 1. Esto puede lograrse nuevamente con la combinación de **line~** y **\*~** para cada tono. Usamos un pequeño truco para economizar. En lugar de usar un objeto **line~** separado para fundir el segundo tono de 0 a 1, simplemente restamos 1 de la salida del **line~** existente, lo que nos da una rampa de 0 a -1. Perceptualmente esto tendrá el mismo efecto.
+
+Este crossfade se dispara (vía objetos **s** y **r**) por el mismo **button** que dispara el **metro**, así que el crossfade comienza al mismo tiempo que las diez notas individuales.
+
+## Solución al Ejercicio 3
+
+- Haga doble clic en el objeto **patcher** **p exercise_3** para ver una posible solución a este ejercicio.
+
+Finalmente, necesitamos usar una envolvente de amplitud más para crear un **diminuendo** global. Los dos tonos van a otro objeto **\*~**, controlado por otro **line~**. Como se señaló anteriormente, una disminución en línea recta en amplitud no dará la percepción de diminuendo constante en sonoridad.
+
+Por lo tanto, usamos cinco segmentos de línea para simular una curva que disminuye a la mitad cada dos segundos. (El objeto **curve~** hará esto automáticamente.)
+
+![Envolvente de amplitud global disminuyendo a la mitad cada dos segundos](/images/basicchapter05b.webp "Envolvente de amplitud global disminuyendo a la mitad cada dos segundos")
+
+Esta envolvente de amplitud global se inserta en la red de señal para escalar ambos tonos suavemente por un factor de .03125 en 10 segundos.

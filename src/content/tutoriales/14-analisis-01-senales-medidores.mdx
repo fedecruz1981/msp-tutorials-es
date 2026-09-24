@@ -1,0 +1,134 @@
+---
+title: "Tutorial 1: Señales y medidores"
+description: "Medición de señales MSP: levelmeter~, meter~, peak~, RMS, dB, VU, PPM, K-weighting, loudness (LUFS)."
+section: "analisis"
+order: 40
+slug: "14-analisis-01-senales-medidores"
+originalUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter01/"
+---
+
+# Tutorial de Análisis 1: Señales y Medidores
+
+Este tutorial cubre la **medición y visualización** de señales de audio en MSP: **RMS, pico, VU, PPM, LUFS**, y los objetos de medición disponibles.
+
+## Escalas de Medición
+
+### 1. Pico (Peak / Sample Peak)
+- **Valor máximo** absoluto de muestra en ventana
+- **Respuesta**: Instantánea (sample-accurate)
+- **Uso**: Prevención de clipping, headroom
+- **Objetos**: `peak~`, `levelmeter~` (modo peak)
+
+### 2. RMS (Root Mean Square)
+- **Raíz cuadrada de la media de cuadrados**
+- **Ventana típica**: 50-300 ms
+- **Representa**: Energía/potencia media
+- **dB RMS** = 20×log₁₀(RMS) (ref: 1.0 = 0 dBFS)
+
+### 3. VU (Volume Unit) - Analógico
+- **Tiempo de subida**: 300 ms a 0 dB
+- **Tiempo de bajada**: ~1-2 s
+- **Escala**: -20 a +3 dB (0 VU = +4 dBu ≈ -18 dBFS)
+- **Balística**: Balística definida (ANSI C16.5)
+
+### 4. PPM (Peak Programme Meter) - Broadcast
+- **Tipo I (BBC)**: Subida 10 ms, bajada 1.5 s/dB
+- **Tipo II (DIN/IEC)**: Subida 10 ms, bajada 24 dB/s
+- **Escala**: -50 a +5 dB (marcas cada 4-6 dB)
+
+### 5. K-weighting / LUFS (Loudness)
+- **ITU-R BS.1770** / **EBU R128**
+- **Filtro K**: Pre-emphasis alto + high-pass 100 Hz
+- **Unidades**: LUFS (Loudness Units Full Scale)
+- **Target**: -23 LUFS (TV), -14 LUFS (streaming), -16 LUFS (podcast)
+- **Integrado** (programa completo), **Momentario** (400 ms), **Corto plazo** (3 s)
+
+## Objetos de Medición en MSP
+
+| Objeto | Tipo | Características |
+|--------|------|-----------------|
+| **levelmeter~** | Visual | VU, PPM, RMS, Peak, LED/bar |
+| **meter~** | Visual | Medidor simple configurable |
+| **peak~** | Señal | Sample peak output |
+| **avg~** | Señal | RMS (ventana configurable) |
+| **rms~** | Señal | RMS true |
+| **loudness~** | Señal | LUFS (ITU-R BS.1770) |
+
+## levelmeter~ (El más completo)
+
+### Modos:
+- **`peak`**: Sample peak
+- **`rms`**: RMS (ventana 50-3000 ms)
+- **`vu`**: Balística VU
+- **`ppm`**: Balística PPM Tipo I/II
+- **`k`**: K-weighted (LUFS)
+
+### Atributos clave:
+- **`range`**: Rango dB (ej. -60 a 0)
+- **`ballistics`**: 0=peak, 1=VU, 2=PPM, 3=RMS
+- **`channel`**: 1=L, 2=R, 3=M, 4=S (para M/S)
+- **`style`**: 0=bar, 1=LED, 2=needle
+
+## Implementación de Medidores Custom
+
+### RMS con avg~:
+```
+[señal] → [avg~ 4410] (100ms @ 44.1k) → [20*log10] → dB RMS
+```
+
+### Peak hold con peak~:
+```
+[señal] → [peak~] → [peak hold: max con decay] → display
+```
+
+### LUFS (simplificado):
+```
+[señal] → [biquad~ K-filter] → [avg~ 400ms] → [20*log10] → LUFS momentáneo
+```
+
+## Visualización
+
+### En Max UI:
+- **levelmeter~** = Widget integrado (bar, LED, needle)
+- **multislider** = Historial temporal (scroll mode)
+- **scope~** = Forma de onda + nivel
+- **spectroscope~** = Espectro + nivel por banda
+
+### Gráficos personalizados:
+- **lcd** + **draw commands** = Medidores custom
+- **jit.pwindow** + **jit.gl** = 3D/advanced
+- **Web/HTML** = Export para web
+
+## Patch de ejemplo: Master Meter Bridge
+
+Incluye:
+1. **Entrada L/R** (o M/S)
+2. **4 medidores paralelos**:
+   - Sample Peak (peak~)
+   - RMS 300ms (avg~)
+   - VU (levelmeter~ vu)
+   - LUFS Momentáneo (loudness~ / K-filter + avg~)
+3. **Correlation meter** (L/R phase)
+4. **History view**: multislider scroll (últimos 30 s)
+5. **Alertas**: Clip indicator, LUFS target (-14/-16/-23)
+6. **Presets**: Mastering, Broadcast, Streaming, Podcast
+
+## Resumen
+
+- **Peak** = Clipping prevention (instantáneo)
+- **RMS** = Energía media (ventana 50-300ms)
+- **VU** = Balística analógica lenta (musical)
+- **PPM** = Broadcast standard (rápido subida, lento bajada)
+- **LUFS** = Loudness perceptual (K-weighting, estándar moderno)
+- **levelmeter~** = Objeto todo-en-uno configurable
+- **Correlation** = Mono-compatibilidad (-1 a +1)
+
+## Ver También
+
+- **levelmeter~** - Medidor visual completo
+- **meter~** - Medidor simple
+- **peak~** - Pico sample-accurate
+- **avg~ / rms~** - RMS señal
+- **loudness~** - LUFS (objeto omx/externo)
+- **vectorscope~** - Correlation/goniometer (externo)

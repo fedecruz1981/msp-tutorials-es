@@ -1,0 +1,110 @@
+---
+title: "Tutorial 1: Tono de prueba"
+description: "Fundamentos de MSP: objetos MSP, red de señal, dac~, cycle~, gain~, encendido/apagado de procesamiento de audio, solución de problemas."
+section: "fundamentos"
+order: 5
+slug: "05-basico-01-tono-prueba"
+originalUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter01/"
+---
+
+# Tutorial Básico 1: Tono de prueba
+
+## Los objetos MSP son muy parecidos a los objetos Max
+
+Los objetos MSP son para procesar audio digital (es decir, sonido) para ser reproducido por su computadora. Los objetos MSP se ven igual que los objetos Max, tienen inlets y outlets igual que los objetos Max, y se conectan entre sí con patch cords igual que los objetos Max. Se crean de la misma manera que los objetos Max — simplemente colocando una caja de objeto en la ventana Patcher y escribiendo el nombre deseado — y coexisten bastante felizmente con los objetos Max en la misma ventana Patcher.
+
+## ...pero son un poco diferentes
+
+Un patcher que contiene objetos MSP interconectados funciona un poco diferente de un patcher que contiene objetos Max estándar.
+
+Una forma de pensar en la diferencia es simplemente pensar en los objetos MSP como trabajando mucho más rápido que los objetos Max ordinarios. Dado que los objetos MSP necesitan producir suficientes números para generar una señal de audio de alta fidelidad (comúnmente 44,100 números por segundo), deben trabajar más rápido que el programador usado por los objetos Max estándar, que típicamente se ejecuta alrededor de mil veces por segundo.
+
+Aquí hay otra forma útil de pensar en la diferencia. Piense en un patch de objetos MSP no como un programa en el que ocurren eventos en instantes específicos (como en un patch Max estándar), sino más bien como una **descripción de un diseño de instrumento** — un sintetizador, sampler o procesador de efectos. Es como una fórmula matemática, con cada objeto proporcionando constantemente valores numéricos al (los) objeto(s) conectado(s) a su outlet. En cualquier instante dado, esta fórmula tiene un resultado, que es la amplitud instantánea de la señal de audio. Por eso nos referimos frecuentemente a un conjunto de objetos MSP interconectados como una **red de señal**.
+
+Así, mientras que un patch compuesto por objetos Max estándar se queda inactivo y no hace nada hasta que algo ocurre (un clic del ratón, un mensaje MIDI entrante, el reloj disparando en un objeto **metro**, etc.) causando que un objeto envíe un mensaje a otro objeto, una red de señal de objetos MSP, por el contrario, está siempre activa (desde el momento en que se enciende hasta que se apaga), con todos sus objetos comunicándose constantemente para calcular la amplitud apropiada para el sonido en ese instante.
+
+## ...así que se ven un poco diferentes
+
+Los nombres de todos los objetos MSP terminan con el carácter tilde (**~**). Este carácter, que se parece a un ciclo de una onda seno, solo sirve como indicador para ayudarle a distinguir objetos MSP de otros objetos Max.
+
+Los patch cords entre objetos MSP tienen rayas. Esto le ayuda a distinguir la red de señal MSP del resto del patch Max.
+
+![Los objetos MSP están conectados por patch cords rayados](/images/basicchapter01a.webp "Los objetos MSP están conectados por patch cords rayados")
+
+Eche un vistazo al patcher del tutorial. Verá que tenemos seis elementos en el lienzo de nuestro patcher. Tres de ellos deberían serle familiares: tenemos una caja de **comment** de Max ("warning:loud") y dos cajas de **message** etiquetadas `start` y `stop`. La mayor parte de la lógica del patcher consiste en tres objetos que nunca hemos visto antes: un objeto **cycle~**, un objeto **dac~**, y algo que se parece sospechosamente a un objeto **slider** pero es en realidad un objeto **gain~**. Veamos estos objetos por turnos, comenzando con el **dac~** en la parte inferior del patcher y volviendo desde allí hacia la parte superior de la cadena.
+
+## Convertidor digital-a-analógico: dac~
+
+El **convertidor digital-a-analógico** (DAC) es la parte de su computadora que traduce la corriente de números discretos en una señal de audio digital en un voltaje fluctuante continuo que impulsará su altavoz.
+
+Una vez que ha calculado una señal digital para hacer un sonido generado por computadora, debe enviar los números al DAC. Así que MSP tiene un objeto llamado **dac~**. Este objeto es generalmente el objeto terminal en cualquier red de señal, y es requerido para que cualquier señal generada por MSP salga de su computadora como sonido. El objeto **dac~** recibe las señales que desea escuchar en sus inlets. Puede tener tantos inlets como canales de reproducción de audio estén disponibles en su computadora, aunque por defecto usa una configuración estéreo hablando con los dos primeros canales de su hardware de audio — por eso hay dos inlets en el **dac~** en nuestro patcher. Si está usando hardware de salida de audio más elaborado, puede escribir argumentos para especificar otros canales de audio.
+
+**¡Importante!** El **dac~** debe estar recibiendo una señal de amplitud no cero para que usted oiga algo. El **dac~** espera recibir valores de señal en el rango -1.0 a 1.0. Números que excedan ese rango causarán distorsión cuando se reproduzca el sonido.
+
+## Un oscilador de tabla de ondas simple: cycle~
+
+La mejor manera de producir una forma de onda periódica es con **cycle~**. Este objeto usa la técnica conocida como **síntesis de tabla de ondas**. Lee a través de una lista de 512 valores a una tasa especificada, volviendo al principio de la lista cuando llega al final. Esto simula una forma de onda que se repite periódicamente.
+
+Puede dirigir **cycle~** a leer de una lista de valores que usted proporcione (en forma de un archivo de audio), o si no proporciona una, leerá a través de su propia tabla que representa un ciclo de una onda coseno con amplitud de 1. Le mostraremos cómo proporcionar su propia forma de onda en un tutorial posterior; por ahora usaremos la forma de onda coseno.
+
+![Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1](/images/basicchapter01b.webp "Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1")
+
+El objeto **cycle~** recibe un valor de frecuencia (en Hz) en su inlet izquierdo, y determina por sí mismo qué tan rápido debe leer a través de la lista para enviar una señal con la frecuencia deseada.
+
+**Detalle técnico:** Para averiguar cuánto avanzar a través de la lista para cada muestra consecutiva, **cycle~** usa la fórmula básica donde *I* es la cantidad para incrementar a través de la lista, *ƒ* es la frecuencia de la señal, *L* es la longitud de la lista (512 en este caso), y *R* es la tasa de muestreo de audio. **cycle~** es un "oscilador interpolador", lo que significa que si *I* no cae exactamente en un índice entero en la lista para una muestra dada, el objeto **cycle~** interpola entre los dos números más cercanos en la lista para encontrar el valor de salida apropiado. Realizar interpolación en un oscilador de tabla de ondas hace una mejora sustancial en la calidad de audio. El objeto **cycle~** usa interpolación lineal, mientras que otros objetos MSP usan interpolación polinomial de muy alta calidad (y computacionalmente más costosa).
+
+```
+I = ƒL/R
+```
+
+El objeto **cycle~** tiene una frecuencia predeterminada de 0 Hz. Así que para oír la señal, necesitamos suministrar un valor de frecuencia audible. Esto puede hacerse con un argumento numérico como en el patch de ejemplo, o enviando un número en el inlet izquierdo, o conectando otro objeto MSP al inlet izquierdo. Si escuchamos la salida de esta señal con su frecuencia establecida en un rango audible, deberíamos oír una onda seno, el sonido más puro (en términos de espectro) que podemos hacer.
+
+## Un control de volumen: gain~
+
+Si conectáramos directamente nuestro objeto **cycle~** a un objeto **dac~** y encendemos el audio, podríamos dañar fácilmente nuestros altavoces o, más importante, nuestros oídos. Los objetos MSP que generan audio (como **cycle~**) generalmente lo hacen en un rango dinámico normalizado de -1 a 1, que el objeto **dac~** interpretará como la señal más fuerte posible. Para evitar estos peligros, es importante tener un objeto en medio para controlar la amplitud de la señal que va a nuestros altavoces. El slider **gain~** realiza precisamente esa función:
+
+![El slider gain~ en la sección de sliders de la Paleta de Objetos](/images/basicchapter01c.webp "El slider gain~ en la sección de sliders de la Paleta de Objetos")
+
+El slider **gain~** **multiplica** su señal entrante por un factor basado en la posición del slider que, para todo menos los extremos superiores del objeto, es un número menor que 1. Como resultado, el objeto **gain~** casi siempre **atenúa** (o baja) el volumen de lo que entra, muy parecido a un fader en una mesa de mezclas analógica. El objeto **gain~** es en varios aspectos una versión gráfica de un objeto **\*~**, que veremos en un tutorial posterior.
+
+Es importante notar que el slider **gain~** "llega hasta 11". De hecho llega por encima de 12, en que el paso más alto del slider es 157 comparado con el paso de ganancia unitaria de 128. Este nivel extremo multiplica la señal por más de 7, casi garantizando distorsión.
+
+## Encendiendo y apagando el procesamiento de señal
+
+La red de audio MSP está apagada cuando Max arranca. Puede encenderse con el icono de encendido/apagado en la esquina inferior derecha de cualquier ventana que contenga objetos MSP. Hay un slider justo encima de este botón que controla el nivel de la ventana en la mezcla de salida, así como un par de barras VU que muestran el nivel de señal. Cuando se abre la ventana, este slider está en el punto de ganancia unitaria, y puede usarse para balancear la mezcla, pero debe tener en cuenta que reducir el nivel con este slider puede enmascarar distorsión causada por niveles excesivos dentro del patch.
+
+El procesamiento de audio también puede controlarse programáticamente. El objeto **dac~** es uno de los cinco objetos MSP (junto con **adc~**, sus primos gráficos **ezadc~** y **ezdac~**, y **adstatus**) que pueden encender y apagar la red de audio MSP **desde dentro** de su patcher. Es muy común proporcionar el mensaje `start` con un objeto **loadmess** para que el audio comience tan pronto como se abre el patch.
+
+**¡Importante!** Enviar `start` o `stop` a cualquier objeto **dac~** o **adc~** habilita o deshabilita el procesamiento para **todas** las redes de señal abiertas en **todos** los patchers de Max actualmente abiertos. Así que si enciende el audio en un patcher y oye cosas que no espera, un buen lugar para buscar es bajo el menú **Ventana** de Max; es posible que tenga otros documentos abiertos que estén generando audio usando MSP. Puede usar el mensaje `startwindow` para iniciar el procesamiento solo en la ventana afectada.
+
+## Escuchando el tono de prueba
+
+La primera vez que inicie Max, intentará usar la tarjeta de sonido y controlador predeterminados de su computadora (CoreAudio en Macintosh o MME en Windows) para entrada y salida de audio. Si tiene la salida de audio de su computadora conectada a auriculares o un amplificador, debería oír la salida de MSP a través de él. Si no tiene un cable de audio conectado a su computadora, oirá el sonido a través del altavoz interno de la computadora.
+
+Para poner MSP en marcha correctamente, recomendamos que comience los tutoriales usando el hardware de sonido integrado de su computadora. Si quiere usar una interfaz de audio externa o tarjeta de sonido, por favor refiérase al capítulo Entrada y Salida de Audio para detalles sobre la configuración de MSP para trabajar con hardware de audio.
+
+- Establezca su amplificador de audio (o altavoces amplificados) en su configuración mínima, luego haga clic en el **message** box `start` en el patcher del tutorial. Haga clic y arrastre en el slider **gain~** hasta que esté en algún punto a la mitad de su longitud. Ajuste su amplificador de audio a una configuración cómoda. Una vez que esté satisfecho de que el patcher funciona, haga clic en el **message** box `stop` para apagar ese molesto tono de prueba.
+
+## Solución de problemas
+
+Si no oye ningún sonido proveniente de su computadora cuando inicia el **dac~** en este ejemplo y sube el slider **gain~**, verifique la configuración de nivel en su amplificador o mezcladora, y verifique todas sus conexiones de audio. Verifique que la salida de sonido no esté actualmente silenciada. En Macintosh, el nivel de salida de sonido se establece usando las preferencias de Sonido en la aplicación Preferencias del Sistema. En Windows, el nivel de salida de sonido se establece usando la configuración de Sonidos y Dispositivos de Audio (Inicio - Panel de Control - Sonidos y Dispositivos de Audio).
+
+Si aún no oye nada, elija **Estado de Audio** en el menú Opciones y verifique que un controlador y salida válidos estén elegidos en los menús desplegables. Si no lo están, elíjalo. (Vea el tutorial de **Audio I/O** para más información.)
+
+![Ventana Estado de Audio](/images/basicchapter01d.webp "Ventana Estado de Audio")
+
+Siempre puede verificar si los problemas de audio se originan en su patch o en el sistema de audio abriendo el patch *Audiotester* en el menú `Extras`. Este patch proporciona una fuente de audio simple así como pantallas de cualquier entrada activa. Si seleccionar *Oscillator* o *Pink noise* del menú de fuente de señal no produce sonido, el problema está en alguna parte de la configuración de audio.
+
+## Resumen
+
+Una **red de señal** de objetos MSP conectados describe un instrumento de audio. El convertidor digital-a-analógico del instrumento está representado por el objeto **dac~**; **dac~** debe estar recibiendo una señal de amplitud no cero (en el rango -1.0 a 1.0) para que usted oiga algo. El objeto **cycle~** es un oscilador de tabla de ondas que lee cíclicamente a través de una lista de 512 valores de amplitud, a una tasa determinada por el valor de frecuencia suministrado. El procesamiento de señal se enciende y apaga con un botón en la ventana del patcher o enviando un mensaje `start` o `stop` a cualquier objeto **dac~** o **adc~**.
+
+- Debido a que enviar un mensaje `start` a un **dac~** enciende el audio en todos los patches de Max abiertos que contengan objetos MSP, al pasar por estos tutoriales es mejor tenerlos abiertos solo uno a la vez. Cierre la ventana del Patcher antes de proceder al siguiente capítulo.
+
+## Ver También
+
+- **cycle~** - Oscilador de búsqueda en tabla
+- **gain~** - Slider de volumen con escalado exponencial
+- **dac~** - Salida de audio y encendido/apagado
+- **Audio I/O** - Entrada y salida de audio con MSP

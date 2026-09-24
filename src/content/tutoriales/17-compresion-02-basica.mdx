@@ -1,0 +1,215 @@
+---
+title: "Tutorial 2: Compresión Básica"
+description: "Compresor estéreo VCA: threshold, ratio, attack, release, knee, makeup gain, auto-release, stereo link, metering, sidechain."
+section: "compresion"
+order: 55
+slug: "17-compresion-02-basica"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_02/"
+---
+
+# Tutorial de Compresión 2: Compresión Básica
+
+Este tutorial construye un **compresor estéreo VCA completo** usando **omx.comp~** y objetos MSP nativos, cubriendo todos los parámetros esenciales.
+
+## Arquitectura del Compresor VCA
+
+### Cadena de señal:
+```
+[Entrada L/R] → [Detector] → [Gain Computer] → [Gain Apply (*~)] → [Salida L/R]
+                    ↓
+              [Sidechain Input] (opcional)
+```
+
+### Etapas:
+1. **Detector**: Envelope Follower (RMS/Peak)
+2. **Gain Computer**: Curva Threshold/Ratio/Knee
+3. **Ballistics**: Attack/Release smoothing
+4. **Gain Apply**: *~ (multiplicación)
+
+## Parámetros del Compresor
+
+### Threshold (Umbral) - dBFS
+- **Rango**: -60 a 0 dBFS
+- **Por debajo**: Sin compresión
+- **Por encima**: Compresión según Ratio
+
+### Ratio (Relación) - 1:n
+| Ratio | Uso típico |
+|-------|------------|
+| 1.5:1 - 2:1 | Suave, bus mix, mastering |
+| 3:1 - 4:1 | Vocals, instrumentos |
+| 5:1 - 8:1 | Drums, control fuerte |
+| 10:1 - 20:1 | Limitación suave |
+| ∞:1 | Limitador |
+
+### Attack (Ataque) - ms
+| Attack | Efecto | Uso |
+|--------|--------|-----|
+| 0.1-1 ms | Muy rápido, agarre transientes | Limitador, drums |
+| 1-10 ms | Rápido, controla picos | Vocals, guitars |
+| 10-30 ms | Medio, deja transientes | Bus mix, mastering |
+| 30-100 ms | Lento, "punch" | Bus drums, parallel |
+
+### Release (Liberación) - ms
+| Release | Efecto | Uso |
+|---------|--------|-----|
+| 50-100 ms | Rápido, "pumping" | Efecto, sidechain |
+| 100-300 ms | Medio, natural | Vocals, instrumentos |
+| 300-1000 ms | Lento, suave | Bus mix, mastering |
+| Auto | Adaptativo | General |
+
+### Knee (Rodilla) - dB
+| Knee | Tipo | Transición |
+|------|------|------------|
+| 0 dB | Hard | Aguda (compresor clásico) |
+| 3-6 dB | Medium | Suave, musical |
+| 10-30 dB | Soft | Muy suave, "invisible" |
+
+### Makeup Gain (Ganancia compensación)
+- **Auto**: Compensa ganancia promedio perdida
+- **Manual**: Ajuste fino output level
+
+## Implementación con omx.comp~
+
+### Objeto omx.comp~:
+```
+[omx.comp~]
+```
+**Parámetros (atributos/mensajes):**
+- `threshold` - dBFS (-60 a 0)
+- `ratio` - 1:n (1 a 100)
+- `attack` - ms (0.1-1000)
+- `release` - ms (5-5000) o `auto`
+- `knee` - dB (0-30)
+- `makeup` - dB (0-24) o `auto`
+- `stereolink` - 0-1 (0=dual mono, 1=estéreo linked)
+- `sidechain` - 0/1 (activar sidechain)
+- `mode` - `peak` / `rms` (detector)
+
+### Ejemplo básico:
+```
+[omx.comp~ @threshold -18 @ratio 4 @attack 10 @release 200 @knee 3 @makeup auto @stereolink 1]
+```
+
+## Sidechain (Cadena Lateral)
+
+### Concepto:
+Detector ≠ Señal procesada
+```
+[Main L/R] → [Compresor] → Out
+     ↑
+[Sidechain] → [Detector]
+```
+
+### Usos clásicos:
+| Sidechain Source | Efecto | Uso |
+|------------------|--------|-----|
+| Kick drum | Baja volumen bajo | Ducking |
+| Voz | Baja música | Radio/podcast |
+| Snare | Baja overheads | Control bleed |
+| Filtrado (HPF 100Hz) | Ignora graves | Evita pumping |
+
+### Implementación MSP:
+```
+[Main L] → [omx.comp~ 1] → Out L
+[Main R] → [omx.comp~ 1] → Out R
+              ↑
+[Sidechain] → [omx.comp~ 1] (inlet sidechain)
+```
+
+### Sidechain EQ (Crítico):
+```
+[Sidechain] → [biquad~ highpass 100Hz] → [Detector]
+```
+- **HPF 80-150 Hz** = Ignora graves en detector
+- **Evita**: Pumping por kick/bajo en detector
+
+## Auto-Release (Liberación Automática)
+
+### Principio:
+```
+Release = f(Señal, Gain Reduction, Historial)
+```
+- **Más GR** → Release más largo
+- **Transientes** → Release corto
+- **Sostenido** → Release largo
+
+### omx.comp~ Auto:
+```
+[omx.comp~ @release auto]
+```
+- **Algoritmo propietario** optimizado
+- **Generalmente mejor** que manual
+
+## Stereo Link (Enlace Estéreo)
+
+### Dual Mono (Link 0%):
+- L y R comprimidos **independientemente**
+- **Imagen estéreo** puede moverse
+- **Uso**: Instrumentos separados, efectos especiales
+
+### Stereo Linked (Link 100%):
+- **Mismo gain** para L y R
+- **Imagen estéreo** preservada
+- **Gain = max(GR_L, GR_R)** o **RMS(GR_L, GR_R)**
+
+### Parcial (Link 0-100%):
+```
+Gain_L = GR_L × (1-link) + GR_mono × link
+Gain_R = GR_R × (1-link) + GR_mono × link
+```
+- **Link 50-70%** = Commit típico
+
+## Metering (Medición)
+
+### Gain Reduction (GR) Meter:
+- **dB de reducción** en tiempo real
+- **Peak hold** (1-2 seg)
+- **Útil**: Ver cuánto comprime
+
+### Input/Output Meters:
+- **Peak** (sample peak)
+- **RMS** (300 ms window)
+- **LUFS** (momentáneo)
+
+## Patch de ejemplo: Compresor Estéreo Pro
+
+Incluye:
+1. **Entrada**: L/R + Sidechain (selector)
+2. **Parámetros**:
+   - Threshold: -60 a 0 dB (slider + num)
+   - Ratio: 1:1 a ∞:1 (log scale)
+   - Attack: 0.1-100 ms (log)
+   - Release: 5-5000 ms + Auto (toggle)
+   - Knee: 0-30 dB
+   - Makeup: Auto / Manual (-12 a +24 dB)
+   - Stereo Link: 0-100% (slider)
+   - Mode: Peak / RMS (toggle)
+3. **Sidechain**:
+   - Input selector (Ext / Main L / Main R / Main L+R)
+   - HPF Sidechain: Off / 60 / 100 / 150 / 300 Hz
+4. **Metering**:
+   - GR Meter (L/R/Linked) + Peak Hold
+   - Input/Output Peak + RMS + LUFS Momentáneo
+   - Gain Reduction History (30 seg scroll)
+5. **Presets**: Vocal, Drum Bus, Mix Bus, Mastering, Parallel, De-esser
+
+## Resumen
+
+- **VCA Compressor** = Threshold, Ratio, Attack, Release, Knee, Makeup
+- **Attack/Release** = Críticos para carácter (rápido=control, lento=punch)
+- **Knee** = Hard (quirúrgico) vs Soft (musical)
+- **Sidechain** = Detector externo (ducking, de-essing)
+- **Sidechain HPF** = Esencial (evita pumping por graves)
+- **Stereo Link** = 0% dual mono, 100% linked, 50-70% híbrido
+- **Auto-Release** = Generalmente mejor que manual
+- **omx.comp~** = Objeto optimizado todo-en-uno
+
+## Ver También
+
+- **omx.comp~** - Compresor VCA optimizado
+- **comp~** - Compresor clásico
+- **omx.gate~** - Gate/Expansor
+- **rampsmooth~ / slide~** - Envelope follower DIY
+- **biquad~** - Sidechain EQ

@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+---
+
+<Layout title="Buscar | MSP Tutorials ES" description="Buscar en todos los tutoriales MSP">
+  <slot name="sidebar">
+    <Sidebar currentSlug="buscar" />
+  </slot>
+
+  <header class="search-header">
+    <h1>Buscar</h1>
+    <p>Busca en todos los 63 capítulos de los tutoriales MSP</p>
+  </header>
+
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input 
+        type="search" 
+        id="search-input" 
+        placeholder="Escribe para buscar... (ej: cycle~, buffer~, FFT, compresión)" 
+        autocomplete="off"
+        aria-label="Buscar en tutoriales"
+      />
+      <kbd class="search-shortcut">⌘K</kbd>
+    </div>
+    <div id="search-results" class="search-results" role="listbox" aria-label="Resultados de búsqueda"></div>
+  </div>
+
+  <div id="search-index" style="display: none;"></div>
+
+<style>
+  .search-header { text-align: center; padding: 3rem 1.5rem 2rem; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem; }
+  .search-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .search-header p { color: var(--color-text-muted); font-size: 1.125rem; }
+  .search-container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
+  .search-input-wrapper { position: relative; }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; color: var(--color-text-muted); pointer-events: none; }
+  #search-input { width: 100%; padding: 1rem 1rem 1rem 3.5rem; font-size: 1.125rem; background: var(--color-bg-elevated); border: 2px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text); transition: all var(--transition); }
+  #search-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+  #search-input::placeholder { color: var(--color-text-muted); }
+  .search-shortcut { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: var(--color-code-bg); color: var(--color-text-muted); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+  .search-results { margin-top: 1.5rem; display: none; }
+  .search-results.active { display: block; }
+  .search-result-item { background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; text-decoration: none; color: var(--color-text); transition: all var(--transition); display: block; }
+  .search-result-item:hover { border-color: var(--color-primary); transform: translateX(4px); box-shadow: var(--shadow-md); text-decoration: none; }
+  .search-result-title { font-weight: 600; font-size: 1.0625rem; margin-bottom: 0.25rem; }
+  .search-result-meta { display: flex; gap: 1rem; font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .search-result-snippet { font-size: 0.875rem; line-height: 1.6; color: var(--color-text-muted); }
+  .search-result-snippet mark { background: var(--color-primary); color: white; padding: 0.125rem 0.25rem; border-radius: var(--radius-sm); }
+  .no-results { text-align: center; padding: 3rem; color: var(--color-text-muted); }
+  @media (max-width: 640px) { .search-header { padding: 2rem 1rem 1.5rem; } .search-header h1 { font-size: 1.75rem; } #search-input { padding: 1rem 1rem 1rem 3rem; font-size: 1rem; } }
+</style>
+</Layout>
+
+<script is:inline>
+  // Load search index
+  let searchIndex = null;
+  async function loadIndex() {
+    try {
+      const res = await fetch('/search-index.json');
+      searchIndex = await res.json();
+    } catch (e) {
+      console.error('Failed to load search index:', e);
+    }
+  }
+  loadIndex();
+
+  const input = document.getElementById('search-input');
+  const results = document.getElementById('search-results');
+  let debounceTimer = null;
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  }
+
+  function renderResults(query) {
+    if (!searchIndex || !query.trim()) {
+      results.innerHTML = '';
+      results.classList.remove('active');
+      return;
+    }
+    const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+    const scored = searchIndex.map(item => {
+      let score = 0;
+      const searchText = `${item.title} ${item.description} ${item.content}`.toLowerCase();
+      for (const term of terms) {
+        const count = (searchText.match(new RegExp(term, 'g')) || []).length;
+        score += count * (item.title.toLowerCase().includes(term) ? 10 : 1);
+      }
+      return { ...item, score };
+    }).filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 20);
+    
+    if (scored.length === 0) {
+      results.innerHTML = '<div class="no-results">No se encontraron resultados para "' + query + '"</div>';
+      results.classList.add('active');
+      return;
+    }
+    
+    results.innerHTML = scored.map(item => `
+      <a href="${item.url}" class="search-result-item" role="option">
+        <div class="search-result-title">${highlight(item.title, query)}</div>
+        <div class="search-result-meta">
+          <span>Cap. ${item.order}</span>
+          <span>${item.section}</span>
+        </div>
+        <div class="search-result-snippet">${highlight(item.content.substring(0, 300), query)}...</div>
+      </a>
+    `).join('');
+    results.classList.add('active');
+  }
+
+  input.addEventListener('input', (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => renderResults(e.target.value), 100);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim()) renderResults(input.value);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+      results.classList.remove('active');
+    }
+  });
+
+  // Keyboard shortcut
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      input.focus();
+    }
+    if (e.key === 'Escape') {
+      input.blur();
+      results.classList.remove('active');
+    }
+  });
+</script>

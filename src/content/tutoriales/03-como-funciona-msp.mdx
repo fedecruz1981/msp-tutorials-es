@@ -1,0 +1,96 @@
+---
+title: "Cómo funciona MSP"
+description: "Diferencias entre objetos Max y MSP, tasa de audio vs tasa de control, enlace entre Max y MSP, limitaciones y ventajas de MSP."
+section: "introduccion"
+order: 3
+slug: "03-como-funciona-msp"
+originalUrl: "https://docs.cycling74.com/learn/articles/03_msphowmspworks/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/03_msphowmspworks/"
+---
+
+# Cómo funciona MSP: Patches de Max y la red de señal MSP
+
+## Introducción
+
+Los objetos Max se comunican enviándose mensajes entre sí a través de patch cords. Estos mensajes se envían en un momento específico, ya sea en respuesta a una acción del usuario (un clic del ratón, una nota MIDI tocada, etc.) o porque el evento fue programado para ocurrir (por **metro**, **delay**, etc.).
+
+Los objetos MSP se conectan mediante patch cords de manera similar, pero su inter-comunicación es conceptualmente diferente. En lugar de establecer una ruta para que se envíen mensajes, las conexiones MSP establecen una **relación** entre los objetos conectados, y esa relación se usa para calcular la información de audio necesaria en cualquier instante particular. Esta configuración de objetos MSP se conoce como la **red de señal**.
+
+El siguiente ejemplo ilustra la distinción entre un patch de Max en el que se envían mensajes versus una red de señal en la que se establece una relación continua.
+
+![Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante](/images/msphowmspworks01.webp "Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante")
+
+En el ejemplo de Max a la izquierda, el **number box** no sabe sobre el número 0.75 almacenado en el objeto **float**. Cuando el usuario hace clic en el **button**, el objeto **float** envía su valor almacenado. Solo entonces el **number box** recibe, muestra y envía el número `0.75`. En el ejemplo de MSP a la derecha, sin embargo, cada outlet que está conectado como parte de la red de señal está contribuyendo constantemente su valor actual a la ecuación. Así, incluso sin que se envíe ningún mensaje Max específico, el objeto **\*~** está recibiendo la salida de los dos objetos **sig~**, y cualquier objeto conectado al outlet de **\*~** estaría recibiendo el producto `0.75`.
+
+Otra forma de pensar en una red de señal MSP es como una porción de un patch que se ejecuta a una tasa más rápida (de audio) que Max. Max, y usted el usuario, solo pueden afectar directamente esa porción de señal del patch cada milisegundo. Lo que sucede en los intervalos entre esos milisegundos es calculado y realizado por MSP. Si piensa en una red de señal de esta manera — como un patch muy rápido — entonces todavía tiene sentido pensar en los objetos MSP como "enviando" y "recibiendo" mensajes (aunque esos mensajes se envíen más rápido de lo que Max puede verlos), así que continuaremos usando la terminología estándar de Max como *enviar, recibir, entrada* y *salida* para los objetos MSP.
+
+## Tasa de audio y tasa de control
+
+La unidad básica de tiempo para programar eventos en Max es el milisegundo (0.001 segundos). Esta tasa — 1000 veces por segundo — es generalmente lo suficientemente rápida para cualquier tipo de control que se quiera ejercer sobre dispositivos externos como sintetizadores, o sobre efectos visuales como películas de QuickTime.
+
+El audio digital, sin embargo, debe procesarse a una tasa mucho más rápida — comúnmente 44,100 veces por segundo por canal de audio. La forma en que MSP maneja esto es calcular, de forma continua, todos los números que se necesitarán para producir los próximos milisegundos de audio. Estos cálculos son realizados por cada objeto, basándose en la configuración de la red de señal.
+
+![Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)](/images/msphowmspworks02.webp "Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)")
+
+En este ejemplo, un oscilador de forma de onda coseno con una frecuencia de 2000 Hz (el objeto **cycle~**) tiene su amplitud escalada (cada muestra es multiplicada por algún número en el objeto **\*~**) y luego se envía al convertidor digital-a-analógico (**dac~**). A lo largo de cada segundo, la onda sierra (sub-audio) de la salida del objeto **phasor~** envía una rampa continua de valores crecientes de `0` a `1`. Esos números crecientes se usarán como el operando derecho en el **\*~** para cada muestra de la forma de onda de audio, y el resultado será que el tono de 2000 Hz se desvanecerá linealmente desde el silencio a la amplitud completa cada segundo. Para cada milisegundo de audio, MSP debe producir aproximadamente 44 valores de muestra (asumiendo una tasa de muestreo de audio de 44,100 Hz), así que para cada muestra debe buscar el valor apropiado en cada oscilador y multiplicar esos dos valores para producir la muestra de salida.
+
+Aunque muchos objetos MSP aceptan valores de entrada expresados en milisegundos, calculan muestras a una tasa de muestreo de audio. Los mensajes de Max viajan mucho más lentamente, a lo que a menudo se conoce como **tasa de control**. Quizás sea útil pensar en que hay efectivamente dos tasas diferentes de actividad: la **tasa de control** más lenta del programador de Max, y la **tasa de muestra** de audio más rápida.
+
+Nota: Dado que puede especificar tiempo en Max en milisegundos de punto flotante, la resolución del programador varía dependiendo de qué tan a menudo se ejecute. La tasa de control exacta está establecida por una serie de configuraciones de MSP que presentaremos en breve. Sin embargo, es mucho menos eficiente "procesar" audio usando las funciones de "control" que se ejecutan en el programador que usar los objetos de audio especializados en MSP.
+
+## El enlace entre Max y MSP
+
+Algunos objetos MSP existen específicamente para proporcionar un enlace entre Max y MSP — y para traducir entre la tasa de control y la tasa de audio. Estos objetos (como **sig~** y **line~**) reciben mensajes de Max en sus inlets, pero sus outlets se conectan a la red de señal; o inversamente, algunos objetos (como **snapshot~**) se conectan a la red de señal y pueden "espiar" (pero solo tan frecuentemente como una vez por milisegundo) el valor(es) presente(s) en un punto particular de la red de señal.
+
+![Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal](/images/msphowmspworks03.webp "Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal")
+
+Estos objetos son muy importantes porque le dan a Max, y a usted el usuario, control directo sobre lo que ocurre en la red de señal.
+
+![Control de interfaz de usuario sobre la amplitud de la señal](/images/msphowmspworks04.webp "Control de interfaz de usuario sobre la amplitud de la señal")
+
+Algunos inlets de objetos MSP aceptan tanto entrada de señal como mensajes de Max. Pueden conectarse como parte de una red de señal, y también pueden recibir instrucciones o modificaciones vía mensajes de Max.
+
+Por ejemplo, el objeto **dac~** (convertidor digital-a-analógico), para reproducir la señal de audio, puede encenderse y apagarse con los mensajes `start` y `stop` de Max.
+
+![Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet](/images/msphowmspworks05.webp "Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet")
+
+Y el objeto **cycle~** (oscilador) puede recibir su frecuencia como un mensaje `float` o `int` de Max, o puede recibir su frecuencia de otro objeto MSP (aunque no puede hacer ambas cosas al mismo tiempo, porque la entrada de audio puede pensarse como suministrando constantemente valores que anularían inmediatamente el efecto del mensaje float o int).
+
+![Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito](/images/msphowmspworks06.webp "Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito")
+
+Así ve que un patch de Max (o subpatch) puede contener tanto objetos Max como objetos MSP. Para una organización clara, es frecuentemente útil encapsular un proceso completo, como una red de señal, en un subpatch para que aparezca como un solo objeto en otro patch de Max.
+
+![La encapsulación puede clarificar relaciones en un patch de Max](/images/msphowmspworks07.webp "La encapsulación puede clarificar relaciones en un patch de Max")
+
+## Limitaciones de MSP
+
+De la discusión anterior, es evidente que el procesamiento de audio digital requiere mucho "cálculo numérico". La computadora debe producir decenas de miles de valores de muestra por segundo por canal de sonido, y cada muestra puede requerir muchos cálculos aritméticos, dependiendo de la complejidad de la red de señal. Y para producir audio **en tiempo real**, las muestras deben calcularse al menos tan rápido como se están reproduciendo.
+
+La síntesis de sonido en tiempo real de esta complejidad en una computadora personal de propósito general estaba prácticamente fuera de cuestión hasta la introducción de procesadores lo suficientemente rápidos como el PowerPC. Aunque las computadoras contemporáneas están muy por encima del PowerPC en velocidad y capacidad, este tipo de cálculo numérico requiere una gran cantidad de la atención del procesador. Así que es importante ser consciente de que hay limitaciones en cuánto puede hacer su computadora con MSP. (No hay un procesador de audio dedicado que nos rescate de la forma en que la tarjeta gráfica acelera el procesamiento de video).
+
+A diferencia de un sintetizador MIDI, en MSP tiene la flexibilidad de diseñar algo que es demasiado complicado para que su computadora lo calcule en tiempo real. El resultado puede ser distorsión de audio, una computadora muy poco receptiva, o en casos extremos, bloqueos.
+
+Debido a la variación en el rendimiento del procesador entre computadoras, y debido a la gran variedad de posibles configuraciones de red de señal, es difícil decir con precisión qué complejidad de procesamiento de audio MSP puede o no manejar. Aquí hay algunos principios generales:
+
+- Cuanto más rápida sea la CPU de su computadora, mejor será el rendimiento de MSP.
+- Un disco duro rápido y una conexión rápida mejorarán la entrada/salida de archivos de audio.
+- Desactivar procesos en segundo plano (como chat de internet) mejorará el rendimiento.
+- Reducir la tasa de muestreo de audio reducirá cuántos números MSP tiene que calcular para una cantidad dada de sonido, mejorando así su rendimiento (aunque una tasa de muestreo más baja significará degradación de la respuesta de alta frecuencia). El control de la tasa de muestreo de audio se discute en el capítulo *Entrada y Salida de Audio*.
+
+Al diseñar sus instrumentos MSP, debe tener en cuenta que algunos objetos requieren más computación intensiva que otros. Un objeto que realiza solo unas pocas operaciones aritméticas simples (como **sig~**, **line~**, **+~**, **flonum**, **\*~**, o **phasor~**) es computacionalmente barato. (Sin embargo, **/~** es mucho más costoso). Un objeto que busca un número en una tabla de funciones e interpola entre valores (como **cycle~**) requiere solo unos pocos cálculos, así que tampoco es demasiado costoso. Los objetos más costosos son aquellos que deben realizar muchos cálculos por muestra: filtros (**reson~**, **biquad~**), analizadores espectrales (**fft~**, **ifft~**), y objetos como **play~**, **groove~**, **comb~**, y **tapout~** cuando uno de sus parámetros es controlado por una señal continua. Los problemas de eficiencia se discuten más en el *Tutorial MSP*.
+
+**Nota:** Para ver cuánto tiempo del procesador está tomando su patch, mire el valor *CPU Utilization* en el Monitor CPU DSP. Lo encontrará en el menú Extras.
+
+## Ventajas de MSP
+
+Su laptop o máquina de escritorio es una computadora de propósito general, no una computadora de procesamiento de sonido especialmente diseñada como un sampler o sintetizador comercial, así que como regla no puede esperar que rinda exactamente a ese nivel. Sin embargo, para diseños de instrumentos relativamente simples que satisfacen necesidades específicas de síntesis o procesamiento que pueda tener, o para experimentar con nuevas ideas de procesamiento de audio, es un entorno de construcción de instrumentos muy conveniente. Aquí hay algunas de las cosas que MSP le permite hacer:
+
+1. **Diseñar un instrumento que se ajuste a sus necesidades**. Incluso si tiene mucho equipo de audio, probablemente no pueda hacer todo lo imaginable que necesite hacer. Cuando necesite realizar una tarea específica no disponible en su estudio, puede diseñarla usted mismo.
+
+2. **Construir un instrumento y escuchar los resultados en tiempo real**. Con programas de síntesis de sonido no en tiempo real, define un instrumento que cree que sonará de la manera que quiere, luego lo compila y prueba los resultados, hace algunos ajustes, lo recompila, etc. Con MSP puede escuchar cada cambio que hace al instrumento mientras lo construye, haciendo el proceso más interactivo.
+
+3. **Establecer la relación entre control gestual y resultado de audio**. Con muchos instrumentos comerciales no puede cambiar parámetros en tiempo real, o solo puede hacerlo programando un complejo conjunto de controles MIDI. Con Max puede conectar fácilmente datos MIDI al parámetro exacto que quiere cambiar en su red de señal MSP, y sabe precisamente qué aspecto del sonido está controlando con MIDI.
+
+4. **Integrar procesamiento de audio en sus programas de composición o ejecución**. Si su trabajo musical consiste en idear programas de composición automatizados o actuaciones asistidas por computadora en Max, ahora puede incorporar procesamiento de audio en esos programas. ¿Necesita hacer un crossfade manos libres entre su voz y una muestra pregrabada en un punto específico de una actuación? Puede escribir un patch de Max con objetos MSP que lo haga por usted, disparado por un solo mensaje MIDI.
+
+Algunas de estas ideas se demuestran en los tutoriales MSP.

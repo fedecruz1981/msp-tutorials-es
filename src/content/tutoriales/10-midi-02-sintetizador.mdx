@@ -1,0 +1,116 @@
+---
+title: "Tutorial 2: Sintetizador MIDI"
+description: "Sintetizador polifónico controlado por MIDI: notein, poly~, voice allocation, velocity, pitch bend, modulation wheel, aftertouch."
+section: "midi-msp"
+order: 31
+slug: "10-midi-02-sintetizador"
+originalUrl: "https://docs.cycling74.com/learn/articles/10_midichapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/10_midichapter02/"
+---
+
+# Tutorial MIDI 2: Sintetizador MIDI
+
+Este tutorial construye un **sintetizador polifónico completo** controlado por MIDI, cubriendo asignación de voces, velocity, pitch bend, modulation wheel y aftertouch.
+
+## Polifonía con poly~
+
+El objeto **poly~** gestiona múltiples **voces** (instancias de un subpatch):
+
+```
+[notein] → [poly~ synth_voice 16] → Salida estéreo
+```
+
+### Ventajas de poly~:
+- **Asignación automática** de voces (robado de voz más antigua)
+- **Aislamiento DSP** por voz (una voz no afecta a otras)
+- **Eficiencia**: Voces silenciosas = 0% CPU
+- **Argumentos**: Número de voces, target (CPU/GPU)
+
+## Estructura de una voz (synth_voice)
+
+Entradas de la voz (via **in 1**, **in 2**, etc.):
+1. **Pitch** (MIDI note number 0-127)
+2. **Velocity** (0-127)
+3. **Gate** (1=note on, 0=note off)
+
+Salidas:
+1. **Audio L**, **Audio R** (via **out~ 1**, **out~ 2**)
+
+### Inside synth_voice:
+```
+Pitch → [mtof] → Frecuencia Hz → [Osciladores]
+Velocity → [scale 0 127 0 1] → Amplitud → [VCA]
+Gate → [Envelope ADSR] → [\*~] → VCA
+```
+
+## Mapeo MIDI completo
+
+| MIDI | MSP | Escalado típico |
+|------|-----|-----------------|
+| Note On/Off | pitch + gate | mtof → Hz |
+| Velocity | level | 0-127 → 0-1 (lineal o curva) |
+| Pitch Bend | pitch offset | ±2 semitonos (configurable) |
+| CC1 (Mod Wheel) | LFO depth/filter | 0-127 → 0-1 |
+| CC7 (Volume) | Master gain | 0-127 → 0-1 |
+| CC10 (Pan) | Pan L/R | 0-127 → -1 a 1 |
+| Aftertouch | Pressure | 0-127 → 0-1 (expresivo) |
+
+## Pitch Bend
+
+**bendin** recibe mensajes de pitch bend (14-bit = 16384 valores):
+- **Centro** = 8192 (sin bend)
+- **Rango** = ±8192 (configurable en synth)
+- **Escalado**: `scale -8192 8192 -2 2` → ±2 semitonos
+- **Aplicación**: `frecuencia × 2^(bend/12)`
+
+## Velocity Curves
+
+No lineal (más expresivo):
+- **Lineal**: `scale 0 127 0 1`
+- **Curva 1 (piano)**: `pow(vel/127, 2)` 
+- **Curva 2 (órgano)**: `vel/127`
+- **Curva 3 (synth)**: `pow(vel/127, 0.5)`
+
+## Aftertouch (Presión polifónica)
+
+**polyaftertouch** o **channelaftertouch**:
+- Controla: Filter cutoff, LFO depth, amplitude
+- Escalado: `scale 0 127 0 1`
+- Suavizado: **line~ 50ms** para evitar zipper noise
+
+## Patch de ejemplo: Sintetizador polifónico 16 voces
+
+Incluye:
+1. **notein** → **poly~ synth_voice 16**
+2. **synth_voice**: 2 osciladores (saw~/pulse~), svf~, ADSR×2
+3. **bendin** → pitch bend global (±2 semitonos)
+4. **ctlin 1** (Mod Wheel) → LFO depth / filter cutoff
+5. **ctlin 7** (Volume) → Master gain
+6. **ctlin 10** (Pan) → Pan L/R
+7. **ctlin 64** (Sustain) → Hold envelope
+8. **channelaftertouch** → Filter cutoff / LFO
+9. **poly~** args: 16 voces, target 0 (CPU)
+
+## Asignación de voces (Voice Stealing)
+
+**poly~** maneja automáticamente:
+- **Más notas que voces** → Roba la más antigua (release phase)
+- **Sustain pedal** → No roba voces con sustain activo
+- **Priority** configurable via **poly~** args
+
+## Resumen
+
+- **poly~** = Gestión polifónica automática y eficiente
+- **Voz** = Subpatch con osciladores, filtro, envolventes, VCA
+- **Mapeo MIDI** = notein, bendin, ctlin, aftertouch
+- **Velocity curves** = Escalado no lineal para expresión
+- **Pitch bend** = 14-bit, escalado a semitonos
+- **Aftertouch** = Control expresivo en tiempo real
+
+## Ver También
+
+- **poly~** - Gestión polifónica
+- **mtof** - MIDI note a frecuencia
+- **bendin** - Pitch bend input
+- **ctlin** - Control change input
+- **in / out / in~ / out~** - I/O de voces poly~

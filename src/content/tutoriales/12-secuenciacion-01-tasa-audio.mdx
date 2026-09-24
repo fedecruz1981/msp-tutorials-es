@@ -1,0 +1,146 @@
+---
+title: "Tutorial 1: Secuenciación a tasa de audio"
+description: "Secuenciación sample-accurate con phasor~, sah~, edge~, click~, metro~: triggers precisos, subdivisiones, swing, groove."
+section: "secuenciacion"
+order: 36
+slug: "12-secuenciacion-01-tasa-audio"
+originalUrl: "https://docs.cycling74.com/learn/articles/12_sequencingchapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/12_sequencingchapter01/"
+---
+
+# Tutorial de Secuenciación 1: Secuenciación a Tasa de Audio
+
+La **secuenciación a tasa de audio** usa señales MSP (44.1 kHz) para generar **triggers sample-accurados**, eliminando el jitter del scheduler de Max (1 ms).
+
+## Problema del scheduler Max
+
+- **Resolución**: 1 ms (1000 Hz)
+- **Jitter**: ±1 ms típico
+- **Insuficiente** para: Drum machines, groove tight, flams, micro-timing
+
+## Solución: Señales de audio como reloj
+
+### phasor~ = Reloj maestro
+```
+[phasor~ freq] → Rampa 0→1 @ freq Hz
+```
+- **Freq** = BPM / 60 (ej. 120 BPM = 2 Hz)
+- **Sample-accurate**: Cero jitter
+- **Fase** =posición en compás (0-1)
+
+### edge~ = Detector de flancos
+```
+[phasor~] → [edge~] → Bang @ cruce 0→1
+```
+- Detecta **inicio de ciclo** (flanco positivo)
+- **Sample-accurate**: Trigger exacto en sample
+
+### click~ = Generador de impulsos
+```
+[phasor~] → [click~] → Impulso @ cada ciclo
+```
+- Genera **sample = 1** en flanco, 0 resto
+- Útil para: Envelope triggers, sample playback
+
+## Subdivisiones y compases
+
+### Contador de compases (counter~)
+```
+[phasor~ 2Hz] → [counter~ 4] → 0,1,2,3 (4 tiempos)
+```
+- **counter~** cuenta ciclos de phasor
+- **Argumento** = pasos por ciclo (4 = 4/4)
+
+### Subdivisiones (swing, triplets)
+```
+[phasor~ 2Hz] → [sah~] @ subdiv trigger
+        ↓
+   [phasor~ 8Hz] (8 subdivs por beat)
+```
+- **phasor~ rápido** = subdivisiones
+- **sah~** samplea posición compás en cada subdiv
+
+## Swing y Groove
+
+### Swing clásico (ratio 2:1 → 66%)
+```
+Tiempo par (downbeat) = 66% de subdiv
+Tiempo impar (upbeat) = 34% de subdiv
+```
+
+### Implementación:
+```
+[phasor~ 8Hz] → [sah~] → positions
+       ↓
+[\<~ 0.5] → [select 0 1] → [scale] swing amounts
+```
+
+### Groove templates:
+- **MPC swing**: Curvas predefinidas
+- **Humanize**: `random` ±1-5% por hit
+- **Drag/Rush**: Offset sistemático ±5-20 ms
+
+## Secuenciador de pasos (Step Sequencer)
+
+### Arquitectura:
+```
+[phasor~ clock] → [counter~ 16] → [step index]
+                      ↓
+              [sah~ pattern data] → triggers
+```
+
+### Datos de patrón:
+- **coll** o **table** = 16 pasos × N tracks
+- **sah~** samplea paso actual @ cada clock
+- **Salida** = trigger + parámetros (pitch, vel, prob)
+
+### Probabilidad por paso:
+```
+[random 100] → [\<~ probability] → gate trigger
+```
+
+## Sincronización multi-dispositivo
+
+### Master clock (phasor~) → Slaves
+```
+[phasor~ master] → [send~ clock] → [receive~ clock] → [sah~] slaves
+```
+- **Sample-accurate** sync entre dispositivos
+- **Transport** de Max/DAW → phasor~ via `translate`
+
+### Ableton Link / MIDI Clock → phasor~
+```
+[link~] o [midirealtime] → [bpm] → [/ 60] → [phasor~]
+```
+
+## Patch de ejemplo: Drum Sequencer 16 pasos × 8 tracks
+
+Incluye:
+1. **Master clock**: phasor~ @ BPM/60 (control: tap tempo, MIDI clock)
+2. **16-step counter**: counter~ 16
+3. **8 tracks**: kick, snare, hh, oh, tom, clap, perc, accent
+4. **Pattern storage**: 16 presets × 8 tracks × 16 steps (coll)
+4. **Por step**: Pitch, Vel, Prob, Ratchet (1-4), Micro-offset
+5. **Swing**: Global + por track (0-100%)
+6. **Humanize**: Random ±ms por hit
+7. **Salida**: Triggers sample-accurados → poly~ drum voices
+8. **MIDI out**: Note messages sincronizados
+
+## Resumen
+
+- **phasor~** = Reloj maestro sample-accurado
+- **edge~/click~** = Triggers precisos en flancos
+- **counter~** = Conteo de compases/subdivisiones
+- **sah~** = Sampleo de datos en triggers
+- **Swing/Groove** = Ratios asimétricos + humanize
+- **Eliminación jitter** = Crítico para groove tight
+
+## Ver También
+
+- **phasor~** - Reloj sample-accurado
+- **edge~** - Detector de flanco
+- **click~** - Impulso unitario
+- **counter~** - Contador de ciclos
+- **sah~** - Sample-and-hold
+- **translate** - Transport → signal
+

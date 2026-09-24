@@ -1,0 +1,167 @@
+---
+title: "Tutorial 5: Chorus"
+description: "Chorus: delay modulado medio (15-35ms), múltiples voces, LFOs desafinados, estéreo width, vibrato, ensemble, detune."
+section: "retardos"
+order: 48
+slug: "15-retardos-05-chorus"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter05/"
+---
+
+# Tutorial de Retardos 5: Chorus
+
+El **chorus** usa **delays medios** (15-35 ms) **modulados suavemente** con **múltiples voces** para crear engrosamiento, ensanche estéreo y sensación de "múltiples instrumentos".
+
+## Principio del Chorus
+
+### Delay medio + Múltiples voces + LFOs desafinados:
+```
+Input → [tapin~ 50] → [tapout~ voice1] → ┐
+             → [tapout~ voice2] → ┤ → Sum → Output
+             → [tapout~ voice3] → ┘
+```
+- **Delay base**: 15-35 ms (zona "chorus")
+- **Voces**: 2-8 (típico: 3-6)
+- **LFOs**: Rate 0.2-1 Hz, Depth 1-5 ms
+- **Desafinación**: LFOs con rates/phases ligeramente diferentes
+- **Feedback**: Bajo o nulo (0-15%)
+
+## Chorus vs Flanging
+
+| Parámetro | Flanging | Chorus |
+|-----------|----------|--------|
+| **Delay base** | 1-10 ms | 15-35 ms |
+| **Feedback** | Alto (50-95%) | Bajo/Nulo (0-15%) |
+| **Notches** | Armónicos (peine) | Inarmónicos, densos |
+| **Efecto** | "Jet plane", resonante | "Ensemble", engrosamiento |
+| **Voces** | 1 (tapout) | Múltiples (3-8) |
+
+## Múltiples Voces (Multi-voice Chorus)
+
+### Implementación:
+```
+[tapin~ 100] → [tapout~ v1] → [*~ gain] → ┐
+            → [tapout~ v2] → [*~ gain] → ┤ → Sum
+            → [tapout~ v3] → [*~ gain] → ┤
+            → [tapout~ v4] → [*~ gain] → ┘
+```
+
+### Desafinación de voces (Clave para sonido "ensemble"):
+```
+Voice 1: Rate 0.5 Hz,  Phase 0°
+Voice 2: Rate 0.47 Hz, Phase 90°
+Voice 3: Rate 0.53 Hz, Phase 180°
+Voice 4: Rate 0.49 Hz, Phase 270°
+```
+- **Rates ligeramente diferentes** = Batidos evolutivos, orgánicos
+- **Phases distribuidas** = Movimiento espacial continuo
+
+## Interpolación y Calidad
+
+- **tapout~ 1** (cúbica) = Requerido para modulación suave
+- **Overlap** en tapin~ = No aplica (tapin~ no tiene overlap)
+- **Overlap en LFO** = `phasor~` + `sah~` para sample-accurate si rate audio
+
+## Chorus Estéreo (Stereo Chorus)
+
+### Técnicas de ensanche:
+
+#### 1. Phase Offset (Clásico):
+```
+Voice 1: L 0°, R 180°
+Voice 2: L 90°, R 270°
+Voice 3: L 45°, R 225°
+```
+
+#### 2. Delay Offset:
+```
+L: Delay base = 20 ms
+R: Delay base = 25 ms (offset 5ms)
+```
+
+#### 3. Inverted Modulation:
+```
+L: Mod +Depth
+R: Mod -Depth (inverso)
+```
+
+#### 4. Mid-Side Chorus:
+```
+Mid = (L+R)/2 → Chorus mono → Mid'
+Side = (L-R)/2 → Chorus ancho → Side'
+L' = Mid' + Side' × width
+R' = Mid' - Side' × width
+```
+
+## Vibrato (Chorus sin Dry)
+
+### Vibrato = Chorus 100% Wet, 1 voz:
+```
+[Input] → [tapin~] → [tapout~ mod] → Output (100% wet)
+```
+- **Sin señal dry** = Pitch modulation pura
+- **Depth** = Vibrato depth (centésimas/semitonos)
+- **Rate** = Vibrato rate (Hz)
+
+### Vibrato vs Chorus:
+| | Chorus | Vibrato |
+|---|--------|---------|
+| **Dry/Wet** | Mix (50/50 típico) | 100% Wet |
+| **Voces** | 3-8 | 1 |
+| **Efecto** | Engrosamiento + ancho | Modulación pitch pura |
+
+## Ensemble / String Synth Chorus
+
+### 3-6 voces + Ligera modulación de amplitud:
+```
+Voice 1: Delay 17ms, Rate 0.31, Depth 1.2ms, Amp Mod 0.1
+Voice 2: Delay 19ms, Rate 0.43, Depth 1.5ms, Amp Mod 0.15
+Voice 3: Delay 23ms, Rate 0.27, Depth 1.8ms, Amp Mod 0.05
+Voice 4: Delay 25ms, Rate 0.37, Depth 1.1ms, Amp Mod 0.1
+Voice 5: Delay 21ms, Rate 0.29, Depth 1.4ms, Amp Mod 0.08
+Voice 6: Delay 29ms, Rate 0.41, Depth 1.6ms, Amp Mod 0.12
+```
+- **Amplitude modulation** sutil = Movimiento orgánico
+- **Delays primos relativos** = Densidad uniforme
+
+## Patch de ejemplo: Pro Chorus Ensemble
+
+Incluye:
+1. **tapin~ 100** (100 ms max)
+2. **Voice Count**: 2-8 (selector)
+3. **Delay Section**:
+   - Base Delay: 15-35 ms
+   - Spread: 0-10 ms (diferencia entre voces)
+4. **LFO Section (por voz o global + spread)**:
+   - Rate: 0.1-2 Hz (log)
+   - Depth: 0.5-5 ms
+   - Spread: Rate/Phase spread entre voces
+   - Waveform: Sin / Triangle (triángulo = más suave)
+4. **Modulation**:
+   - Pitch Mod Depth (centésimas)
+   - Amp Mod Depth (0-30% sutil)
+5. **Stereo Section**:
+   - Mode: Phase Offset / Delay Offset / Inverted / Mid-Side
+   - Width: 0-200%
+6. **Mix**:
+   - Dry/Wet: 0-100%
+   - Output Gain
+   - Stereo Width (Mid-Side)
+7. **Presets**: Mono, Stereo, Ensemble, String Pad, Vocal, Guitar, Bass, Dimension D
+
+## Resumen
+
+- **Chorus** = Delay 15-35ms + Múltiples voces + LFOs desafinados
+- **Feedback bajo/nulo** = Sin resonancia peine, sonido suave
+- **Múltiples voces (3-8)** + Rates/phases spread = "Ensemble"
+- **Estéreo** = Phase offset, delay offset, o mid-side
+- **Vibrato** = Chorus 100% wet, 1 voz = pitch mod puro
+- **Ensemble** = 6+ voces + amp mod sutil = String synth
+
+## Ver También
+
+- **tapin~ / tapout~** - Delay line (tapout~ 1 cúbica)
+- **cycle~ / tri~** - LFOs (triángulo = más suave chorus)
+- **matrix~** - Cross-feedback estéreo
+- **vibrato~** (externo) - Vibrato dedicado
+- **chorus~** (externo, ej. Ircam chorus~) - Optimizado

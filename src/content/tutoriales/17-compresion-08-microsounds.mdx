@@ -1,0 +1,203 @@
+---
+title: "Tutorial 8: Microsounds"
+description: "Compresión de microsounds / granos: transient shaping granular, micro-dynamics, grain-level compression, spectral compression granular, microsound dynamics."
+section: "compresion"
+order: 61
+slug: "17-compresion-08-microsounds"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_08/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_08/"
+---
+
+# Tutorial de Compresión 8: Microsounds (Compresión a Nivel de Grano)
+
+La **compresión de microsounds** aplica procesamiento dinámico a **nivel de grano individual** (1-100 ms) en síntesis granular, permitiendo control dinámico imposible con compresores tradicionales.
+
+## Concepto: Compresión a Nivel de Grano
+
+### Grano = Unidad de procesamiento:
+- **Duración**: 1-100 ms
+- **Envolvente**: Ventana (Hann, Gauss, etc.)
+- **Parámetros**: Pitch, Pan, Gain, Position, Duration
+
+### Compresión Tradicional vs Granular:
+
+| Tradicional | Granular (Microsound) |
+|-------------|----------------------|
+| Señal continua | Granos discretos |
+| Un detector global | Detector **por grano** |
+| Gain único | Gain **por grano** |
+| Release global | Release **por grano** |
+| Latencia ms | Latencia = duración grano |
+
+## Arquitectura: Compresor Granular
+
+### Flujo de señal:
+```
+[Buffer~] → [Grain Generator] → [Por Grano: Detector → Gain Computer → Gain Apply] → [Salida]
+                    ↓
+              [Parámetros por grano: Pos, Dur, Pitch, Pan, Gain]
+```
+
+### Componentes por grano:
+```
+[Grain Signal] → [Envelope Follower] → [Gain Computer] → [*~] → [Output Grain]
+                     ↓
+              [Parámetros grano: Thresh, Ratio, Att, Rel]
+```
+
+## Tipos de Compresión Granular
+
+### 1. Compresión por Grano Individual (Per-Grain):
+- **Detector** calcula nivel **cada grano**
+- **Gain Computer** aplica ganancia **individual**
+- **Control total** dinámica por grano
+
+### 2. Compresión por Ventana de Granos (Windowed):
+- **Agrupa N granos** (ej. 10-50 ms ventana)
+- **Detector** = RMS/Peak de ventana
+- **Más eficiente** CPU, suaviza transiciones
+
+### 3. Compresión Espectral Granular (Spectral Granular):
+```
+[Grano] → [FFT] → [Compresión por bin] → [IFFT] → Grano procesado
+```
+- **Compresión por banda** dentro del grano
+- **Control espectral** micro-dinámico
+
+## Aplicaciones por Tipo de Sonido
+
+### 1. Granular Synthesis (Síntesis Granular):
+- **Control dinámico granos** = Evita picos aleatorios
+- **Normalización granos** = Nivel consistente
+- **Envelope shaping** = Ataque/sustain por grano
+
+### 2. Granular Time-Stretching:
+- **Compresión por grano** = Control dinámico stretch
+- **Transient preservation** = Ataques preservados al estirar
+- **Sustain leveling** = Nivel constante cola
+
+### 3. Granular Reverb / Textures:
+- **Density control** = Compresión = control densidad
+- **Dynamic shaping** = Ataque/sustain por grano de reverb
+- **Spectral compression** = Control tonal granos
+
+### 4. Microsound / Glitch / Clicks:
+- **Micro-transientes** (1-5 ms) = Compresión sample-accurate
+- **Envelope following** ultra-rápido (attack \< 0.1 ms)
+- **Sample-level compression** = `sah~` + `rampsmooth~`
+
+## Implementación MSP: Compresor Granular
+
+### Enfoque 1: poly~ por grano (Máximo control)
+```
+[poly~ grain_comp 128]  ← 128 granos máx
+  → [in 1: trigger] → [grain_engine] → [out~ 1] [out~ 2]
+```
+- **Cada voz = 1 grano**
+- **Detector + Gain Computer** dentro de voz
+- **Máximo control** = CPU alto
+
+### Enfoque 2: gen~ / genexpr (Sample-accurate)
+```
+[gen~ grain_compressor]
+  → Entrada: audio + trigger + params
+  → Salida: audio procesado
+  → Todo sample-accurate, 0 latencia extra
+```
+
+### Enfoque 3: pfft~ Spectral Granular
+```
+[pfft~ granular_comp 1024 4]
+  → FFT por grano → Spectral comp → IFFT
+```
+- **Compresión espectral** por grano
+- **Control tonal** micro-dinámico
+
+## Envelope Following a Nivel de Grano
+
+### Detector Ultra-Rápido (Microseconds):
+```
+[Grano] → [abs~] → [slide~ 1 10] → [Detector nivel]
+```
+- **Attack slide~ 1** = 1 sample attack (22 µs @ 44.1k)
+- **Release slide~ 10** = 10 samples (227 µs)
+- **Más rápido** que cualquier compresor tradicional
+
+### Gain Computer Per-Grain:
+```
+[Nivel] → [expr~ ($f1>$thresh) ? (1+($thresh-$f1)*(1-1/$ratio)) : 1] → [Gain]
+```
+- **Sample-accurate** en gen~
+- **Cero latencia** extra
+
+## Microsound Dynamics: Casos de Uso
+
+### 1. Granular Drum Synthesis:
+- **Grano = hit drum** (1-50 ms)
+- **Compresión por hit** = Nivel consistente
+- **Transient shaping** por grano = Click control
+
+### 2. Granular Vocal Processing:
+- **Grano = formante/ventana** (20-50 ms)
+- **Formant preservation** = Compresión selectiva formantes
+- **Breath control** = Compresión granos respiración
+
+### 3. Granular Ambient/Texture:
+- **Miles de granos** = Control estadístico
+- **Density compression** = Control densidad vía gain
+- **Spectral balance** = Compresión espectral granular
+
+### 4. Microsound / Lowercase Music:
+- **Sonidos \< 100 ms** = Compresión sample-level
+- **Clicks, pops, microsilence** = Control dinámico extremo
+- **Dynamic range microsound** = Expansión/compresión micro
+
+## Patch de ejemplo: Granular Dynamics Processor
+
+Incluye:
+1. **Granular Engine** (poly~ 256 voces):
+   - Buffer~ source (muestra / live input)
+   - Grain params: Pos, Dur, Pitch, Pan, Gain, Window
+   - Trigger: Metro / MIDI / Audio threshold / Manual
+2. **Per-Grain Dynamics** (dentro poly~):
+   - Detector: Peak / RMS / Envelope (slide~ 1 10)
+   - Threshold, Ratio, Attack, Release, Knee (por grano o global)
+   - Gain Computer: Downward / Upward / Both
+   - Transient Shaper: Attack/Sustain gain per grain
+3. **Spectral Granular** (pfft~ 1024):
+   - FFT per grain → Spectral comp → IFFT
+   - Spectral Gate / Spectral Comp / Spectral EQ
+4. **Global Controls**:
+   - Grain Density (granos/seg)
+   - Position Spread / Duration Spread / Pitch Spread
+   - Window Type (Hann/Gauss/Tri/Rect)
+   - Stereo Spread (L/R grain distribution)
+5. **Modulation**:
+   - LFOs en todos params (Rate, Depth, Shape)
+   - Random/Chaos (Brownian, Perlin)
+   - MIDI/OSC control all params
+6. **Analysis/Visualization**:
+   - Grain activity display (particles)
+   - Level histogram per grain
+   - Spectral waterfall
+   - GR history per grain stream
+
+## Resumen
+
+- **Microsound Compression** = Compresión a nivel de grano (1-100 ms)
+- **Detector ultra-rápido** = slide~ 1 sample attack
+- **Gain Computer per-grain** = Control total dinámica
+- **Arquitecturas**: poly~ (control), gen~ (sample-accurate), pfft~ (espectral)
+- **Aplicaciones**: Granular drums, vocal, texture, microsound
+- **Transient shaping per grain** = Control click/attack granular
+- **Spectral granular** = Control tonal micro-dinámico
+
+## Ver También
+
+- **poly~** - Motor granular (voces = granos)
+- **gen~** - Sample-accurate processing
+- **pfft~** - Spectral granular
+- **slide~ / rampsmooth~** - Ultra-fast envelope
+- **grain~ / granule~** (externos) - Granular engines
+- **transient~** - Transient shaping
+

@@ -1,0 +1,168 @@
+---
+title: "Tutorial 6: Filtro peine"
+description: "Filtro peine (comb filter): feedforward/feedback, Karplus-Strong, resonadores, peine afinado, flanging resonante, diseño de filtros peine."
+section: "retardos"
+order: 49
+slug: "15-retardos-06-filtro-peine"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter06/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter06/"
+---
+
+# Tutorial de Retardos 6: Filtro Peine (Comb Filter)
+
+El **filtro peine (comb filter)** es un filtro cuya respuesta en frecuencia tiene **múltiples picos y valles regulares** como un peine. Se implementa con **líneas de retardo + realimentación/alimentación adelante**.
+
+## Tipos de Filtros Peine
+
+### 1. Feedback Comb Filter (IIR) - Realimentación
+```
+y[n] = x[n] + g × y[n-D]
+```
+- **g** = Gain feedback (|g| \< 1 para estabilidad)
+- **D** = Delay en samples
+- **Respuesta**: Picos cada SR/D Hz, ancho ∝ 1/(1-|g|)
+
+### 2. Feedforward Comb Filter (FIR) - Alimentación adelante
+```
+y[n] = x[n] + g × x[n-D]
+```
+- **Siempre estable** (sin polos)
+- **g ∈ [-1, 1]**
+- **Respuesta**: Valles si g>0, picos si g\<0
+
+### 3. Comb Filter General (Ambos)
+```
+y[n] = x[n] + ff × x[n-D] + fb × y[n-D]
+```
+- **ff** = Feedforward gain
+- **fb** = Feedback gain
+- **comb~** en MSP implementa esto
+
+## Respuesta en Frecuencia
+
+### Feedback Comb (fb > 0):
+- **Picos** en: f = k × SR/D (k = 0,1,2...)
+- **Ancho de pico** (3dB): ≈ (1-fb) × SR/D / π
+- **Separación picos**: SR/D Hz (armónicamente relacionados)
+
+### Feedforward Comb (ff > 0):
+- **Valles** (notches) en: f = (k+0.5) × SR/D
+- **Profundidad**: 20×log₁₀((1-ff)/(1+ff)) dB
+
+## Objeto comb~ en MSP
+
+```
+[comb~ delay_ms feedback feedforward]
+```
+- **Argumentos**: delay (ms), feedback, feedforward
+- **Entradas**: Signal in, delay (ms), feedback, feedforward
+- **Salida**: Signal out
+
+### Modos típicos:
+| Modo | Feedback | Feedforward | Uso |
+|------|----------|-------------|-----|
+| **Resonador** | 0.5-0.99 | 0 | Karplus-Strong, tonos |
+| **Notch** | 0 | 0.5-0.99 | Eliminar frecuencias |
+| **Peine completo** | 0.5 | 0.5 | Flanging resonante |
+| **Allpass** | g | -g | Difusión, reverb |
+
+## Karplus-Strong (Síntesis cuerda física)
+
+### Algoritmo:
+```
+[Impulso/Ruido breve] → [Comb~ D fb] → [LPF en feedback] → Salida
+```
+- **D** = Delay = SR / Frecuencia_fundamental
+- **fb** ≈ 0.99 (decay lento) a 0.9 (decay rápido)
+- **LPF en feedback** = Simula amortiguamiento frecuencia-dependiente
+
+### Extensiones:
+- **Pick position**: Filtro peine feedforward en entrada
+- **Stiffness**: Filtro pasa-todo en lazo (rigidez)
+- **Non-linear**: Saturación suave en lazo
+
+## Flanging Resonante (Feedback Flanger)
+
+### Comb Filter Modulado:
+```
+[Comb~ D(t) fb]  con D(t) = D_base + LFO(t)
+```
+- **LFO** en delay time = Flanging
+- **fb alto** = Resonancia fuerte (peine resonante)
+- **fb \< 0** = Fase invertida (notches móviles)
+
+## Peine Afinado (Tuned Comb Filter)
+
+### Banco de peines para armonías:
+```
+[Input] → [Comb D1] → ┐
+        → [Comb D2] → ┤ → Sum
+        → [Comb D3] → ┘
+```
+- **D1, D2, D3** = Delays correspondientes a notas acorde
+- **Ej. Do Mayor**: D(C), D(E), D(G) = 3 peines afinados
+- **fb bajo** (0.3-0.5) = Resonancia sutil
+
+## Diseño de Filtros Peine Avanzados
+
+### 1. Multi-Notch (Eliminar múltiples frecuencias):
+- **Feedforward combs en serie** con D diferente
+- Cada uno elimina una frecuencia + armónicos
+
+### 2. Peine Fraccional (Fractional Delay):
+- **Delay no entero** (interpolación cúbica)
+- **tapout~ 1** + delay float = Peine continuo
+
+### 3. Peine Multi-tap (Generalizado):
+```
+y[n] = Σ g[k] × x[n-kD]  (Feedforward)
+y[n] = x[n] + Σ g[k] × y[n-kD]  (Feedback)
+```
+- **Múltiples taps** = Respuesta arbitraria
+
+## Patch de ejemplo: Comb Filter Laboratory
+
+Incluye:
+1. **Selector modo**: comb~ / tapin~/tapout~ custom / allpass~
+2. **Parámetros base**:
+   - Delay: 1-5000 ms (ms + Hz view)
+   - Feedback: -0.99 a 0.99
+   - Feedforward: -0.99 a 0.99
+3. **Modulación**:
+   - LFO en delay (flanging resonante)
+   - LFO en feedback (pulsating resonance)
+   - LFO en feedforward
+4. **Karplus-Strong Synth**:
+   - Keyboard MIDI → Delay = SR/note_freq
+   - Excitation: Impulse / Noise / Pluck shape
+   - LPF en feedback (damping control)
+   - Pick position (feedforward comb)
+   - Stiffness (allpass en lazo)
+5. **Tuned Comb Bank**:
+   - 12 peines (cromático) o 7 (diatónico)
+   - Key/Scale selector
+   - Global feedback + per-note offset
+6. **Allpass Chain** (Diffusion):
+   - 4-8 allpasses en serie
+   - Delays primos relativos
+   - Gain control
+7. **Visualización**: Frequency response en tiempo real (fft~ + spectroscope~)
+
+## Resumen
+
+- **comb~** = Objeto unificado (delay + fb + ff)
+- **Feedback comb** = Picos resonantes (IIR)
+- **Feedforward comb** = Notches (FIR, estable)
+- **Karplus-Strong** = Comb + LPF feedback = cuerda física
+- **Flanging resonante** = Comb modulado + fb alto
+- **Peine afinado** = Banco peines = acordes resonantes
+- **Allpass chain** = Difusión (reverb)
+
+## Ver También
+
+- **comb~** - Filtro peine unificado
+- **tapin~ / tapout~** - Implementación custom
+- **allpass~** (externo) - Allpass dedicado
+- **biquad~** - LPF en feedback (Karplus)
+- **karplus~** (externo) - Karplus-Strong optimizado
+

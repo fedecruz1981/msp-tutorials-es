@@ -1,0 +1,59 @@
+---
+title: "Tutorial 2: Trémolo y modulación en anillo"
+description: "Multiplicación de ondas senoidales para generar efectos de banda lateral: trémolo y modulación en anillo."
+section: "sintesis-aditiva-modulacion"
+order: 11
+slug: "06-sintesis-02-tremolo-modulacion-anillo"
+originalUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter02/"
+---
+
+# Tutorial de Síntesis 2: Trémolo y Modulación en Anillo
+
+En el tutorial anterior vimos cómo la síntesis aditiva combina ondas senoidales para crear tonos complejos. En este tutorial exploramos qué sucede cuando **multiplicamos** ondas senoidales en lugar de sumarlas. Esta técnica genera **bandas laterales** (sidebands) — nuevas frecuencias que son la suma y la diferencia de las frecuencias originales.
+
+## Multiplicación de señales
+
+Cuando dos señales se multiplican en el dominio del tiempo, sus espectros de frecuencia se **convolucionan**. Para dos sinusoides, esto produce cuatro componentes de frecuencia:
+- La suma de las dos frecuencias (f₁ + f₂)
+- La diferencia de las dos frecuencias (f₁ - f₂)
+- La frecuencia original f₁
+- La frecuencia original f₂
+
+En la práctica, con la modulación en anillo (multiplicación de dos señales de audio), las frecuencias originales suelen suprimirse, dejando solo las bandas laterales.
+
+## Trémolo
+
+El **trémolo** es una variación periódica de la amplitud de un sonido. Se logra multiplicando una señal de audio (la portadora) por una señal de baja frecuencia (el modulador), típicamente una onda seno a pocos Hz.
+
+- **Frecuencia del modulador**: 2-10 Hz para trémolo clásico
+- **Profundidad**: Controlada por la amplitud del modulador (0 a 1)
+
+## Modulación en Anillo (Ring Modulation)
+
+La **modulación en anillo** es similar al trémolo pero usa una frecuencia de modulador en el rango de audio (20 Hz - 20 kHz). Esto crea un timbre metálico, de campana, con armónicos no armónicos.
+
+- **Frecuencia del modulador**: Rango de audio
+- **Resultado**: Timbres inarmónicos, ricos en bandas laterales
+
+## Patch de ejemplo
+
+El patch incluye:
+1. Un oscilador portador (**cycle~**) controlable en frecuencia
+2. Un oscilador modulador (**cycle~**) con frecuencia ajustable
+3. Un objeto **\*~** para multiplicar las dos señales
+4. Controles de profundidad de modulación
+
+## Resumen
+
+- **Multiplicación de señales** = Convolución de espectros
+- **Trémolo**: Modulación de amplitud a baja frecuencia (\\< 20 Hz)
+- **Modulación en anillo**: Modulación a frecuencia de audio (> 20 Hz)
+- Ambas técnicas generan **bandas laterales** (suma y diferencia de frecuencias)
+- La **modulación en anillo** produce timbres inarmónicos característicos
+
+## Ver También
+
+- **\*~** - Multiplicación de señales
+- **cycle~** - Oscilador de tabla de ondas
+

@@ -1,0 +1,93 @@
+---
+title: "Tutorial 7: Repaso de muestreo"
+description: "Repaso integral de técnicas de muestreo: buffer~, groove~, play~, sfrecord~, sfplay~, waveshaping, wave sequencing."
+section: "muestreo-grabacion"
+order: 21
+slug: "07-muestreo-07-repaso"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter07/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter07/"
+---
+
+# Tutorial de Muestreo 7: Repaso de Muestreo
+
+Este tutorial final de la sección de muestreo integra todas las técnicas vistas en ejercicios prácticos combinados.
+
+## Resumen de objetos de muestreo
+
+| Objeto | Uso principal | Memoria | Latencia |
+|--------|---------------|---------|----------|
+| **buffer~** + **index~** | Reproducción simple, RAM | RAM | Muy baja |
+| **buffer~** + **play~** | Velocidad variable, scrubbing | RAM | Muy baja |
+| **buffer~** + **groove~** | Multi-voz, bucles, pitch-shift | RAM | Muy baja |
+| **buffer~** + **wave~** | Wave sequencing, morphing | RAM | Muy baja |
+| **sfplay~** | Archivos largos, streaming | Disco | Baja (pre-buffer) |
+| **sfrecord~** | Grabación a disco | Disco | N/A |
+
+## Ejercicios integrados
+
+### Ejercicio 1: Sampler básico con groove~
+- Cargar muestra en **buffer~**
+- **groove~** con 4 voces
+- Teclado MIDI → notas → voces
+- Controles: pitch, level, loop on/off
+
+### Ejercicio 2: Loop station en vivo
+- **sfrecord~** para grabar loops
+- **sfplay~** para reproducir loops
+- Overdub: grabar sobre reproducción
+- Control pedal MIDI: rec/play/stop/undo
+
+### Ejercicio 3: Sintetizador de wave sequencing
+- **buffer~** grande con 100+ frames
+- **cycle~** con `buffer_offset` secuenciado
+- **metro** + **counter** para pasos
+- Crossfade entre frames
+
+### Ejercicio 4: Procesador de waveshaping en vivo
+- Entrada **adc~** → **index~** (waveshaping)
+- **buffer~** con polinomios Chebyshev
+- Control de drive (gain entrada) por pedal
+- Dry/Wet mix
+
+### Ejercicio 5: Granular con groove~
+- **groove~** 16 voces
+- Posiciones aleatorias en buffer
+- Duración grano: 20-200 ms
+- Envolventes ventana (Hann) por grano
+- Densidad: metros por segundo
+
+## Técnicas avanzadas combinadas
+
+### Time-stretch + Pitch-shift
+```
+groove~ speed = pitch_ratio / stretch_ratio
+loop = 1
+loopinterp = window_size
+```
+
+### Crossfade de loops (DJ style)
+- 2 **sfplay~** con mismo archivo
+- Crossfade **\*~** + **line~**
+- Sync por **transport** o **phasor~**
+
+## Consideraciones de rendimiento
+
+- **RAM**: buffer~ limitado a memoria disponible
+- **Disco**: sfplay~/sfrecord~ limitados por I/O
+- **CPU**: groove~ multi-voz = más CPU
+- **Polifonía**: **poly~** gestiona voces dinámicamente
+
+## Resumen
+
+- **Elegir herramienta correcta** según caso de uso
+- **buffer~** = baja latencia, samples cortos/medianos
+- **sfplay~** = archivos largos, streaming
+- **groove~** = multi-voz, bucles, granular
+- **waveshaping** = síntesis no lineal, distorsión
+- **Combinar** técnicas para instrumentos expresivos
+
+## Ver También
+
+- Todos los tutoriales de muestreo anteriores
+- **poly~** - Gestión polifónica
+- **transport** - Sincronización temporal

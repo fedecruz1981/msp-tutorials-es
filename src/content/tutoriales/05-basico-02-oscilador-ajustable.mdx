@@ -1,0 +1,67 @@
+---
+title: "Tutorial 2: Oscilador ajustable"
+description: "Control de amplitud con *~, generador de segmentos de línea line~, zipper noise, portamento, envolventes de amplitud."
+section: "fundamentos"
+order: 6
+slug: "05-basico-02-oscilador-ajustable"
+originalUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter02/"
+---
+
+# Tutorial Básico 2: Oscilador ajustable
+
+## Introducción
+
+En este tutorial veremos cómo controlar la amplitud de las señales con las que trabajamos en MSP. Además, veremos un objeto que nos ayuda a generar rampas de señal a partir de mensajes de Max que podemos usar para controlar suavemente los parámetros de objetos MSP.
+
+## Amplificador: *~
+
+Como vimos en nuestro último tutorial, el objeto **dac~** representa la **salida** final de nuestra red de señal de audio; cualquier cosa que quiera que salga de sus altavoces (o entre en sus auriculares) eventualmente debe encontrar su camino a un objeto **dac~**. Ahora, cualquier señal que quiera escuchar — una señal que envíe a **dac~** — debe estar en el rango de amplitud de -1.0 a +1.0. Cualquier valor que exceda esos límites será recortado por el **dac~** (es decir, limitado bruscamente a 1 o -1). Esto causará (en la mayoría de los casos, distorsión bastante objetable) del sonido. La mayoría de los objetos MSP que **generan** sonido lo hacen en el rango de -1.0 a 1.0:
+
+![La salida predeterminada de cycle~ tiene amplitud de 1](/images/basicchapter02a.webp "La salida predeterminada de cycle~ tiene amplitud de 1")
+
+Como resultado, aprender a ajustar la amplitud de la señal es importante para que tengamos control sobre el volumen que enviamos a la salida.
+
+Para controlar el nivel de una señal simplemente multiplica cada muestra por un factor de escalado. Por ejemplo, para reducir a la mitad la amplitud de una señal simplemente la multiplica por 0.5. (Aunque sería matemáticamente equivalente dividir la amplitud de la señal por 2, la multiplicación es un procedimiento computacional más eficiente que la división.)
+
+![Amplitud ajustada por multiplicación](/images/basicchapter02b.webp "Amplitud ajustada por multiplicación")
+
+El objeto **\*~** en MSP multiplica la señal en su inlet izquierdo por lo que entre en el derecho. Esto puede ser un número constante o una señal. Si deseamos cambiar la amplitud de una señal continuamente a lo largo del tiempo, podemos suministrar una señal cambiante en el inlet derecho de **\*~**. Al cambiar continuamente el valor en el inlet derecho de **\*~**, podemos fundir el sonido entrada o salida, crear un efecto de crescendo o diminuendo, etc.
+
+- En el patcher del tutorial, inicie el audio haciendo clic en el **message** box etiquetado `start`. No oirá nada todavía, porque los objetos **\*~** en el patch están multiplicando su entrada por `0`, resultando en silencio. En el área del patcher etiquetada `1`, escriba el número `300` en la caja de número de punto flotante etiquetada `Frequency`. En el **number** box etiquetado `Amplitude`, escriba `0.2`. Debería oír una onda seno de 300 Hz sonando suavemente desde su dispositivo de audio. Haga clic en el **number** box `Amplitude` a la **derecha** del punto decimal y arrastre el valor hacia arriba y abajo. Debería oír la onda seno fundirse en entrada y salida en volumen, tal como lo hizo en el último tutorial cuando manipulamos el slider **gain~**. Sin embargo, puede oír algo menos agradable al cambiar el volumen, es decir, una serie de clics en el sonido. Esto se llama **ruido de cremallera** (zipper noise), y resulta de cambios bruscos drásticos en amplitud que causan discontinuidades en la señal:
+
+![Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal](/images/basicchapter02c.webp "Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal")
+
+Antes de abordar ese problema, establezca el volumen en el **number** box a una amplitud cómoda, y arrastre en el **number** box etiquetado `Frequency`. Mientras oye el tono del oscilador subir y bajar, también puede oír una forma de ruido de cremallera debido a los cambios bruscos en frecuencia. Si vamos a estar controlando continuamente cualquiera de estos parámetros (la frecuencia del objeto **cycle~** o la amplitud de salida del objeto **\*~**), puede que queramos modificar esos parámetros usando una señal en lugar de enviar mensajes de Max.
+
+## Generador de segmentos de línea: line~
+
+Mire la parte derecha de la lógica del patcher en el tutorial (etiquetada `2`). Si, en lugar de un cambio instantáneo de amplitud (que puede causar una distorsión objetable de la señal), suministramos una **señal** en el inlet derecho del objeto **\*~** que cambia en el transcurso de 500 milisegundos, interpolamos entre la amplitud inicial y la amplitud objetivo con cada muestra, creando un cambio de amplitud suave.
+
+El objeto **line~** funciona de manera similar al objeto Max **line**. En su inlet izquierdo recibe un valor objetivo y un tiempo (en ms) para alcanzar ese objetivo. El objeto **line~** calcula el valor intermedio apropiado para cada muestra con el fin de cambiar en línea recta desde su valor actual al valor objetivo.
+
+- Baje el volumen en el circuito de audio izquierdo en el patcher del tutorial escribiendo `0` en el **number** box `Amplitude`. En la parte derecha del patcher del tutorial, establezca la `Frequency` del objeto **cycle~** en `300`. Luego, haciendo clic en el **number** box etiquetado `Amplitude`, establezca el volumen en `0.3`. En lugar de que el sonido se encienda inmediatamente como antes, debería oír la onda seno fundirse en entrada durante medio segundo. Si arrastra dentro del **number** box, debería sentir que el volumen está **persiguiendo** sus acciones, interpolando suavemente entre valores como si estuviera manipulando lentamente una perilla de volumen en un amplificador.
+
+El segundo valor del par valor/tiempo que enviamos al objeto **line~** determina la suavidad de la transición. Si sentimos que el control de volumen no es lo suficientemente receptivo, se cambia fácilmente jugando con el valor de transición.
+
+- Desbloquee el patcher y cambie el **message** box conectado al objeto **line~** que controla la `Amplitude`. Si desea un fundido más rápido, intente cambiarlo a `$1 50`. Cuando bloquee el patch y manipule el **number** box de nuevo, debería sentir que el volumen cambia mucho más receptivamente a sus comandos.
+
+**Detalle técnico:** Cualquier cambio en la amplitud general de una señal introduce alguna cantidad de distorsión durante el tiempo en que la amplitud está cambiando. (La forma de la forma de onda en realidad cambia durante ese tiempo, comparada con la señal original.) Si esta distorsión es objetable depende de qué tan brusco es el cambio, qué tan grande es el cambio en amplitud, y qué tan compleja es la señal original. Una pequeña cantidad de tal distorsión introducida en una señal ya compleja puede pasar largamente desapercibida para el oyente. Por el contrario, incluso una ligera distorsión de una señal original muy pura agregará parciales al tono, cambiando así su timbre.
+
+## Oscilador ajustable
+
+La lógica del patcher a la derecha usa una combinación de **\*~** y **line~** para hacer un amplificador ajustable para escalar la amplitud del oscilador. Sin embargo, el objeto **line~** puede emitir señales que pueden usarse para controlar muchas cosas... no solo volumen.
+
+- Con el volumen en la lógica del patcher derecho subido, ajuste el **number** box etiquetado `Frequency`. Intente escribir un valor distante del actual, por ejemplo, haga que la frecuencia salte de 300 a 1000 Hz. Observe que, a diferencia del ejemplo izquierdo, la frecuencia transiciona suavemente durante 500 milisegundos.
+
+Al igual que con el control de amplitud, el objeto **line~** está enviando una señal que transiciona suavemente basada en comandos valor/tiempo enviados a él por mensajes de Max. Al controlar la frecuencia del oscilador de esta manera, hemos creado un efecto de deslizamiento referido en el diseño de sintetizadores (y ejecución de instrumentos) como **portamento**. Si piensa que la transición es demasiado lenta para sus gustos, desbloquee el patcher y cambie el **message** box para que tenga un tiempo de transición más corto. Vea qué tan corto puede hacerlo para que el portamento desaparezca pero aún evite oír clics durante un cambio de frecuencia.
+
+## Resumen
+
+Multiplicar cada muestra de una señal de audio por algún número distinto de 1 cambia su amplitud; por lo tanto, el objeto **\*~** es efectivamente un amplificador. Un cambio brusco drástico de amplitud puede causar un clic, así que un fundido de amplitud más gradual — controlando la amplitud con otra señal — es usualmente aconsejable. El generador de señal de segmento **line~** es comparable al objeto Max **line** y es apropiado para proporcionar un valor que cambia linealmente a la red de señal. La combinación de **line~** y **\*~** puede usarse para hacer una **envolvente** para controlar la amplitud general de una señal. Además, un objeto **line~** puede usarse para controlar suavemente los parámetros de casi cualquier objeto MSP, como la frecuencia de un oscilador **cycle~**.
+
+## Ver También
+
+- **cycle~** - Oscilador de búsqueda en tabla
+- **dac~** - Salida de audio y encendido/apagado
+- **line~** - Generador de rampa lineal

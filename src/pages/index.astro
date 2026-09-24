@@ -1,17 +1,340 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="MSP Tutorials en Español" description="Traducción completa de los tutoriales MSP de Cycling '74 al español. 63 capítulos organizados en 14 secciones cubriendo síntesis, muestreo, filtros, dinámicas, MIDI, polifonía, análisis, retardos, plug-ins y compresión.">
+  <slot name="sidebar">
+    <Sidebar currentSlug="inicio" />
+  </slot>
+
+  <header class="hero">
+    <h1>Tutoriales MSP en Español</h1>
+    <p class="hero-subtitle">La guía completa para aprender procesamiento de señal digital con Max/MSP</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-number">63</span><span class="stat-label">Capítulos</span></div>
+      <div class="stat"><span class="stat-number">14</span><span class="stat-label">Secciones</span></div>
+      <div class="stat"><span class="stat-number">100%</span><span class="stat-label">En español</span></div>
+    </div>
+    <a href="/tutoriales/01-msp-introduccion/" class="cta-button">Comenzar tutoriales →</a>
+  </header>
+
+  <nav class="sections-grid" aria-label="Secciones del tutorial">
+    <a href="/tutoriales/01-msp-introduccion/" class="section-card">
+      <h3>1. Introducción</h3>
+      <p>Conceptos fundamentales de MSP, audio digital y configuración de E/S</p>
+      <span class="chapter-count">4 capítulos</span>
+    </a>
+    <a href="/tutoriales/05-basico-01-tono-prueba/" class="section-card">
+      <h3>2. Fundamentos</h3>
+      <p>Osciladores, control de amplitud, tablas de ondas y enrutamiento de señales</p>
+      <span class="chapter-count">5 capítulos</span>
+    </a>
+    <a href="/tutoriales/06-sintesis-01-aditiva/" class="section-card">
+      <h3>3. Síntesis Aditiva y Modulación</h3>
+      <p>Síntesis aditiva, trémolo, modulación en anillo, AM, vibrato y FM</p>
+      <span class="chapter-count">5 capítulos</span>
+    </a>
+    <a href="/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="section-card">
+      <h3>4. Muestreo y Grabación</h3>
+      <p>Grabación, reproducción, bucles, waveshaping y archivos de audio</p>
+      <span class="chapter-count">7 capítulos</span>
+    </a>
+    <a href="/tutoriales/08-filtros-01-simples/" class="section-card">
+      <h3>5. Filtros y Síntesis Sustractiva</h3>
+      <p>Filtros paso-bajo, paso-banda, estado-variable y síntesis sustractiva</p>
+      <span class="chapter-count">5 capítulos</span>
+    </a>
+    <a href="/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="section-card">
+      <h3>6. Procesamiento de Dinámicas</h3>
+      <p>Seguimiento de envolvente, compresión, limitación y distorsión</p>
+      <span class="chapter-count">3 capítulos</span>
+    </a>
+    <a href="/tutoriales/10-midi-01-mapeo/" class="section-card">
+      <h3>7. MIDI y MSP</h3>
+      <p>Mapeo de controladores MIDI, sintetizadores y samplers MIDI</p>
+      <span class="chapter-count">3 capítulos</span>
+    </a>
+    <a href="/tutoriales/11-poli-01-poly-objeto/" class="section-card">
+      <h3>8. Polifonía y Recursos</h3>
+      <p>Objeto poly~, síntesis granular y datos de control a tasa de audio</p>
+      <span class="chapter-count">3 capítulos</span>
+    </a>
+    <a href="/tutoriales/12-secuenciacion-01-tasa-audio/" class="section-card">
+      <h3>9. Secuenciación</h3>
+      <p>Secuenciación precisa a tasa de audio con generadores de rampa</p>
+      <span class="chapter-count">1 capítulo</span>
+    </a>
+    <a href="/tutoriales/13-pan-01-simple/" class="section-card">
+      <h3>10. Panoramización</h3>
+      <p>Pan simple, estéreo y multicanal para sistemas de altavoces</p>
+      <span class="chapter-count">3 capítulos</span>
+    </a>
+    <a href="/tutoriales/14-analisis-01-senales-medidores/" class="section-card">
+      <h3>11. Análisis</h3>
+      <p>Medidores, osciloscopio, espectroscopio, FFT y pfft~</p>
+      <span class="chapter-count">4 capítulos</span>
+    </a>
+    <a href="/tutoriales/15-retardos-01-lineas/" class="section-card">
+      <h3>12. Retardos</h3>
+      <p>Líneas de retardo, flanger, chorus, filtro peine y control de ganancia</p>
+      <span class="chapter-count">6 capítulos</span>
+    </a>
+    <a href="/tutoriales/16-plugins-01-efectos/" class="section-card">
+      <h3>13. Plug-ins</h3>
+      <p>Efectos VST, instrumentos VST y dispositivos AMXD para Max for Live</p>
+      <span class="chapter-count">3 capítulos</span>
+    </a>
+    <a href="/tutoriales/17-compresion-00-introduccion/" class="section-card">
+      <h3>14. Compresión (objetos omx)</h3>
+      <p>Limitación, compresión multibanda, keying, ducking y más</p>
+      <span class="chapter-count">11 capítulos</span>
+    </a>
+  </nav>
+
+  <section class="features">
+    <h2>Características de esta edición</h2>
+    <ul class="features-list">
+      <li>
+        <strong>Traducción completa:</strong> Todos los 63 capítulos traducidos al español manteniendo el rigor técnico original.
+      </li>
+      <li>
+        <strong>Sintaxis en inglés:</strong> Nombres de objetos (<code>cycle~</code>, <code>dac~</code>, <code>buffer~</code>), atributos, mensajes y código se mantienen en su forma original.
+      </li>
+      <li>
+        <strong>Navegación fluida:</strong> Barra lateral persistente con todas las secciones y capítulos, búsqueda integrada.
+      </li>
+      <li>
+        <strong>Modo oscuro/claro:</strong> Tema adaptable a tu preferencia del sistema o manual.
+      </li>
+      <li>
+        <strong>Patchers descargables:</strong> Enlaces directos a los archivos <code>.maxpat</code> originales de cada capítulo.
+      </li>
+      <li>
+        <strong>Diseño responsive:</strong> Funciona perfectamente en escritorio, tablet y móvil.
+      </li>
+      <li>
+        <strong>Búsqueda instantánea:</strong> Busca cualquier término técnico, objeto o concepto en todos los capítulos.
+      </li>
+    </ul>
+  </section>
+
+  <section class="resources">
+    <h2>Recursos adicionales</h2>
+    <div class="resources-grid">
+      <a href="https://docs.cycling74.com/reference/" target="_blank" rel="noopener" class="resource-card">
+        <h4>Referencia de Objetos MSP</h4>
+        <p>Documentación oficial de todos los objetos MSP con ejemplos.</p>
+      </a>
+      <a href="https://cycling74.com/forums" target="_blank" rel="noopener" class="resource-card">
+        <h4>Foros de Cycling '74</h4>
+        <p>Comunidad activa para preguntas, consejos y compartir patches.</p>
+      </a>
+      <a href="https://discord.gg/pmStRfUr2k" target="_blank" rel="noopener" class="resource-card">
+        <h4>Discord de Max/MSP</h4>
+        <p>Chat en tiempo real con otros usuarios de Max/MSP/Jitter.</p>
+      </a>
+      <a href="https://rnbo.cycling74.com" target="_blank" rel="noopener" class="resource-card">
+        <h4>Documentación RNBO</h4>
+        <p>Exporta tus patches MSP a Web Audio, C++, VST, etc.</p>
+      </a>
+    </div>
+  </section>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: linear-gradient(180deg, var(--color-bg-elevated) 0%, var(--color-bg) 100%);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-md);
+  }
+  .cta-button:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    text-decoration: none;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 3rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-card {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all var(--transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .section-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    text-decoration: none;
+  }
+  .section-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+  .section-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    flex: 1;
+    line-height: 1.6;
+  }
+  .chapter-count {
+    font-size: 0.75rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .features {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+  }
+  .features h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .features-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .features-list li {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    line-height: 1.7;
+  }
+  .features-list strong { color: var(--color-text); }
+  .features-list code {
+    background: var(--color-code-bg);
+    color: var(--color-primary);
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+  }
+
+  .resources {
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+  }
+  .resources h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  .resource-card {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all var(--transition);
+  }
+  .resource-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  .resource-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+  }
+  .resource-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .hero-stats { gap: 1.5rem; }
+    .stat-number { font-size: 2rem; }
+    .sections-grid { padding: 2rem 1rem; }
+  }
+</style>
+</Layout>

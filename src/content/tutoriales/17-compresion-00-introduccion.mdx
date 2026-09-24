@@ -1,0 +1,153 @@
+---
+title: "Introducción: ¿Qué es la compresión?"
+description: "Fundamentos de compresión dinámica: threshold, ratio, attack, release, knee, makeup gain, tipos de compresores, sidechain, parallel compression."
+section: "compresion"
+order: 53
+slug: "17-compresion-00-introduccion"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_00/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_00/"
+---
+
+# Introducción a la Compresión: ¿Qué es la Compresión?
+
+La **compresión de rango dinámico** reduce la diferencia entre las partes más fuertes y más débiles de una señal de audio. Es una de las herramientas más importantes en mezcla, mastering y diseño de sonido.
+
+## ¿Por qué Comprimir?
+
+### Problemas que resuelve:
+- **Control de picos** (evita clipping, protege altavoces)
+- **Nivelación** (voz, bajo, batería inconsistentes)
+- **Color/Saturación** (carácter analógico, "glue")
+- **Creación de espacio** (sidechain/ducking)
+- **Loudness** (mastering, streaming standards)
+
+## Parámetros Fundamentales
+
+| Parámetro | Función | Rango típico |
+|-----------|---------|--------------|
+| **Threshold (Umbral)** | Nivel donde empieza compresión | -60 a 0 dBFS |
+| **Ratio (Relación)** | Cuánta compresión (1:n) | 1.5:1 a ∞:1 (limitador) |
+| **Attack (Ataque)** | Tiempo para empezar a comprimir | 0.1-100 ms |
+| **Release (Liberación)** | Tiempo para dejar de comprimir | 10-3000 ms |
+| **Knee (Rodilla)** | Suavidad alrededor del threshold | 0 (hard) a 30 dB (soft) |
+| **Makeup Gain** | Compensación de nivel de salida | 0 a +24 dB |
+
+### Curva de Compresión (Transfer Function):
+```
+Salida = Entrada                          (Entrada ≤ Threshold)
+Salida = Threshold + (Entrada - Threshold)/Ratio  (Entrada > Threshold)
+```
+
+### En dB (Más intuitivo):
+```
+dB_out = dB_in                              (dB_in ≤ Threshold)
+dB_out = Threshold + (dB_in - Threshold)/Ratio  (dB_in > Threshold)
+```
+
+## Tipos de Compresores
+
+### 1. VCA (Voltage Controlled Amplifier)
+- **Rápido, limpio, preciso**
+- **Attack/Release** muy rápidos posibles
+- **Uso**: Drums, buses, mastering, control quirúrgico
+- **Ejemplos**: SSL G Bus, DBX 160, API 2500
+
+### 2. FET (Field Effect Transistor)
+- **Muy rápido**, "agarre" agresivo
+- **Color** armónico (2º/3º armónico)
+- **Uso**: Vocals, drums paralelos, "1176 sound"
+- **Ejemplos**: Urei 1176, Purple MC77
+
+### 3. Óptico (Opto)
+- **Lento, musical, suave**
+- **Attack/Release** dependientes del programa
+- **Uso**: Vocals, bajo, "LA-2A sound"
+- **Ejemplos**: Teletronix LA-2A, Tube-Tech CL1B
+
+### 4. Variable-Mu (Tubo, Variable Gain)
+- **Muy suave, "glue"**
+- **Ratio variable** (aumenta con nivel)
+- **Uso**: Bus mix, mastering, "Fairchild sound"
+- **Ejemplos**: Fairchild 670, Manley Vari-Mu
+
+### 5. Digital / Moderno
+- **Lookahead** (cero overshoot)
+- **Linear phase** (sin phase shift)
+- **Multi-band** (por bandas)
+- **Sidechain avanzado** (EQ, filters)
+- **Ejemplos**: FabFilter Pro-C, DMG Essence, Ozone
+
+## Técnicas Avanzadas
+
+### Sidechain (Cadena lateral):
+- **Detector** ≠ Señal procesada
+- **Uso clásico**: Kick → Comprime bajo (ducking)
+- **Sidechain EQ**: Filtrar detector (ej. HPF 100Hz)
+
+### Compresión Paralela (New York Compression):
+```
+Señal → [Compresor fuerte] → Mezcla 50/50 con Dry
+```
+- **Mantiene transientes** (dry) + **Cuerpo/sustain** (wet)
+- **Uso**: Drums, vocals, mix bus
+
+### Multi-banda (Multi-band):
+```
+Señal → [Crossover 3-4 bandas] → [Compresor por banda] → Suma
+```
+- **Control independiente** por rango freq
+- **Uso**: Mastering, de-essing, control resonancias
+
+### Serial (En serie):
+```
+[Compresor 1: suave, lento] → [Compresor 2: rápido, picos]
+```
+- **1º**: Control general (2:1, slow)
+- **2º**: Pico/limiter (10:1, fast)
+
+## Métricas y Estándares
+
+### LUFS (Loudness Units Full Scale):
+- **ITU-R BS.1770 / EBU R128**
+- **Integrado**: Programa completo
+- **Momentáneo**: 400 ms
+- **Corto plazo**: 3 s
+- **Targets**: -23 LUFS (TV), -14 (Streaming), -16 (Podcast)
+
+### True Peak:
+- **Inter-sample peaks** (over 0 dBFS posible)
+- **Target**: -1 dBTP (streaming), -2 dBTP (broadcast)
+
+## Objetos MSP para Compresión
+
+### Objetos omx (Optimizados):
+- **omx.comp~** - Compresor completo
+- **omx.lim~** - Limitador
+- **omx.gate~** - Gate/Expansor
+- **omx.dyn~** - Dinámica general
+
+### Objetos clásicos:
+- **comp~** - Compresor básico
+- **limiter~** - Limitador
+- **gate~** - Gate
+
+### Construcción propia:
+- **Envelope Follower** (abs~ + slide~/rampsmooth~)
+- **Gain Computer** (expr~ / math)
+- **Gain Apply** (*~)
+
+## Resumen
+
+- **Compresión** = Reduce rango dinámico (Threshold + Ratio)
+- **Attack/Release** = Tiempo respuesta (crítico para sonido)
+- **Knee** = Suavidad transición (Hard vs Soft)
+- **Tipos**: VCA (rápido), FET (agresivo), Opto (suave), Vari-Mu (glue)
+- **Técnicas**: Sidechain, Paralela, Multi-banda, Serial
+- **MSP**: omx.comp~, omx.lim~, comp~, construcción propia
+
+## Ver También
+
+- **omx.comp~ / omx.lim~** - Objetos optimizados
+- **comp~ / limiter~ / gate~** - Objetos clásicos
+- **rampsmooth~ / slide~** - Envelope followers
+- **Tutorials 17-26** - Compresión práctica en MSP

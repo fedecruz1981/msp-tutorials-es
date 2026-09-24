@@ -1,0 +1,100 @@
+---
+title: "Tutorial 4: Síntesis sustractiva"
+description: "Ruido filtrado, síntesis de formantes, modelado físico básico, excitación-resonancia, ruido coloreado."
+section: "filtros-sintesis-sustractiva"
+order: 25
+slug: "08-filtros-04-sustractiva"
+originalUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter04/"
+---
+
+# Tutorial de Filtros 4: Síntesis Sustractiva
+
+La **síntesis sustractiva** parte de una señal rica en armónicos (ruido o onda compleja) y **resta** frecuencias mediante filtrado para dar forma al timbre.
+
+## Ruido como fuente
+
+**noise~** genera **ruido blanco** (todos los frecuencias, igual amplitud). Filtrándolo se obtienen:
+
+| Filtro | Resultado | Uso |
+|--------|-----------|-----|
+| **LPF** (lowpass) | Ruido grave / "viento" | Oleadas, surf |
+| **HPF** (highpass) | Ruido agudo / "aire" | Sibilancias, percusión |
+| **BPF** (bandpass) | Ruido coloreado / tono | Tambores, resonancias |
+| **BPF + Q alto** | Cuasi-sinusoide | Tonos puros desde ruido |
+
+## Modelo Excitación-Resonancia
+
+Modelo físico simplificado:
+```
+Excitación → Resonador (filtro) → Salida
+```
+
+### Tipos de excitación:
+1. **Impulso** (click) → Resonancia natural (campana, plato)
+2. **Ruido ráfaga** → Resonancia estocástica (tambor, maraca)
+3. **Onda compleja** → Resonancia armónica (viento, voz)
+4. **Señal externa** (micrófono) → Procesamiento en vivo
+
+### Resonador = Filtro con Q alto
+- **svf~** bandpass con Q > 10
+- **reson~** bandpass dedicado
+- **biquad~** configurado como resonador
+
+## Síntesis de formantes (Vocal synthesis)
+
+Los **formantes** son resonancias fijas del tracto vocal:
+- **F1** ~ 300-800 Hz (abertura mandíbula)
+- **F2** ~ 800-2500 Hz (posición lengua)
+- **F3** ~ 2500-3500 Hz (redondeo labios)
+- **F4-F5** ~ 3500+ Hz (calidad timbre)
+
+### Implementación:
+- 3-5 **svf~** bandpass en **paralelo**
+- Frecuencias fijas de formantes
+- Ganancias controladas por **vocales** (A, E, I, O, U)
+- Excitación: **pulse~** (glotis) + **noise~** (fricción)
+
+## Modelado físico básico: Cuerda (Karplus-Strong)
+
+Algoritmo simplificado:
+```
+Buffer corto (delay) → Filtro LP → Retroalimentación → Salida
+     ↑___________________________________________________|
+```
+
+En MSP: **comb~** o **tapin~/tapout~** con filtro en el feedback.
+
+## Ruido coloreado (1/f, brown, pink)
+
+- **Rosa (1/f)**: Filtro -3dB/oct desde ruido blanco → `pink~` (externo) o cascade de 1-polos
+- **Marrón (Brown/Red)**: -6dB/oct (integrador) → `brown~` o `noise~` → `integrator~`
+- **Azul**: +3dB/oct (derivada)
+- **Violeta**: +6dB/oct
+
+## Patch de ejemplo: Sintetizador sustractivo completo
+
+Incluye:
+1. **Fuentes**: noise~, saw~, pulse~, impulso (click~)
+2. **Mezclador** de fuentes con niveles
+3. **Banco de filtros**: 4× svf~ (LP, HP, 2× BP)
+4. **Sección formantes**: 5 BPF paralelos con preset vocales
+5. **Envolventes**: ADSR separadas por filtro + amplitud
+6. **LFOs**: Modulación cutoff, Q, pan
+7. **Efectos**: Delay, reverb send
+
+## Resumen
+
+- **Ruido + Filtro** = Síntesis sustractiva básica
+- **Excitación + Resonador** = Modelo físico simple
+- **Formantes** = Filtros BP paralelos fijos
+- **Karplus-Strong** = Delay + LP feedback = cuerda
+- **Ruido coloreado** = Filtros de pendiente específica
+- Base de síntesis de viento, percusión, voz
+
+## Ver También
+
+- **noise~** - Ruido blanco
+- **svf~** - Bandpass para formantes
+- **comb~** - Delay con feedback (Karplus-Strong)
+- **biquad~** - Filtros de pendiente precisa

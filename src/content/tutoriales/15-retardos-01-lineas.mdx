@@ -1,0 +1,139 @@
+---
+title: "Tutorial 1: Líneas de retardo"
+description: "Líneas de retardo básicas: tapin~, tapout~, delay time, feedback, tap count, interpolation, multi-tap, ping-pong."
+section: "retardos"
+order: 44
+slug: "15-retardos-01-lineas"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter01/"
+---
+
+# Tutorial de Retardos 1: Líneas de Retardo
+
+Las **líneas de retardo (delay lines)** son fundamentales en procesamiento de audio: **eco, chorus, flanger, reverb, pitch shift, karplus-strong**. En MSP: **tapin~** (escritura) + **tapout~** (lectura).
+
+## tapin~ / tapout~ (Par básico)
+
+### Concepto:
+```
+[señal] → [tapin~ max_delay_ms] → [línea de retardo interna]
+                              ↘ [tapout~ delay_ms] → [señal retardada]
+```
+
+### tapin~:
+- **Argumento**: Máximo delay en **milisegundos** (ej. `tapin~ 1000` = 1 seg max)
+- **Memoria**: Asigna buffer = max_delay × SR × canales
+- **Entrada**: Señal a retardar (escritura continua)
+
+### tapout~:
+- **Argumento/Inlet**: Delay actual en **milisegundos** (0 a max_delay)
+- **Salida**: Señal leída desde tapin~
+- **Múltiples tapout~** → Lecturas simultáneas (multi-tap)
+
+### Interpolación:
+- **Lineal** (default): Suficiente para delay fijo
+- **Cúbica** (`tapout~ 1` arg): Mejor para delay modulado (chorus/flanger)
+- **Sin interpolación** (`tapout~ 0`): Sample-accurate, para karma/lo-fi
+
+## Parámetros Clave
+
+### Delay Time (Tiempo de retardo):
+- **Rango**: 0 a max_delay (ms)
+- **Control**: Señal (para modulación) o número (estático)
+- **Mínimo**: 1 sample (≈0.02 ms @ 44.1k) = 1 sample
+
+### Feedback (Realimentación):
+```
+[tapout~] → [*~ feedback] → [+~] → [tapin~]
+```
+- **Feedback ∈ [0, 1)** (1 = infinito, >1 = explosión)
+- **Filtro en feedback** → Tone control (LPF/HPF)
+
+### Multi-tap (Múltiples golpes):
+```
+[tapin~ 2000]
+  → [tapout~ 200] → [*~ 0.7] → [out~]
+  → [tapout~ 400] → [*~ 0.5] → [out~]
+  → [tapout~ 600] → [*~ 0.3] → [out~]
+  → [tapout~ 800] → [*~ 0.1] → [out~]
+```
+- **Patrones rítmicos** (dotted, triplet, etc.)
+- **Niveles decrecientes** = decay natural
+
+## Ping-Pong Delay (Estéreo)
+
+### Concepto:
+Retardo que **rebota** entre L y R:
+```
+L_in → [tapin~ L] → [tapout~] → [*~ fb] → [tapin~ R]
+R_in → [tapin~ R] → [tapout~] → [*~ fb] → [tapin~ L]
+```
+
+### Implementación:
+- **2× tapin~/tapout~** (uno por canal)
+- **Cross-feedback** = L→R, R→L
+- **Pan spread** = Diferencia delay L/R (ej. 300ms vs 400ms)
+
+## Delay Modulado (Chorus/Flanger base)
+
+### LFO en delay time:
+```
+[cycle~ 0.5] → [scale -1 1 5 25] → [tapout~ delay_ms]
+```
+- **Profundidad** = rango delay (ej. 5-25 ms para chorus)
+- **Rate** = velocidad LFO (0.1-5 Hz)
+- **Forma LFO** = Seno, triángulo, aleatorio
+
+### Interpolación crítica:
+- **tapout~ 1** (cúbica) **OBLIGATORIO** para delay modulado
+- Sin interpolación = aliasing, zipper noise, glitches
+
+## Karplus-Strong (Síntesis cuerda por delay)
+
+### Algoritmo:
+```
+[Impulso/Ruido] → [tapin~ N] → [tapout~ N] → [LPF] → [*~ 0.99] → [tapin~]
+```
+- **Delay N** = 1/fundamental (ej. 440 Hz → 2.27 ms)
+- **LPF en feedback** = Simula amortiguamiento cuerda
+- **Gain \< 1** = Decay temporal
+- **Excitation** = Ruido blanco breve / impulso
+
+## Patch de ejemplo: Multi-FX Delay Processor
+
+Incluye:
+1. **tapin~ 5000** (5 seg max)
+2. **Modos**:
+   - **Simple**: 1 tapout, delay + feedback + LPF/HPF en feedback
+   - **Multi-tap**: 8 taps, patrones rítmicos (grid 16 steps)
+   - **Ping-Pong**: Estéreo cross-feedback, width control
+   - **Modulado**: LFO en delay (chorus/flanger/vibrato)
+   - **Ducking**: Sidechain en feedback (baja feedback con señal entrada)
+3. **Controles**:
+   - Delay time (ms, sync tempo: 1/4, 1/8, dotted, triplet)
+   - Feedback (0-95%, ducking threshold)
+   - Filter en feedback: LPF/HPF/BPF, freq + Q
+   - Width (ping-pong), Mod depth/rate/shape
+   - Mix (Dry/Wet), Output gain
+4. **Tempo Sync**: `translate` → `phasor~` → delay calc
+5. **Visualización**: Delay line display (buffer~ + waveform~)
+
+## Resumen
+
+- **tapin~** = Escritura (buffer circular), arg = max delay ms
+- **tapout~** = Lectura, arg/inlet = delay ms, múltiples = multi-tap
+- **Interpolación**: 0=none, 1=linear(default), 2=cúbica (modulado)
+- **Feedback** = tapout → gain → tapin (siempre \< 1)
+- **Ping-Pong** = Cross-feedback L↔R
+- **Modulado** = LFO en tapout delay (requiere interp. cúbica)
+- **Karplus-Strong** = Delay + LPF feedback = síntesis cuerda
+
+## Ver También
+
+- **tapin~ / tapout~** - Delay line principal
+- **delay~** - Delay simple (un tap, Max-style)
+- **pipe** - Delay mensajes (no señal)
+- **comb~** - Delay + feedback integrado (comb filter)
+- **biquad~** - Filtros en feedback
+- **cycle~ / phasor~** - LFOs para modulación
+

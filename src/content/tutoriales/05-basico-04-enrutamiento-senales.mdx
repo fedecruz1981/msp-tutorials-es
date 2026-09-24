@@ -1,0 +1,120 @@
+---
+title: "Tutorial 4: Enrutamiento de señales"
+description: "Conexiones remotas con send~ y receive~, enrutamiento con gate~, interferencia de ondas, amplitud relativa, sig~, phasor~ para cambio de fase."
+section: "fundamentos"
+order: 8
+slug: "05-basico-04-enrutamiento-senales"
+originalUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter04/"
+---
+
+# Tutorial Básico 4: Enrutamiento de señales
+
+## Introducción
+
+En este tutorial veremos diferentes formas de enrutar conexiones de audio MSP, así como revisaremos el envío de mensajes remotamente dentro de Max con un enfoque en cómo esto puede ser útil en el diseño de redes de señal. En el camino aprenderemos sobre cómo la ganancia puede expresarse en decibeles y cómo funciona el objeto **phasor~**.
+
+## Conexiones remotas de señal: send~ y receive~
+
+Los patch cords que conectan objetos MSP se ven diferentes de los patch cords normales porque en realidad hacen algo diferente. Describen el orden de cálculos en una red de señal. Estos objetos conectados se usarán para calcular un bloque completo de muestras para la próxima porción de salida de sonido por su computadora.
+
+Los objetos Max pueden comunicarse remotamente sin patch cords usando los objetos **send** y **receive** (y algunos objetos similares como **value** y **pv**). También puede usar puntos y comas en **message** boxes para transmitir valores a objetos **receive** por su nombre. También puede transmitir señales MSP remotamente. En lugar de usar objetos normales **send** y **receive**, sin embargo, existen dos objetos MSP específicamente para transmisión remota de señales: **send~** y **receive~**.
+
+Los dos objetos **send~** y **receive~** funcionan de manera muy similar a **send** y **receive**, pero son solo para uso con señales MSP. Max le permitirá conectar patch cords normales a **send~** y **receive~**, pero solo las señales pasarán a través de **send~** al correspondiente **receive~**.
+
+De manera similar a cómo los nombres de **send** y **receive** pueden abreviarse a **s** y **r**, los nombres de **send~** y **receive~** pueden abreviarse a **s~** y **r~**.
+
+Hay algunas diferencias importantes entre los objetos Max **send** y **receive** y los objetos MSP **send~** y **receive~**.
+
+1. Un mensaje Max puede enviarse a un objeto **receive** desde varios otros objetos además de **send**, como **float**, **forward**, **grab**, **if**, **int**, y **message**; **receive~** solo puede recibir una señal de un objeto **send~** que comparta el mismo nombre.
+2. Si **receive** no tiene argumento escrito, tiene un inlet para recibir mensajes `set` para establecer o cambiar su nombre; **receive~** también tiene un inlet para ese propósito, pero sin embargo requiere un argumento escrito para darle un nombre de destino inicial.
+3. El objeto Max **send**, una vez creado, no puede cambiar destinos (el objeto Max **forward** hace esto). El objeto MSP **send~** puede cambiar destinos con un mensaje `set`.
+
+Ejemplos de cada uno de estos usos pueden verse en el patch del tutorial.
+
+## Enrutando una señal: gate~
+
+El objeto MSP **gate~** funciona de manera muy similar al objeto Max **gate**. Así como **gate** se usa para dirigir mensajes a uno de varios destinos, o para cerrar el flujo de mensajes por completo, **gate~** dirige una señal a diferentes lugares, o la cierra del resto de la red de señal.
+
+En el patch de ejemplo, los objetos **gate~** se usan para enrutar señales a la salida de audio izquierda, la salida de audio derecha, ambas, o ninguna, de acuerdo con qué número se recibe del objeto **umenu**.
+
+Vale la pena notar que cambiar el outlet elegido de un objeto **gate~** mientras una señal de audio está sonando a través de él puede causar un clic audible porque la señal cambia bruscamente de un outlet a otro. Para evitar esto, generalmente debería diseñar su patch de manera que el outlet del objeto **gate~** solo se cambie cuando la señal de audio que pasa a través de él esté en cero o cuando el audio esté apagado. (No se tomó tal precaución en este patch de tutorial.)
+
+Los outlets cerrados de **gate~** no dejan de enviar señales, continúan enviando una señal con un valor constante de 0. Si la idea de una señal constante le parece extraña, piense en ello como 44,100 ceros por segundo.
+
+## Interferencia de ondas
+
+Es un hecho físico fundamental que cuando sumamos dos ondas sinusoidales con diferentes frecuencias creamos **interferencia** entre las dos ondas. Dado que tienen diferentes frecuencias, usualmente no estarán exactamente en fase entre sí; en algunos momentos estarán lo suficientemente en fase para que se sumen constructivamente, pero en otros momentos se suman destructivamente, cancelándose entre sí en cierta medida. Solo llegan precisamente en fase entre sí a una tasa igual a la diferencia en sus frecuencias. Por ejemplo, una sinusoide a 1000 Hz y otra a 1002 Hz entran en fase exactamente 2 veces por segundo. En este caso, están lo suficientemente cerca en frecuencia que no las oímos como dos tonos separados. En su lugar, oímos su patrón recurrente de interferencia constructiva y destructiva como **latidos** (beats) ocurriendo a una tasa sub-audio de 2 Hz, una tasa conocida como **frecuencia de diferencia** o **frecuencia de latido**. (Curiosamente, oímos las dos ondas como un solo tono con una frecuencia de latido sub-audio de 2 Hz y una frecuencia de audio de 1001 Hz.)
+
+Cuando el patch de ejemplo se abre, un objeto **loadbang** envía valores de frecuencia iniciales a los dos objetos **cycle~** en el patch, configurándolos a 1000 Hz y 1002 Hz; así que esperamos que estos dos tonos sonados juntos causen una frecuencia de latido de 2 Hz. También envía valores iniciales a los objetos **umenu** que a su vez configuran los objetos **gate~**, dirigiendo un tono a la salida de audio izquierda y uno a la salida de audio derecha. Un cuarto valor llamado `Depth` también se configura. Todo esto se logra usando un **message** box para establecer valores remotos recogidos por objetos Max **receive** en el patcher.
+
+- En el patcher del tutorial, haga clic en **ezdac~** para encender el audio, luego use el **slider** marcado `Volume` para ajustar el volumen del sonido a un nivel cómodo. Observe que los latidos ocurren exactamente dos veces por segundo. Intente cambiar la frecuencia del Oscilador B a varios otros números cercanos a 1000 (usando el **number** box etiquetado `frequency`), y observe el efecto. A medida que la frecuencia de diferencia se acerca a una tasa de audio (digamos, en el rango de 20-30 Hz) ya no puede distinguir latidos individuales, y el efecto se vuelve más un cambio tímbrico. Aumente la diferencia aún más, y comienza a oír dos frecuencias distintas.
+    
+- *Tangente filosófica:* Puede demostrarse matemática y empíricamente que cuando se suman dos tonos sinusoidales, su patrón de interferencia recurre a una tasa igual a la diferencia en sus frecuencias. Esto aparentemente explica por qué oímos latidos; la amplitud demostrablemente varía a la tasa de diferencia. Sin embargo, si escucha este patch a través de auriculares para que los dos tonos nunca tengan la oportunidad de interferir matemática, eléctricamente, o en el aire, ¡todavía oye los latidos! Este fenómeno, conocido como **latidos binaurales**, es causado por "interferencia" que ocurre en el sistema nervioso. Aunque tal interferencia es de una naturaleza física muy diferente que la interferencia de ondas de sonido en el aire, la experimentamos como similar. Un experimento como este demuestra que nuestro sistema auditivo moldea activamente el mundo que oímos.
+    
+
+## Amplitud y amplitud relativa
+
+El **slider** marcado 'Volume' se ha configurado para tener un rango de 101 valores, de `0` a `100`, lo que hace fácil convertir su salida a un float que va de `0` a `1` simplemente dividiendo por 100. (El punto decimal en el argumento escrito en el objeto **/** asegura una división float.)
+
+Los objetos **\*~** usan el valor de amplitud especificado para escalar la señal de audio antes de que vaya al **ezdac~**. Si ambos osciladores se envían al mismo inlet de **ezdac~**, su amplitud combinada será 2. Por lo tanto, es prudente mantener el factor de escalado de amplitud en 0.5 o por debajo. Por esa razón, el valor de amplitud que el usuario piensa como entre 0 y 1 en realidad se mantiene entre 0 y 0.5 por el objeto **\*** `0.5` debajo del **slider**.
+
+Debido al amplio rango de amplitudes audibles posibles, puede ser más significativo en algunos casos mostrar el volumen numéricamente en términos de la escala logarítmica de decibelios (**dB**), en lugar de en términos de amplitud absoluta. La escala de decibelios se refiere a la **amplitud relativa**, es decir, la amplitud de una señal relativa a alguna amplitud de referencia. La fórmula para calcular la amplitud en decibelios es:
+
+```
+dB = 20(log₁₀(A/Aref))
+```
+
+donde *A* es la amplitud que se está midiendo y *Aref* es una amplitud de referencia fija.
+
+El objeto **AtodB** usa una amplitud de referencia de 1 en la fórmula mostrada arriba, y convierte la amplitud a dB. Si apaga el audio (por seguridad) y sube el **slider** a su valor máximo (asegurando una salida de `1`), verá la salida en decibelios del objeto **AtodB** leer `0` (es decir, ganancia unitaria). Cada reducción a la mitad de la amplitud en el **slider** es aproximadamente igual a una reducción de 6 dB en decibelios.
+
+## Valor de señal constante: sig~
+
+La mayoría de las redes de señal requieren algunos valores cambiantes (como una envolvente de amplitud para variar la amplitud a lo largo del tiempo) y algunos valores constantes (como un valor de frecuencia para mantener un oscilador en un tono estable). En general, se proporciona un valor constante a un objeto MSP en la forma de un mensaje `float`, como hemos hecho en estos ejemplos al enviar una frecuencia en el inlet izquierdo de un objeto **cycle~**.
+
+Sin embargo, hay algunos casos en los que se quiere combinar valores tanto constantes como cambiantes en el mismo inlet de un objeto MSP. Los inlets que aceptan ya sea un `float` o una `signal` (como el inlet izquierdo de **cycle~**) no combinan exitosamente los dos. En general, los objetos MSP **ignorarán** un valor de punto flotante en deferencia a una entrada de señal. Como resultado, es necesario tener un objeto que emita un valor constante como señal si necesita combinar un valor fijo y uno cambiante en una cadena de señal MSP.
+
+Una forma de combinar un mensaje numérico de Max (un `int` o un `float`) con una señal es convertir el número en una señal constante con el objeto **sig~**. La salida de **sig~** es una señal con un valor constante, determinado por el número recibido en su inlet.
+
+En el patch de ejemplo, `Oscillator B` combina una frecuencia constante (suministrada como `float` a **sig~**) con un desplazamiento de frecuencia variable (valores de señal que entran desde un objeto **receive~** llamado `FreqB+`). La suma de estas señales será la frecuencia del oscilador en cualquier instante dado.
+
+## Cambiando la fase de una forma de onda: phasor~
+
+En su mayor parte, el desplazamiento de fase de una onda de audio aislada no tiene un efecto perceptible sustancial. Por ejemplo, una onda seno en el rango de audio suena exactamente como una onda coseno, aunque hay una diferencia de fase teórica de un cuarto de ciclo. Por esa razón, no nos hemos preocupado por el inlet de fase más a la derecha del objeto **cycle~** hasta ahora.
+
+![Una onda seno desplazada por un cuarto de ciclo es una onda coseno](/images/basicchapter04a.webp "Una onda seno desplazada por un cuarto de ciclo es una onda coseno")
+
+Sin embargo, hay algunas razones muy útiles para controlar el desplazamiento de fase de una onda. Por ejemplo, al dejar la frecuencia de **cycle~** en `0`, y aumentando continuamente su desplazamiento de fase, puede cambiar su valor instantáneo (justo como si tuviera una frecuencia positiva). El desplazamiento de fase de una sinusoide usualmente se refiere en grados (un ciclo completo es 360°) o **radianes** (un ciclo completo es 2π radianes de longitud). En el objeto **cycle~**, la fase se refiere en ciclos de onda; así que un desplazamiento de π radianes es 1/2 de un ciclo, o `0.5`. En otras palabras, a medida que la fase varía de 0 a 2π radianes, varía de `0` a `1` ciclos de onda. Esta forma de describir la fase es conveniente ya que nos permite usar el rango de señal común de 0 a 1.
+
+Así, si variamos el desplazamiento de fase de un **cycle~** estacionario (0 Hz) continuamente de 0 a 1 en el transcurso de un segundo, la salida resultante es una onda coseno con una frecuencia de 1 Hz.
+
+El objeto **phasor~** es un generador de señal MSP muy útil que simplemente emite una rampa de `0` a `1` a una frecuencia dada. Al igual que con el objeto **cycle~**, su frecuencia puede configurarse por un argumento al objeto, un valor de punto flotante en su inlet izquierdo, o una_signal. Más tarde en nuestro tutorial, oiremos cómo suena (es una onda sierra, y no especialmente agradable), pero por ahora usémoslo para cambiar la **fase** (de ahí **phasor~**) del objeto **cycle~** en la parte inferior izquierda del patcher del tutorial.
+
+- Haga clic en el **message** box encima de los objetos **line~** en la porción inferior izquierda del patcher del tutorial. Debería oír una de las ondas senoidales comenzar a bajar y subir lentamente en tono, causando que los latidos entre las dos senoidales conectadas a la salida de audio cambien con el tiempo.
+
+El **cycle~** en la parte inferior izquierda del patcher está **modulando** el objeto **cycle~** en la parte superior derecha al agregar un valor a su frecuencia actual (constante), establecida por el objeto **sig~**.
+
+`Nota histórica:` En los días lejanos de la síntesis MusicN, el *phasor* era el único *generador de unidades* que podía producir un tono continuo. Un phasor tenía que conectarse a una tabla de ondas para generar otras formas de onda. En MSP, **cycle~**, **triangle~** y los otros osciladores tienen phasors internos, pero el concepto phasor es útil para tantas operaciones que hemos proporcionado la versión independiente.
+
+## Recibiendo una señal diferente
+
+La porción restante del patch de tutorial existe simplemente para demostrar el uso del mensaje `set` al objeto **receive~**. Esta es otra forma de alterar el flujo de señal en una red. Al igual que con el objeto **send~**, puede cambiar el nombre del objeto **receive~** con un mensaje `set`, instruyéndolo a obtener su entrada de un objeto **send~** diferente (u objetos).
+
+- Haga clic en el **message** box que contiene `set sawtooth`. Ambos **receive~** conectados ahora obtienen su señal del objeto **phasor~** en la esquina inferior derecha de la ventana. Haga clic en los **message** boxes que contienen los mensajes `set outL` y `set outR` para recibir los tonos sinusoidales una vez más. Con el destino `sawtooth` seleccionado, cambie la frecuencia del **phasor~** en la parte inferior derecha del patcher. Observe que cuando se configura a una frecuencia audible, la rampa del objeto **phasor~** hace que suene como un oscilador rico en armónicos. Esta es una onda **sierra** (sawtooth), una forma de onda común usada en diseño de sintetizadores. Debido a que el objeto **phasor~** solo hace rampa de `0` a `1` (y no de `-1` a `1`), usar un **phasor~** como fuente de audio no es la mejor manera de obtener este sonido: la onda sierra MSP **saw~** hará el truco en su lugar.
+
+## Resumen
+
+Es posible hacer conexiones de señal sin patch cords usando los objetos MSP **send~** y **receive~**, que son similares a los objetos Max **send** y **receive**. El mensaje `set` puede usarse para cambiar el nombre de un objeto **send~** o **receive~**, cambiando así cómo se enrutan las señales. El flujo de señal puede enrutarse a diferentes destinos dentro de un patcher, o cerrarse por completo, usando el objeto **gate~**, que es el equivalente MSP del objeto Max **gate**.
+
+El objeto **cycle~** puede usarse no solo para ondas de audio periódicas, sino también para funciones de control sub-audio: puede leer a través de la forma de onda de un objeto **cycle~** a cualquier tasa que desee manteniendo su frecuencia en 0 Hz y cambiando su fase continuamente de `0` a `1`. El objeto **phasor~** es apropiado para cambiar la fase de una forma de onda **cycle~** de esta manera; también podría usar un objeto **line~** para crear una rampa que pase por la tabla de ondas del objeto.
+
+El objeto **sig~** convierte un número a una señal constante; recibe un número en su inlet y emite una señal de ese valor. Esto es útil para combinar valores constantes con señales variables. Mezclar tonos con frecuencias ligeramente diferentes crea interferencia entre ondas, lo que puede crear latidos y otros efectos tímbricos.
+
+## Ver También
+
+- **gate~** - Enrutar una señal a uno de varios outlets
+- **receive~** - Recibir señales sin patch cords
+- **send~** - Transmitir señales sin patch cords
+- **sig~** - Señal constante de un número
+- **phasor~** - Generador de onda sierra

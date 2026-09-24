@@ -1,0 +1,237 @@
+---
+title: "Entrada y salida de audio"
+description: "Configuración de audio en MSP: ventana Estado de Audio, monitor CPU, controladores Core Audio, MME, DirectSound, ASIO, modo no-real-time y mapeo de canales lógicos."
+section: "introduccion"
+order: 4
+slug: "04-entrada-salida-audio"
+originalUrl: "https://docs.cycling74.com/learn/articles/04_mspaudioio/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/04_mspaudioio/"
+---
+
+# Entrada y Salida de Audio
+
+MSP se conecta con el hardware de audio de su computadora a través de los objetos **dac~** y **adc~** y sus equivalentes fáciles de usar **ezdac~** y **ezadc~**. Si no tiene hardware de audio especial y no necesita enrutamiento de audio entre aplicaciones, el controlador predeterminado de su sistema le dará E/S estéreo full-duplex sin configuración especial de su parte.
+
+Además de Core Audio o MME en Windows, hay varias otras formas de obtener audio dentro y fuera de Max. Cada uno de estos métodos implica el uso de lo que llamamos un **controlador** (driver), que en realidad es un tipo especial de objeto Max. Algunos de estos controladores facilitan el uso de MSP con hardware de audio de terceros. Además, un controlador no real-time le permite usar MSP como un sistema de procesamiento y síntesis de audio basado en disco, eliminando el límite de cuánto procesamiento puede hacer con su CPU en tiempo real.
+
+Los objetos de controlador de audio MSP se encuentran en la carpeta **ad** ubicada en la carpeta Resources/Externals dentro de la carpeta de la aplicación Max. Estos archivos de objeto deben estar en esta carpeta (que significa *audio driver*), de lo contrario MSP no podrá localizarlos.
+
+Comenzaremos con una discusión sobre la entrada/salida de audio en MSP en general. Más adelante en este capítulo discutiremos aspectos de controladores de audio específicos disponibles para usted en MSP. Primero discutiremos la ventana Estado de Audio y cómo usarla para obtener información sobre su hardware de audio y establecer parámetros para cómo MSP maneja la entrada y salida de audio.
+
+## La ventana Estado de Audio
+
+Todos los parámetros globales de audio en MSP se muestran en la ventana Estado de Audio. Para abrir la ventana Estado de Audio, simplemente haga doble clic en cualquier objeto **dac~** o **adc~** en una ventana Patcher bloqueada. Alternativamente, puede elegir Estado de Audio... en el menú Opciones.
+
+La ventana Estado de Audio está organizada como un grupo de menús y casillas de verificación que establecen todos los parámetros de la entrada y salida de audio en MSP. Dado que todas estas opciones pueden cambiarse desde dentro de su patch, la ventana Estado de Audio sirve como monitor de su configuración de audio actual también.
+
+![Ventana Estado de Audio](/images/mspaudioio01.webp "Ventana Estado de Audio")
+
+**Detalle técnico:** La ventana Estado de Audio es de hecho un patch de Max (llamado Audio Status, en la carpeta *interfaces* dentro de la carpeta Resources). Cada parámetro mostrado en la ventana Estado de Audio es un menú o casilla de verificación conectado a una instancia del objeto **adstatus**. El objeto **adstatus** puede usarse dentro de sus patches MSP para que pueda establecer y restaurar parámetros de audio específicamente para ciertos patches. El objeto **adstatus** también es útil para obtener información sobre carga actual de CPU, tamaño de vector y tasa de muestreo. Vea la referencia del objeto **adstatus** para más detalles.
+
+En la parte superior de la ventana Estado de Audio hay un menú desplegable para encender y apagar el audio en MSP y un conjunto de menús desplegables que le permiten seleccionar un controlador de audio y configurar su fuente de entrada y destino de salida.
+
+![Menús de controlador de audio](/images/mspaudioio02.webp "Menús de controlador de audio")
+
+El segundo menú desplegable le permite ver y seleccionar un controlador de audio para MSP. Los controladores de audio específicos se discutirán más adelante en este capítulo. Un breve resumen será suficiente por ahora:
+
+- `None`: Esta configuración apaga el procesamiento de audio MSP.
+- `Core Audio`: Este es el controlador de audio predeterminado para MSP en Macintosh. Se conecta con el sistema Core Audio del sistema y puede usarse con el audio integrado de la computadora, o, con el soporte de software adecuado, una interfaz de hardware de terceros, como ASIO.
+- `MME` o `DirectSound`: (Solo Windows) En Windows, MSP carga el controlador MME por defecto. Si su tarjeta de sonido o hardware externo soporta DirectSound, también debería aparecer como opción en el menú desplegable.
+- `ASIO`: (Solo Windows) Si tiene una interfaz de audio de terceros que soporta ASIO (un estándar de hardware de audio multiplataforma desarrollado por Steinberg), y está instalado correctamente, será encontrado por el controlador ASIO de MSP. Puede tener tantos dispositivos ASIO como desee; todos serán encontrados por el controlador y aparecerán en el menú desplegable Driver en la ventana Estado de Audio precedidos por la palabra ASIO.
+- `ad_nonreal`: Este controlador permite a MSP trabajar en modo no real-time, permitiéndole sintetizar y procesar audio sin ninguna limitación de rendimiento del procesador en tiempo real. La entrada y salida de audio en tiempo real están deshabilitadas bajo este controlador.
+
+Solo se puede seleccionar un controlador de audio a la vez. MSP guarda la configuración para cada controlador de audio por separado y recordará el último controlador de audio usado cuando reinicie Max.
+
+Los siguientes dos menús desplegables están activos solo si el controlador y dispositivo elegidos los soportan. Cuando lo hacen, los menús desplegables le permiten cambiar la fuente de entrada de audio. Estas configuraciones también pueden cambiarse usando la aplicación Audio MIDI Setup en Macintosh o la ventana Propiedades de Sonidos y Dispositivos de Audio (Inicio > Configuración > Panel de Control > Sonidos y Dispositivos de Audio) en Windows.
+
+Cuando ASIO está en uso, los menús desplegables le permiten establecer la fuente de reloj para su hardware de audio y si priorizar o no la entrada y salida MIDI sobre la E/S de audio.
+
+La ventana Estado de Audio le permite controlar el tamaño de los bloques de muestras (llamados vectores de señal) que MSP usa. Hay dos tamaños de vector que puede controlar.
+
+- El **Tamaño de Vector I/O** (I/O significa input/output) controla el número de muestras que se transfieren hacia y desde la interfaz de audio a la vez.
+- El **Tamaño de Vector de Señal** establece el número de muestras que son calculadas por los objetos MSP a la vez. Esto puede ser menor o igual al Tamaño de Vector I/O, pero no mayor. Si el Tamaño de Vector de Señal es menor que el Tamaño de Vector I/O, MSP calcula dos o más vectores de señal en sucesión para cada vector I/O que necesita ser calculado.
+    Con un tamaño de vector I/O de 256, y una tasa de muestreo de 44.1 kHz, MSP calcula aproximadamente 5.8 milisegundos de datos de audio a la vez.
+
+![Configuración de tamaños de vector](/images/mspaudioio03.webp "Configuración de tamaños de vector")
+
+El **Tamaño de Vector I/O** puede tener un efecto en la latencia y el rendimiento general. Un tamaño de vector más pequeño puede reducir el retraso inherente entre la entrada de audio y la salida de audio, porque MSP tiene que realizar cálculos para un trozo de tiempo más pequeño. Por otro lado, hay una carga computacional adicional cada vez que MSP se prepara para calcular otro vector (el siguiente trozo de audio), así que es más fácil en general para el procesador calcular un vector más grande. Sin embargo, hay otro lado de esta historia. Cuando MSP calcula un vector de audio, lo hace en lo que se conoce como una interrupción. Si MSP se está ejecutando en su computadora, lo que sea que esté haciendo (procesamiento de textos, por ejemplo) es interrumpido y se calcula y reproduce un vector I/O de audio. Luego la computadora regresa a su programa normalmente programado. Si el tamaño de vector es lo suficientemente grande, la computadora puede quedarse un poco atrás y la salida de audio puede empezar a hacer clics porque el procesamiento tomó más tiempo del que la computadora esperaba. Reducir el Tamaño de Vector I/O puede resolver este problema, o puede que no. Por otro lado, si intenta generar demasiadas interrupciones, la computadora se ralentizará intentando procesarlas (guardar lo que está haciendo e iniciar otra tarea es trabajo duro). Por lo tanto, típicamente encontrará que los tamaños de vector I/O más pequeños consumen un mayor porcentaje de los recursos de la computadora. Optimizar el rendimiento de cualquier red de señal en particular cuando está cerca del límite de la capacidad de su CPU es un proceso de prueba y error. Por eso MSP le da una opción de tamaños de vector.
+
+**Detalle técnico:** Algunas tarjetas de interfaz de audio no proporcionan una opción de tamaños de vector I/O. También hay algunos controladores ASIO cuya selección de tamaños de vector I/O puede no conformarse a la limitación de múltiplo-de-una-potencia-de-2 actualmente impuesta por el soporte ASIO de MSP. En algunos casos, esta limitación puede remediarse usando el controlador ASIO a una tasa de muestreo diferente.
+
+Cambiar los tamaños de vector no afecta la calidad real del audio en sí, a diferencia de cambiar la tasa de muestreo, que afecta la respuesta de alta frecuencia. Cambiar el tamaño de vector de señal no tendrá ningún efecto en la latencia, y tendrá solo un ligero efecto en el rendimiento general (cuanto mayor el tamaño, más rendimiento puede esperar). Sin embargo, ciertos tipos de algoritmos se benefician de un tamaño de vector de señal pequeño. Por ejemplo, el retardo mínimo que puede obtener de los objetos de línea de retardo de MSP **tapin~** y **tapout~** es igual al número de muestras en un vector de señal a la tasa de muestreo actual. Con un tamaño de vector de señal de 64 a 44.1 kHz, esto es 1.45 milisegundos, mientras que con un tamaño de vector de señal de 1024, es 23.22 milisegundos. El tamaño de vector de señal en MSP puede establecerse tan bajo como 2 muestras, y en la mayoría de los casos puede subir hasta el mayor tamaño de vector I/O disponible para su controlador de audio. Sin embargo, si el tamaño de vector I/O no es una potencia de 2, el tamaño máximo de vector de señal es la mayor potencia de 2 que divide uniformemente el tamaño de vector I/O.
+
+Puede establecer la tasa de muestreo de audio con el menú desplegable **Tasa de Muestreo**. Para audio de rango completo, la tasa de muestreo recomendada es 44.1 kHz. Usar una tasa más baja reducirá el número de muestras que MSP tiene que calcular, aliviando así la carga de su computadora, pero también reducirá el rango de frecuencia. Si su computadora está luchando a 44.1 kHz, debería probar una tasa más baja.
+
+**Detalle técnico:** Los subpatches cargados en el objeto **poly~** pueden funcionar a diferentes tasas de muestreo y tamaños de vector del patch de nivel superior. Además, el objeto **poly~** permite sobremuestreo y submuestreo, así como diferentes tamaños de vector. La ventana Estado de Audio solo muestra y cambia la configuración para el patch de nivel superior.
+
+La opción **Max Scheduler in Overdrive** le permite activar y desactivar la configuración Overdrive de Max desde dentro de la ventana Estado de Audio. Cuando Overdrive está activado, el programador de eventos de Max se ejecuta a nivel de interrupción. El programador de eventos hace cosas como disparar el `bang` de un objeto **metro** repetitivo, así como enviar cualquier dato MIDI recibido recientemente. Cuando no está activado, overdrive ejecuta el programador de eventos dentro de un bucle de manejo de eventos de menor prioridad que puede ser interrumpido haciendo cosas como bajar un menú. También puede habilitar y deshabilitar Overdrive usando el menú Opciones. Overdrive generalmente mejora la precisión del tiempo, pero puede haber excepciones, y algún software de terceros puede no funcionar correctamente cuando Overdrive está habilitado.
+
+La función **Scheduler in Audio Interrupt** está disponible cuando Overdrive está habilitado. Ejecuta el programador de eventos de Max inmediatamente antes de procesar un vector de señal de audio. Habilitar Scheduler in Audio Interrupt puede mejorar enormemente la sincronización de eventos de audio que se disparan desde procesos de control o entrada MIDI externa. Sin embargo, la mejora en la sincronización puede estar directamente relacionada con su elección de Tamaño de Vector I/O, ya que esto determina el intervalo en el que los eventos fuera del programador (como entrada y salida MIDI) afectan a Max. Cuando el Tamaño de Vector de Señal es 512, el programador se ejecutará cada 512 muestras. A 44.1 kHz, esto es cada 11.61 milisegundos, que está justo en los límites externos de la aceptabilidad de la sincronización. Con Tamaños de Vector de Señal más pequeños (256, 128, 64), la sincronización sonará "más ajustada". Dado que puede cambiar todos estos parámetros mientras la música está sonando, puede experimentar para encontrar una combinación aceptable de precisión y rendimiento.
+
+Si no está haciendo nada donde la sincronización precisa entre el control y el audio es importante, deje Scheduler in Audio Interrupt desmarcado. Obtendrá un poco más de rendimiento general de CPU para el procesamiento de señal.
+
+## Monitor CPU DSP
+
+La ventana Monitor CPU DSP, encontrada en el menú `Extras` le ayuda a monitorear el rendimiento de su sistema.
+
+![Monitor CPU DSP](/images/mspaudioio04.webp "Monitor CPU DSP")
+
+El campo **CPU Utilization** muestra una estimación aproximada de cuánto de la CPU de su computadora se está asignando para procesar audio en MSP. Esto también se muestra en Estado de Audio.
+
+La opción **CPU Limit** le permite establecer un límite (expresado como un porcentaje de la CPU de su computadora) de cuánto procesamiento de señal se le permite hacer a MSP. MSP no superará el límite de CPU establecido por un período sostenido, permitiendo que su computadora realice otras tareas sin que MSP las bloquee. La compensación, sin embargo, es que oirá clics en la salida de audio cuando la CPU supere el límite especificado. Establecer este valor en 0 o 100 deshabilitará el límite de CPU.
+
+El número junto a **Signals Used** muestra el número de búferes internos que fueron necesitados por MSP para conectar los objetos de señal usados en la red de señal actual. El número de **Function Calls** da una idea aproximada de cuántos cálculos se requieren para cada muestra de audio. Ambos campos se actualizarán cada vez que cambie el número de objetos de audio o cómo están conectados.
+
+**Vector Optimization** solo se aplica a computadoras PowerPC. La optimización de vector permite que cuatro muestras sean procesadas dentro del espacio de una sola instrucción. Sin embargo, no todos los algoritmos de procesamiento de señal de audio pueden optimizarse de esta manera (por ejemplo, los algoritmos de filtro recursivo son sustancialmente inmunes a la optimización de vector). MSP en sí ya no usa optimización de vector, pero objetos de audio de terceros todavía pueden usarlo. En otras palabras, a menos que esté usando un objeto de audio de terceros habilitado para vector en una computadora PowerPC, esta configuración no tendrá efecto.
+
+La siguiente parte de la ventana Estado de Audio le permite mapear canales lógicos de E/S.
+
+![Mapeo de canales lógicos](/images/mspaudioio05.webp "Mapeo de canales lógicos")
+
+Los menús desplegables etiquetados *Input Channel 1*, *Input Channel 2*, *Output Channel 1*, *Output Channel 2* le permiten mapear los primeros dos canales lógicos de E/S en MSP (es decir, los dos primeros outlets del objeto **adc~** y los dos primeros inlets del objeto **dac~**) a canales físicos usados por su controlador de audio. Diferentes controladores de audio le dan diferentes opciones, por ejemplo, el controlador MME en Windows solo soporta dos canales, así que normalmente usará las opciones predeterminadas. Para mapear canales lógicos adicionales, use la ventana Mapeo I/O, que puede ver haciendo clic en el botón I/O Mappings en la parte inferior de la ventana Estado de Audio (ver abajo para más información sobre la ventana Mapeo I/O). Además, puede usar el objeto **adstatus** desde dentro de su patch para mapear cualquiera de los 512 canales lógicos de E/S de audio.
+
+## Acerca de los canales lógicos de entrada y salida
+
+Puede crear un objeto **dac~** o **adc~** que use un número de canal entre 1 y 512. Estos números se refieren a lo que llamamos **canales lógicos** y pueden reasignarse dinámicamente a canales físicos de dispositivo de un controlador particular usando ya sea la ventana Estado de Audio, su subventana Mapeo I/O, o un objeto adstatus con un argumento de palabra clave input u output.
+
+Los objetos **adc~** y **dac~** le permiten especificar argumentos que definen qué canales lógicos se mapean a sus inlets y outlets, respectivamente. En el ejemplo a continuación, múltiples canales lógicos están en uso en un patch simple:
+
+![Múltiples canales lógicos en uso](/images/mspaudioio06.webp "Múltiples canales lógicos en uso")
+
+En este ejemplo, dos objetos **adc~** separados emiten señales de audio de pares de canales lógicos 1/2 y 3/4, respectivamente. La salida de los cuatro canales se envía a objetos **gain~** que atenúan las señales entrantes y las envían a los primeros cuatro canales lógicos de salida, como se especifica en el primer objeto **dac~**. Las señales de entrada también se multiplican (modulación en anillo) y se envían a los canales lógicos 9 y 10. Los objetos **ezadc~** y **ezdac~** solo acceden a los dos primeros canales lógicos de entrada y salida en MSP.
+
+El propósito de tener tanto canales lógicos como canales físicos de dispositivo es permitirle crear patches que usen tantos canales como necesite sin tener en cuenta la configuración de hardware particular que esté usando. Por ejemplo, algunas interfaces de audio usan canales físicos de dispositivo 3 y 4 para entrada y salida S/PDIF, otras usan canales 9 y 10 en su lugar. Sin mapeo lógico, tendría que cambiar los argumentos en todos sus objetos **adc~** y **dac~** cuando cambiara de interfaces. Con ello, simplemente puede ir a la ventana Estado de Audio y elegir conexiones de canales en la ventana Mapeo I/O.
+
+Los canales lógicos en MSP solo se crean si hay un objeto **dac~** o **adc~** usándolos. En otras palabras, si solo está usando salidas lógicas 1 y 2, no hay 510 flujos de audio sin usar sentados por ahí consumiendo su CPU. Sin embargo, ya que puede mezclar cualquier número de canales lógicos a un solo canal físico si es necesario, puede crear una configuración multicanal compleja que permitirá a otras personas escuchar todos sus canales lógicos cuando la usen en un dispositivo de salida de dos canales.
+
+Para asignar múltiples canales lógicos a un canal físico de un dispositivo de salida, use la ventana Mapeo I/O. Haga clic en el botón I/O Mappings en la parte inferior de la ventana Estado de Audio.
+
+![Ventana I/O Mappings](/images/mspaudioio07.webp "Ventana I/O Mappings")
+
+Los Mapeos I/O se guardan para cada controlador de audio. También puede crear mapeos I/O dentro de su patch usando el objeto **adstatus**. El patch de ejemplo a continuación logra el mismo remapeo que el mostrado en la ventana Mapeo I/O anterior, pero lo hace automáticamente cuando se carga el patch.
+
+![Mapeo I/O automático via adstatus](/images/mspaudioio08.webp "Mapeo I/O automático via adstatus")
+
+## Usando Core Audio
+
+Core Audio proporciona E/S de audio a aplicaciones Mac desde el hardware de audio integrado de la computadora así como cualquier hardware de audio externo que pueda tener.
+
+Si tiene hardware de audio externo, debería venir con los controladores para conectarse con Core Audio. Cuando estos controladores están instalados y el hardware está presente, Core Audio incluirá el dispositivo externo como una opción Core Audio en el menú Driver en la ventana Estado de Audio.
+
+![Selección de dispositivo Core Audio](/images/mspaudioio09.webp "Selección de dispositivo Core Audio")
+
+La parte Sonido de la aplicación Preferencias del Sistema puede usarse para establecer configuraciones básicas de sonido para el sistema, como el volumen de salida, balance izquierda/derecha, y dispositivo de salida de sonido, así como el volumen de entrada y dispositivo de entrada de sonido. También puede usar la aplicación Audio MIDI Setup (ubicada en /Applications/Utilities) para un control más detallado de la configuración de E/S de sonido. Note que las modificaciones que haga a la sección Sonido de Preferencias del Sistema, como cambiar el volumen de salida o balance, se reflejan en Audio MIDI Setup (y viceversa). Puede abrir la aplicación Audio MIDI Setup haciendo clic en el botón Open Audio Control Panel en la esquina inferior izquierda de la ventana Estado de Audio en Max.
+
+![Audio MIDI Setup](/images/mspaudioio10.webp "Audio MIDI Setup")
+
+El lado derecho de la ventana de audio muestra la configuración para el dispositivo seleccionado a la izquierda. El botón *Input* le permite seleccionar la Fuente de Entrada (por ejemplo, Línea o Mic para el dispositivo seleccionado) así como la tasa de muestreo y profundidad de bits en los menús desplegables *Format*. De manera similar, el botón *Output* le permite seleccionar la tasa de muestreo y profundidad de bits en sus menús *Format*. Las selecciones disponibles variarán, dependiendo de su hardware de audio. Note que es posible establecer la tasa de muestreo para dispositivos de audio y Max de manera diferente, y Core Audio manejará la conversión. Esta conversión no está exenta de defectos, sin embargo, por lo que es mejor mantener la misma tasa de muestreo en todo el sistema.
+
+Cuando se usan dispositivos de audio externos, los controles deslizantes *Input Volume* y *Output Volume* pueden usarse para establecer los volúmenes generales de entrada y salida del dispositivo seleccionado (no están disponibles en todos los dispositivos). Las casillas *Mute* le permiten silenciar los dispositivos de entrada y salida, si es aplicable. Play Through está disponible solo en algunos dispositivos. La casilla *Thru* a la derecha de cada control deslizante Input Volume le permite elegir si el dispositivo de entrada se "monitorea" directamente a través de la salida. Cuando playthrough está habilitado, la señal seca de la fuente de entrada se reproducirá a través de la salida mezclada con cualquier señal procesada que pueda estar enviando a la salida en MSP. Deshabilitar playthrough le permitirá controlar cuánta (si es que hay) señal seca de la entrada de audio se enruta a la salida. Note que mezclar señales de entrada y salida puede producir problemas debido a retrasos asociados con rutas de señal digitales. El monitoreo analógico es casi siempre una mejor opción.
+
+Esta opción puede cambiarse en MSP enviando un mensaje al objeto dsp para cambiarla. Ponga lo siguiente en un message box y al hacer clic en él se desactivará playthrough:
+
+```
+; dsp driver playthrough 0
+```
+
+Usando un argumento de 1 lo activará.
+
+Algunos dispositivos permitirán la elección de Clock Source. Si el audio está entrando en una entrada digital como una conexión S/PDIF, el reloj de muestreo debe sincronizarse precisamente con la tasa de datos de entrada. De lo contrario, habrá clics periódicos en la señal. Por otro lado, si la fuente elegida para el reloj se apaga o desconecta, no habrá audio en ninguna entrada.
+
+El menú *System Settings* (icono de engranaje) le permite elegir qué dispositivo de audio se usa para entrada, salida y alertas del sistema. Si un dispositivo conectado tiene su propia aplicación de configuración, puede accederse a través del *menú system settings.*
+
+## Controladores Microsoft para Windows
+
+Se soportan tres tipos de controladores de tarjeta de sonido en Windows: MME, DirectSound y ASIO. Su elección de controlador tendrá un impacto significativo en el rendimiento y la latencia que experimentará con MSP.
+
+El controlador MME (ad_mme) es el predeterminado usado para la salida de sonidos del sistema Windows, y se conectará a casi cualquier tarjeta de sonido y sistema de audio integrado. Si bien la compatibilidad con su hardware está casi garantizada, los pobres valores de latencia que obtiene de un controlador MME hacen que esta sea la opción menos deseable para operación de medios en tiempo real.
+
+DirectSound, construido sobre la tecnología DirectX de Microsoft, era el estándar en XP. Proporcionaba una latencia y rendimiento mucho mejores que los controladores MME. Si todavía está ejecutando XP, un controlador DirectSound (ad_directsound) debería usarse en preferencia a un controlador MME. Ocasionalmente, (y especialmente en el caso de sistemas de audio basados en placa base) encontrará que el controlador DirectSound funciona más pobremente que el controlador MME. Esto puede suceder cuando un controlador DirectSound específico de hardware no está disponible, y el sistema está emulando DirectSound mientras usa el controlador MME. En estos casos, es mejor usar MME directamente, o encontrar un controlador ASIO para su sistema.
+
+La mayoría de las interfaces de audio externas de calidad profesional usarán controladores ASIO. El estándar ASIO, desarrollado por Steinberg, está optimizado para latencia muy baja y alto rendimiento. Al igual que con el controlador DirectSound, necesita verificar que el rendimiento sea realmente mejor que otras opciones; ocasionalmente, un controlador ASIO será un simple "wrapper" alrededor del controlador MME o DirectSound, y funcionará más pobremente de lo esperado.
+
+### Configurar controladores MME o DirectSound con MSP en Windows
+
+Encontrar un controlador de audio que funcione en Windows es un proceso de eliminación. Primero asegúrese de que su tarjeta de sonido o interfaz de audio esté funcionando correctamente con otras aplicaciones. (Si tiene una tarjeta ASIO, vaya a Usando ASIO en Windows.) Comience con ad_portaudio Windows DirectSound, luego ad_portaudio MME. Si todo lo demás falla, los controladores ad_directsound y ad_mme deberían darle algo.
+
+Si un dispositivo de audio solo soporta MME o DirectSound, el SO Windows hace un mapeo automático de uno al otro. Dado que muchos dispositivos de audio inicialmente no soportaban DirectSound, Microsoft emuló DirectSound con una capa que conectaba DirectSound a MME. Actualmente, hay mayor soporte para controladores DirectSound nativos, y a veces cuando usa controladores MME Windows en realidad está ejecutando una capa para convertir de MME a DirectSound.
+
+Puede hacer cambios generales en la operación básica de su controlador de audio predeterminado accediendo a la ventana Propiedades de Sonidos y Dispositivos de Audio (Inicio > Configuración > Panel de Control > Sonidos y Dispositivos de Audio). Aquí puede seleccionar dispositivos de audio, y crear configuraciones para balance y volumen de salida.
+
+![Propiedades de audio Windows](/images/mspaudioio11.webp "Propiedades de audio Windows")
+
+### Dispositivos de Entrada y Salida
+
+Cuando use controladores MME o DirectSound, puede elegir dispositivos de entrada y salida de los menús desplegables en la ventana Estado de Audio de Max, que se poblarán automáticamente con los controladores para su hardware de audio. Es posible usar diferentes dispositivos de audio para entrada y salida simultáneamente. Sin embargo, esto no se recomienda ni soporta a menos que haya alguna provisión externa (desde Max) para sincronizar los relojes de muestreo de los dispositivos. Los dispositivos internos a su computadora estarán sincronizados, pero los dispositivos externos deben compartir un reloj de palabra común.
+
+### Prioridad de Hilo y Configuración de Latencia.
+
+Tanto los controladores MME como DirectSound incluyen configuraciones para Prioridad de Hilo y Latencia. Ambas están establecidas por defecto a configuraciones que esperamos funcionen en su computadora en la mayoría de situaciones. Sin embargo, puede encontrar que cuando está trabajando con un patch tiene problemas que puede resolver cambiando algunas de estas configuraciones. Si su audio está crepitando o hay fallos en él, puede querer intentar aumentar la configuración de latencia. Esto tiene la desventaja de hacer que su audio se sienta menos receptivo en tiempo real, pero permitirá al controlador de audio más tiempo para trabajar en las demandas extra de audio que ha puesto en él.
+
+Si su sistema es lento en otras áreas — como redibujado de pantalla o precisión general de tiempo — puede desear disminuir la prioridad de hilo del controlador de audio. Esto dará a sus otras tareas más espacio para hacerse, pero también puede resultar en que necesite aumentar la latencia para dar a su controlador de audio espacio para respirar en la nueva prioridad más baja.
+
+La sincronización entre el programador de Max y MSP es mejor cuando el tamaño de vector I/O está en el orden de 1ms. Recomendamos establecer el tamaño de vector I/O a 128 muestras. Tener una configuración de latencia separada del tamaño de vector I/O permite que esto funcione sin fallos de audio en la mayoría del hardware.
+
+## Usando ASIO en Windows
+
+Seleccionar un controlador ASIO de la ventana Estado de Audio permite a MSP hablar directamente con una interfaz de audio ASIO. (Los controladores de Windows cuentan con varias capas de software entre programa y hardware.) Para usar tarjetas de sonido ASIO su dispositivo necesita estar instalado y conectado correctamente; El controlador ASIO de MSP lo encontrará al inicio.
+
+Todos los dispositivos ASIO instalados correctamente deberían estar disponibles para su selección en la ventana Estado de Audio. Sin embargo, MSP no verifica si el hardware de interfaz de audio relevante está instalado correctamente en su sistema hasta que explícitamente cambie al controlador ASIO para esa tarjeta de interfaz. Si un controlador ASIO falla al cargar cuando intenta usarlo, aparecerá un mensaje de error en la Consola de Max (típicamente, un error de inicialización con un código de –1000) y los menús en el resto de la ventana Estado de Audio se quedarán en blanco. Cambiar al controlador MME y/o DirectSound reactivará el audio MSP.
+
+El menú desplegable **Clock Source** le permite establecer la fuente de reloj para su hardware de audio. Algunos controladores ASIO no soportan un reloj externo; si este es el caso, solo habrá una opción en el menú, típicamente etiquetada Internal.
+
+![Configuración ASIO](/images/mspaudioio12.webp "Configuración ASIO")
+
+El menú desplegable **Prioritize MIDI** le permite establecer la fuente de reloj para su hardware de audio y si priorizar o no la entrada y salida MIDI sobre la E/S de audio.
+
+Muchos controladores ASIO tienen otras configuraciones que puede editar en una ventana separada. Haga clic en el botón Open ASIO Control Panel en la parte inferior de la ventana Estado de Audio para acceder a estas configuraciones. Si su tarjeta de interfaz tiene un panel de control en su controlador ASIO, la documentación de la interfaz debería cubrir su operación.
+
+## Controlando controladores ASIO con mensajes al objeto dsp en Windows
+
+La versión 2 de la especificación ASIO permite el monitoreo directo de entradas a una interfaz de audio. En otras palabras, puede conectar entradas de audio a la interfaz directamente a salidas de audio sin que las señales pasen por su computadora. También tiene control sobre enrutamiento de canales, volumen y configuraciones de panorámica.
+
+Para controlar el monitoreo directo, envíe el mensaje `monitor` al objeto **dsp**. El mensaje `monitor` toma los siguientes argumentos:
+
+- `int` Obligatorio. Un número que especifica un número de canal de entrada (empezando en 1)
+- `int` Opcional. Un número que especifica un número de canal de salida, o 0 para apagar el enrutamiento para el canal de entrada especificado. Esto también es lo que sucede si el segundo argumento no está presente.
+- `int` o `float` Opcional. Un número que especifica la ganancia de la conexión entrada -> salida, entre 0 y 4. 1 representa ganancia unitaria (y es el predeterminado).
+- `int` o `float` Opcional. Un número que especifica la panorámica del canal de salida. -1 es izquierda, 0 es centro, y 1 es derecha. 0 es el predeterminado.
+
+Aquí hay algunos ejemplos del mensaje `monitor`:
+
+```
+; dsp driver monitor 1 1
+```
+Conecta entrada 1 a salida 1 con ganancia unitaria y panorámica central.
+
+```
+; dsp driver monitor 1 0
+```
+Apaga entrada 1
+
+```
+; dsp driver monitor 1 4 2. -1.
+```
+Conecta entrada 1 a salida 4 con 6dB de ganancia panoramizada a la izquierda
+
+Nota: Cuando use estos mensajes, la palabra 'driver' es opcional pero recomendada. No todos los controladores ASIO soportan esta característica. Si envía el mensaje `monitor` y obtiene un mensaje de error ASIO result -998 en la Consola de Max, entonces el controlador no lo soporta.
+
+## Trabajando en No-Real-Time con MSP
+
+El controlador MSP NonRealTime le permite usar MSP para síntesis y procesamiento de señal sin preocuparse por las restricciones impuestas por la velocidad de la CPU de su computadora. El modo no-real-time simplemente calcula muestras en MSP independientemente de cualquier prioridad de programación física, permitiéndole procesar un vector de audio usando una ruta de señal que podría tomar a su computadora más de un vector de tiempo real para calcular.
+
+Típicamente, querrá usar el objeto **dsptime~** para ver cuánto tiempo ha estado encendido el audio, y enviará la salida de su rutina a **sfrecord~** para capturar los resultados. La entrada y salida de audio de hardware bajo el controlador no-real-time están deshabilitadas.
+
+Una ruta de señal típica no-real-time en MSP se vería algo así:
+
+![Patch no-real-time típico](/images/mspaudioio13.webp "Patch no-real-time típico")
+
+Iniciar el Audio (alternando el objeto **dac~**) iniciará el objeto **dsptime~** en 0 muestras, sincronizado con la reproducción del audio fuera de **sfplay~** y la grabación de audio en **sfrecord~** en la parte inferior del patch. Cuando hayan transcurrido cinco segundos, el objeto **sfrecord~** dejará de grabar el archivo de audio de salida.
+
+## Ver También
+
+- **adc~** - Entrada de audio y encendido/apagado
+- **adstatus** - Acceder a canales de salida del controlador de audio
+- **dac~** - Salida de audio y encendido/apagado
+- **ezadc~** - Encendido/apagado de audio; convertidor analógico-a-digital
+- **ezdac~** - Salida de audio y botón de encendido/apagado

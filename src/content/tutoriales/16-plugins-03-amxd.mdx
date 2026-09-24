@@ -1,0 +1,183 @@
+---
+title: "Tutorial 3: Dispositivos AMXD"
+description: "Dispositivos AMXD para Max for Live: live.object, live.remote~, live.observer, device parameter mapping, automation, mapping to Live controls."
+section: "plugins"
+order: 52
+slug: "16-plugins-03-amxd"
+originalUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter03/"
+---
+
+# Tutorial de Plug-ins 3: Dispositivos AMXD (Max for Live)
+
+Los **dispositivos AMXD** son patches Max empaquetados para **Max for Live**, integrándose nativamente en **Ableton Live** como dispositivos de audio, MIDI o instrumentos.
+
+## Formato AMXD
+
+### Estructura:
+- **Archivo .amxd** = Patch Max + metadatos Live
+- **Tipos**: Audio Effect, MIDI Effect, Instrument
+- **Extensión**: `.amxd` (zip con patch + metadata)
+
+### Objetos Live Específicos:
+| Objeto | Función |
+|--------|---------|
+| **live.object** | Acceso a Live API (tracks, clips, devices) |
+| **live.remote~** | Control de parámetros Live (automatización) |
+| **live.observer** | Observar cambios en Live |
+| **live.path** | Resolver rutas Live (id → path) |
+| **live.thisdevice** | Info del dispositivo actual |
+| **live.grid** | Control Launchpad/Grid |
+| **live.menu** | Menús contextuales Live |
+
+## Tipos de Dispositivo AMXD
+
+### 1. Audio Effect (.amxd)
+- **Entrada/Salida**: Audio (estéreo/multi)
+- **Uso**: Inserts en tracks de audio
+- **Entrada**: Audio in → Procesamiento → Audio out
+
+### 2. MIDI Effect (.amxd)
+- **Entrada/Salida**: MIDI
+- **Uso**: Antes de instrumentos, procesamiento MIDI
+- **Entrada**: MIDI in → Procesamiento → MIDI out
+
+### 3. Instrument (.amxd)
+- **Entrada**: MIDI
+- **Salida**: Audio
+- **Uso**: En tracks MIDI, genera sonido
+
+## Parámetros de Dispositivo (Device Parameters)
+
+### Definición en Max:
+```
+[pattr param_name @bindto 0 @default 0.5 @range 0 1]
+```
+- **@bindto 0** = Vincula a parámetro Live (índice)
+- **@range** = Rango (Live normaliza 0-1)
+- **@default** = Valor por defecto
+
+### Numeración:
+- **Live asigna índices** automáticamente (orden en patch)
+- **Ver en Live**: Parámetros aparecen en panel dispositivo
+- **Orden**: Determina automatización, MIDI mapping
+
+## Automatización y Mapeo MIDI
+
+### Automatización en Live:
+- **Arrastre** parámetro → Clip automation lane
+- **Draw mode** (B) → Dibujar envelopes
+- **Automation arm** (W) → Grabar movimientos
+
+### MIDI Mapping (MIDI Learn):
+1. **Ctrl+M** (Cmd+M Mac) → Modo MIDI Map
+2. **Click parámetro** en dispositivo
+3. **Mueve controlador MIDI** → Asignado
+3. **Rango**: Configurable en mapping browser
+
+### Control desde Max (live.remote~):
+```
+[live.remote~ param_name] → [Señal/Control] → Automatización Live
+```
+- **Señal MSP** → Automatización sample-accurate
+- **Número Max** → Automatización rate control
+
+## API de Live (live.object / live.path / live.observer)
+
+### Acceso a Live API:
+```
+[live.path] → [live.object] → [Mensajes API]
+```
+
+### Ejemplos comunes:
+```javascript
+// Obtener tempo actual
+"call get_tempo" → [live.object]
+
+// Disparar clip
+"call fire_slot 2" → [live.object]  (track 2, scene actual)
+
+// Obtener nombre track
+"get name" → [live.object]
+
+// Observar cambios tempo
+[live.observer tempo] → [Salida: nuevo tempo]
+```
+
+### live.thisdevice:
+- **Info dispositivo**: Nombre, tipo, track, canal
+- **Parámetros**: `getparametercount`, `getparametername`
+
+## Crear Dispositivos AMXD
+
+### Pasos:
+1. **Crear patch** Max con objetos Live
+2. **Definir parámetros** con `pattr @bindto`
+3. **Probar en Live**: Arrastrar patch a track
+4. **Guardar como .amxd**: File → Save As → .amxd
+5. **Compartir**: User Library / Packs / .alp (Pack)
+
+### Mejores prácticas:
+- **Inicialización**: `live.thisdevice` → `init` al cargar
+- **Limpieza**: `freepeer` al cerrar
+- **Latencia**: Reportar con `latency` outlet
+- **Tamaño**: Optimizar CPU (poly~ target 2 para pesados)
+
+## Patch de ejemplo: AMXD Template Pack
+
+Incluye 3 templates base:
+
+### 1. Audio Effect Template:
+- **Entrada/Salida**: Audio L/R
+- **Parámetros**: 8 macros (pattr @bindto 0-7)
+- **Bypass**: live.remote~ bypass
+- **Latency**: Reportada automáticamente
+
+### 2. MIDI Effect Template:
+- **Entrada/Salida**: MIDI (notein/noteout, ctlin/ctlout)
+- **MIDI Thru**: Opcional
+- **Parámetros**: 8 macros
+
+### 3. Instrument Template:
+- **Entrada**: MIDI (notein, ctlin, bendin)
+- **Salida**: Audio estéreo
+- **Poly~**: 16 voces (target 2)
+- **Salidas**: Estéreo + Multi-out opcional
+
+### Común a todos:
+- **Inicialización**: `loadbang` → `live.thisdevice` → `init`
+- **Presets**: `pattrstorage` + `pattr` @bindto
+- **MIDI Learn**: Automático (Live maneja)
+- **Automation**: `live.remote~` para control MSP
+
+## Empaquetado y Distribución
+
+### Guardar .amxd:
+1. **File → Save As** → Nombre.amxd
+2. **Ubicación**: User Library / Presets / Custom
+3. **Test**: Doble click → Abre en Live
+
+### Empaquetar Pack (.alp):
+1. **File → Manage Pack** → New Pack
+2. **Add Device** → Seleccionar .amxd
+3. **Build** → .alp (instalable en Live)
+
+### User Library:
+- **Live Browser** → User Library → Presets / Audio Effects / Tu Dispositivo
+- **Drag & Drop** a tracks
+
+## Resumen
+
+- **AMXD** = Patch Max + Live API = Dispositivo Live nativo
+- **3 tipos**: Audio Effect, MIDI Effect, Instrument
+- **Parámetros** = `pattr @bindto` = Automatización + MIDI Map
+- **Live API** = `live.object` / `live.observer` / `live.remote~`
+- **Tipos**: Audio Effect / MIDI Effect / Instrument
+- **Distribución**: .amxd (device) / .alp (pack)
+
+## Ver También
+
+- **live.object / live.observer / live.remote~** - Live API
+- **live.path / live.thisdevice / live.grid** - Utilidades Live
+- **pattr @bindto** - Vinculación parámetros
+- **Max for Live Docs** - https://docs.cycling74.com/maxforlive

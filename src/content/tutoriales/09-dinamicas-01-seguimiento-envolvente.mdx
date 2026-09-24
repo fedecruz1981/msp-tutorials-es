@@ -1,0 +1,77 @@
+---
+title: "Tutorial 1: Seguimiento de envolvente"
+description: "Derivación de señales de control a partir de amplitud: abs~, snapshot~, rampsmooth~, slide~, deltaclip~. Uso de envolventes como señales de control."
+section: "procesamiento-dinamicas"
+order: 27
+slug: "09-dinamicas-01-seguimiento-envolvente"
+originalUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter01/"
+---
+
+# Tutorial de Dinámicas 1: Seguimiento de envolvente
+
+En este grupo de tutoriales, veremos diferentes formas de trabajar con la **dinámica** en señales de audio. La habilidad de usar y controlar la **amplitud** de una forma de onda de audio es importante para muchas aplicaciones, desde el nivel macro (compresión de audio) hasta el nivel micro (distorsión). En este primer tutorial, aprenderemos a derivar valores de control a partir de parámetros de amplitud de una señal de audio que podemos usar para controlar parámetros en otra parte de la cadena de señal. Esta técnica se llama **seguimiento de envolvente** (envelope following).
+
+## La envolvente, por favor...
+
+Hemos aprendido trabajando con MSP que el audio digital se representa como una corriente de muestras discretas, cada una representando la **amplitud** de una señal en un momento dado. Sin embargo, cuando realmente pensamos en (y usamos) el término amplitud, no necesariamente pensamos en ella sobre una base muestra-por-muestra. En su lugar, discutimos la amplitud de un sonido basándonos en qué tan **fuerte** nos parece a nosotros como oyentes. Alternativamente, creamos sistemas de medición objetivos para intentar cuantificar esta sonoridad (subjetiva), como medidores de nivel en software de mezcla de audio. Ambos sistemas miran la amplitud de una señal de audio no en un nivel muestra-por-muestra, sino **promediada** a lo largo del tiempo. Esta técnica de derivar la amplitud macro de la sonoridad o volumen de un sonido (en oposición a la micro-amplitud de los valores de muestra) se llama **seguimiento de envolvente**.
+
+Usamos el término envolvente en diseño de sintetizadores para referirnos a la forma dinámica general del sonido. Por ejemplo, un sonido que se funde suavemente y luego se desvanece en la misma cantidad de tiempo podría decirse que tiene una envolvente triangular. Un sonido con un ataque corto, un sostenido largo, y un desvanecimiento corto podría verse como un trapecio. De manera similar, podemos tomar cualquier fuente de sonido y, con un poco de trabajo, abstraer su envolvente:
+
+![Forma de onda (arriba) y envolvente (abajo)](/images/dynamicschapter01a.webp "Forma de onda (arriba) y envolvente (abajo)")
+
+Para crear la envolvente arriba, miramos las muestras dentro de la forma de onda y rastreamos su amplitud **promedio** a lo largo del tiempo. Hay varias estrategias para hacer esto en MSP, involucrando un trío de objetos que nos permiten suavizar señales de audio basadas en diferentes parámetros.
+
+- En el patcher del tutorial, familiarícese con el área etiquetada `1`. Este es un patcher de reproducción de muestra básico que carga un archivo de audio en un objeto **buffer~** y lo reproduce en un bucle infinito usando el objeto **groove~**. Encienda el audio, suba el slider **gain~**, y asegúrese de que puede oír el bucle de batería mientras se reproduce.
+
+## Seguimiento de envolvente en MSP
+
+- Mire los dos objetos en amarillo conectados a la salida del objeto **groove~**.
+
+Lo primero que necesita lograrse al derivar la amplitud suavizada de un sonido es convertir la señal en una onda **rectificada**; es decir, ignorar la diferencia entre valores de muestra negativos y positivos y solo concentrarse en su distancia desde `0`. Podemos hacer esto tomando el valor absoluto de una señal, lo que puede lograrse usando el objeto **abs~** en MSP.
+
+El objeto **snapshot~** nos permite convertir una muestra de una señal MSP en un número de punto flotante emitido desde el objeto como un evento Max. Cada vez que el objeto recibe un `bang`, toma la muestra de audio actual y la emite en Max como un número que puede ser visto, escalado, o usado para disparar eventos Max. En el caso de nuestro patcher, el valor absoluto de la salida de nuestro objeto **groove~** está siendo usado para impulsar la altura de un objeto **multislider**, con el **snapshot~** proveyendo la traducción intermediaria de una señal MSP a un mensaje Max. Como podemos ver, el rebote arriba y abajo del **multislider** nos da una impresión vaga de la amplitud del bucle de batería. Sin embargo, una impresión más precisa de cómo **oímos** el sonido puede lograrse suavizando esos valores.
+
+- Mire la lógica del patcher etiquetada `2` en nuestro tutorial. En el **number** box etiquetado 'Up' escriba el valor `1.` y presione enter. En el **number** box etiquetado 'Down' escriba el valor `100.` y presione enter. Observe los resultados como se grafican en los objetos **multislider** de abajo. Ahora haga lo inverso (escriba `1.` como valor 'Down' y `100.` como valor 'Up'). ¿Observe la diferencia?
+
+La salida del objeto **send~** (que consiste en nuestro bucle de batería) se convierte a valor absoluto, pasa a través de un objeto llamado **rampsmooth~**, y se grafica en un **number** box y dos objetos **multislider**. El **multislider** derecho está en uno de sus modos de desplazamiento, que nos permite ver valores a medida que se desarrollan a lo largo del tiempo. El objeto **rampsmooth~** realiza una operación de suavizado lineal en una señal de entrada. Sus dos argumentos (o números dados en sus inlets central y derecho) controlan la forma en que se comporta el suavizado. El inlet central controla sobre cuántas muestras el objeto suavizará un valor cambiante cuando esté **subiendo**; el inlet derecho controla cuántas muestras toma para que una señal **baje**. Estos dos valores nos permiten suavizar independientemente valores de muestra crecientes y decrecientes, de modo que inicios agudos pueden mantenerse en la envolvente pero silencios abruptos generen una cola.
+
+- Mire el área del tutorial etiquetada `3`. Como antes, ingrese `1.` en el **number** box etiquetado 'Up' y `100.` en el **number** box etiquetado 'Down'. Observe la envolvente dibujada en el **multislider**. Ahora haga lo inverso (escriba `1.` como valor 'Down' y `100.` como valor 'Up'). Escriba `100.` para ambos valores.
+
+El objeto **slide~** suaviza señales de audio logarítmicamente. Los dos valores proporcionados funcionan como denominadores para nueva energía creciente o decreciente entrando en la señal (suavizada). Por ejemplo, un valor 'Up' de `1000` significa que tomará 1000 muestras para que una transición de una muestra de `0` a `1` ocurra. Cuanto mayores sean los valores 'Up' y 'Down', más suave será la curva.
+
+- Mire el área del patcher `4`. En el **number** box etiquetado 'Delta', escriba `0.01` y presione enter. Observe los resultados. Escriba un número aún menor, como `0.0001`.
+
+El objeto **deltaclip~** funciona de manera diferente a **rampsmooth~** y **slide~**. Establece un umbral para la cantidad que una señal de audio puede cambiar, y recorta la señal saliente a esa cantidad. Establecer los valores `min` y `max` para el delta a `-1` y `1` permitirá que las muestras pasen normalmente siempre que no cambien en más de esa cantidad. Valores más pequeños suavizarán la señal de audio de una manera **relativa** de modo que la envolvente resultante trace un conjunto de valores mucho más estrecho que la señal entrante.
+
+Si pasamos una ráfaga de ruido a través de las diferentes técnicas de seguimiento de envolvente mostradas en nuestro patcher del tutorial, podemos ver la diferencia entre las curvas que generan:
+
+![Diferentes seguidores de envolvente en una ráfaga de ruido](/images/dynamicschapter01b.webp "Diferentes seguidores de envolvente en una ráfaga de ruido")
+
+Cada una de estas técnicas de seguimiento de envolvente tienen diferentes aplicaciones musicales y sonoras y tienen diferentes firmas. Un seguidor de envolvente logarítmico controlando el volumen de un sintetizador, por ejemplo, tendría un sonido muy diferente que uno lineal.
+
+## Usando envolventes como señales de control
+
+- Mire la lógica del patcher etiquetada `5` en el tutorial. Suba el slider **gain~** para oír la salida del objeto **cycle~**. Usando el **umenu**, seleccione los diferentes seguidores de envolvente como entrada de control. Si le place, cambie sus parámetros también para ver qué tipos de efectos diferentes puede lograr.
+
+Las tres áreas de patcher de seguimiento de envolvente envían sus señales de salida a través de objetos **send~** a cualquier **receive~** configurado con el nombre apropiado. En el caso de la lógica del patcher `5`, esta señal (que va de `0` a `1`) controla la frecuencia de un objeto **cycle~**, mapeando la señal de control entre `100` y `1100` Hz. La diferencia entre los tres tipos de envolvente debería ser aparente si se configuran con valores de suavizado bastante fuertes.
+
+- Baje el slider **gain~** en el área del patcher `5` y mire la lógica del patcher etiquetada `6`. Suba el slider **gain~** y seleccione diferentes fuentes para una señal de control desde el **umenu**.
+
+En este ejemplo, usamos nuestra señal de control de envolvente para modular la frecuencia de corte de un filtro **lores~**, creando un efecto wah-wah dinámico en una forma de onda mixta y desafinada.
+
+- Baje el área del patcher `6` y mire la lógica del patcher etiquetada `7`. Suba el slider **gain~** y seleccione diferentes envolventes desde el **umenu**.
+
+En este ejemplo, estamos usando nuestra envolvente para crear un 'auto-wah' en el bucle de batería mismo. Este es un uso muy común de seguimiento de envolvente en producción musical, donde una señal de control derivada de una señal de audio se usa para controlar un parámetro de un efecto aplicado a ese mismo clip de audio más abajo en la cadena. Usando esta lógica, podríamos usar nuestro seguidor de envolvente para producir señales de control para cualquier procedimiento de procesamiento de señal que queramos en MSP.
+
+## Resumen
+
+Cuando hablamos de la **amplitud** de una señal de audio, distinguimos entre la amplitud muestra-por-muestra y la sonoridad general de un sonido. Esta segunda forma se llama la **envolvente** de un sonido, y el procesamiento de señal involucrado en derivarla se llama **seguimiento de envolvente**. Las envolventes de señales de audio pueden crearse mirando la forma de onda absoluta (rectificada) (creada con el objeto **abs~**) y suavizándola usando objetos MSP como **rampsmooth~**, **slide~**, o **deltaclip~**. Estas señales de control suavizadas pueden luego escalarse y usarse para controlar parámetros en cualquier operación de síntesis o procesamiento de señal que quiera. El objeto MSP **snapshot~** es útil para convertir señales de audio MSP en números de punto flotante Max que pueden verse usando objetos como **multislider**.
+
+## Ver También
+
+- **abs~** - Valor absoluto de una señal
+- **snapshot~** - Convertir valores de señal a números
+- **rampsmooth~** - Suavizar una señal entrante
+- **slide~** - Filtrar una señal logarítmicamente
+- **deltaclip~** - Limitar cambios en amplitud de señal

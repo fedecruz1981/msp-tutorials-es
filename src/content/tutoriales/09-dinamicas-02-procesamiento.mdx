@@ -1,0 +1,117 @@
+---
+title: "Tutorial 2: Procesamiento de dinámicas"
+description: "Compresión, limitación, gate, expansor: design con *~, line~, envelope followers, sidechain, lookahead."
+section: "procesamiento-dinamicas"
+order: 28
+slug: "09-dinamicas-02-procesamiento"
+originalUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/09_dynamicschapter02/"
+---
+
+# Tutorial de Dinámicas 2: Procesamiento de Dinámicas
+
+Este tutorial cubre el diseño de **compresores**, **limitadores**, **gates** y **expansores** en MSP usando seguidores de envolvente y control de ganancia.
+
+## Arquitectura básica de un compresor
+
+```
+Entrada → [Envelope Follower] → [Gain Computer] → [\*~] → Salida
+              ↓                       ↓
+         Attack/Release         Ratio, Threshold, Knee
+```
+
+### Etapas:
+1. **Detección**: Seguidor de envolvente (RMS o pico)
+2. **Cálculo de ganancia**: Curva threshold/ratio
+3. **Aplicación**: Multiplicación (\*~) con suavizado
+4. **Suavizado**: line~ / rampsmooth~ en la ganancia
+
+## Parámetros clave
+
+| Parámetro | Función | Rango típico |
+|-----------|---------|--------------|
+| **Threshold** | Nivel donde empieza compresión | -60 a 0 dB |
+| **Ratio** | Cuánta compresión (1:n) | 1.5:1 a ∞:1 |
+| **Attack** | Tiempo para empezar a comprimir | 0.1 a 100 ms |
+| **Release** | Tiempo para dejar de comprimir | 50 a 3000 ms |
+| **Knee** | Suavizado alrededor del threshold | 0 (hard) a 30 dB (soft) |
+| **Makeup Gain** | Compensación de nivel | 0 a +24 dB |
+
+## Curva de compresión (Gain Computer)
+
+### Hard Knee:
+```
+ganancia = 1                    (input ≤ threshold)
+ganancia = threshold + (input-threshold)/ratio  (input > threshold)
+```
+
+### Soft Knee:
+Transición suave usando función cuadrática alrededor del threshold.
+
+### En dB (más intuitivo):
+```
+dB_out = dB_in                           (dB_in ≤ threshold)
+dB_out = threshold + (dB_in - threshold)/ratio  (dB_in > threshold)
+```
+
+## Tipos de procesadores
+
+### 1. Limitador (Limiter)
+- **Ratio = ∞:1** (threshold = ceiling)
+- **Attack ultra-rápido** (0.01-1 ms)
+- **Lookahead** (retrasar señal 1-5 ms para anticipar picos)
+- Uso: Mastering, protección de altavoces
+
+### 2. Compresor (Compressor)
+- **Ratio 2:1 a 10:1**
+- Attack/Release musicales
+- Uso: Control dinámico general, "glue" de bus
+
+### 3. Gate / Expansor
+- **Expansor**: Ratio \< 1:1 (ej. 1:2) → reduce señal bajo threshold
+- **Gate**: Ratio extremo → mute total bajo threshold
+- **Parámetros extra**: Hold, Hysteresis
+
+## Sidechain (Cadena lateral)
+
+La señal de **detección** ≠ señal **procesada**:
+- **Sidechain externo**: Kick drum comprime bajo (ducking)
+- **Sidechain filtrado**: HPF en detector → ignora graves
+- **Implementación**: 2 entradas en envelope follower
+
+## Lookahead
+
+Retrasar la **señal de audio** (no la de control) 1-10 ms:
+- Permite al detector "ver el futuro"
+- Elimina overshoot en attack rápido
+- Implementación: **tapin~/tapout~** o **delay~** en ruta principal
+
+## Patch de ejemplo: Compresor estéreo completo
+
+Incluye:
+1. **Entrada L/R** → Split
+2. **Envelope follower** compartido (link L/R) o separado
+3. **Gain computer** con threshold, ratio, knee
+4. **Attack/Release** → **rampsmooth~** en ganancia
+5. **Makeup gain** automático o manual
+6. **Sidechain input** con filtro HPF
+7. **Lookahead** 2 ms (tapout~)
+8. **Medidores**: GR (gain reduction), In/Out levels
+10. **Stereo link** switch
+
+## Resumen
+
+- **Compresor** = Envelope follower + Gain computer + \*~
+- **Parámetros**: Threshold, Ratio, Attack, Release, Knee, Makeup
+- **Limitador** = Ratio ∞:1, attack ultra-rápido, lookahead
+- **Gate/Expansor** = Inverso de compresor
+- **Sidechain** = Detección separada (ducking, de-essing)
+- **Lookahead** = Retrasar audio para attack perfecto
+
+## Ver También
+
+- **rampsmooth~** - Suavizado de ganancia
+- **slide~** - Suavizado logarítmico
+- **tapin~/tapout~** - Lookahead delay
+- **omx.comp~** - Compresor optimizado (objeto omx)
+

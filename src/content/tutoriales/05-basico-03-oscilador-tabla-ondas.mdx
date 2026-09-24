@@ -1,0 +1,82 @@
+---
+title: "Tutorial 3: Oscilador de tabla de ondas"
+description: "Uso de buffer~ para almacenar audio, ezdac~ como interruptor de audio, line~ para envolventes complejas, mezcla de señales con +~."
+section: "fundamentos"
+order: 7
+slug: "05-basico-03-oscilador-tabla-ondas"
+originalUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/05_mspbasicchapter03/"
+---
+
+# Tutorial Básico 3: Oscilador de tabla de ondas
+
+## Introducción
+
+En este patch de tutorial, veremos cómo usar una tabla de ondas distinta a una onda seno para generar sonido usando el objeto **cycle~**. En el camino, veremos cómo generar curvas más complejas usando el objeto **line~**, y tendremos una muestra de cómo MSP almacena datos de audio en la memoria de la computadora usando el objeto **buffer~**.
+
+## Interruptor de encendido/apagado de audio: ezdac~
+
+En este patch de tutorial, el objeto **dac~** que se usaba en ejemplos anteriores ha sido reemplazado por un botón con un icono de altavoz. Este es el objeto **ezdac~**, un objeto de interfaz de usuario disponible en la **Barra de Herramientas de la Ventana Patcher Superior**.
+
+![ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas](/images/basicchapter03a.webp "ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas")
+
+El **ezdac~** funciona muy parecido a **dac~**, excepto que hacer clic en él enciende o apaga el audio. También puede responder a mensajes `start` y `stop` en su inlet izquierdo, como **dac~**. Sin embargo, a diferencia de **dac~**, está cableado directamente a los canales de salida 1 y 2 en su dispositivo de audio, lo que podría no hacerlo apropiado para trabajar con sonido multicanal. Para nuestros tutoriales, sin embargo, debería estar bien. El botón **ezdac~** se resalta cuando el audio está encendido.
+
+## Un sonido almacenado: buffer~
+
+En los ejemplos previos, el objeto **cycle~** se usaba para leer repetidamente a través de 16K valores que describen un ciclo de una onda coseno. Como resulta, un objeto **cycle~** puede leer a través de **cualquier** conjunto de valores, tratándolos como un solo ciclo de una forma de onda. Estos números deben almacenarse en la memoria de nuestra computadora, y pueden cargarse desde un archivo de sonido, generarse programáticamente por un algoritmo, o incluso dibujarse a mano. El objeto MSP que mantiene estas piezas de memoria se llama **buffer~**.
+
+El objeto **buffer~** puede usarse fácilmente; requiere un solo argumento: un nombre para identificarlo de manera única. Cualquier dato de audio almacenado en ese **buffer~** se asocia con ese nombre. El nombre del **buffer~** es arbitrario y no tiene que coincidir con el nombre del archivo de audio cargado en él; el único requisito es que no entre en conflicto con otros elementos **nombrados** en patches Max abiertos (como objetos **table** o pares **send** / **receive**). Como puede ver, hemos nombrado el **buffer~** *richtone*.
+
+Los mensajes enviados al objeto le permiten cargar archivos de audio, redimensionar, o limpiar la memoria del **buffer~**. El truco es este: el objeto **buffer~** en sí mismo no **reproduce** ningún audio; simplemente retiene los datos de muestra y asocia un nombre con él que **otros** objetos MSP pueden usar para acceder a los datos. Un objeto **cycle~** puede hacerse leer de ese **buffer~** escribiendo el mismo nombre como su argumento. El valor de frecuencia inicial para el objeto **cycle~**, justo antes del nombre del buffer, es opcional.
+
+Para meter el sonido en el **buffer~**, envíele un mensaje `replace` o `read`, seguido del nombre de un archivo de audio en la ruta de búsqueda del programa Max. Si omite el nombre de un archivo, Max abrirá un cuadro de diálogo Abrir Documento, permitiéndole seleccionar un archivo de audio para cargar. El mensaje `replace` o `read` lee un archivo de audio y automáticamente **dimensiona** la memoria del objeto **buffer~** para que coincida con la longitud del archivo de audio.
+
+Independientemente de la longitud del sonido en el **buffer~**, el objeto **cycle~** usará por defecto 512 muestras de él para su forma de onda. (Si lo desea, puede especificar un punto de inicio en el **buffer~** para que **cycle~** comience su forma de onda, ya sea con un argumento adicional a **cycle~** o con un mensaje `buffer_offset` a **cycle~**. También puede cambiar el atributo `buffer_sizeinsamps` para establecer el tamaño de la tabla de ondas.) En el patch de ejemplo, usamos un archivo de audio que contiene exactamente 512 muestras llamado `gtr512.aiff`.
+
+**Detalle técnico:** De hecho, **cycle~** usa 513 muestras. La muestra 513 se usa solo para interpolación desde la muestra 512. Cuando **cycle~** se usa para crear una forma de onda periódica, como en este patch de ejemplo, la última muestra debe ser la misma que la primera. Si el **buffer~** contiene solo 512 muestras, como en este ejemplo, **cycle~** provee una muestra 513 que es la misma que la primera.
+
+- En el patcher del tutorial, haga clic en el **message** box que dice `read gtr512.aiff`. Esto carga el archivo de audio en nuestro **buffer~** (llamado `richtone`). Luego haga clic en el objeto **ezdac~** para encender el audio. Haga clic en el **message** box etiquetado `A`. Debería oír una breve ráfaga de lo que suena como ruido. Haga clic en el **message** box etiquetado `B`. Debería oír un tono oscilante rico fundirse en entrada y salida durante un segundo. Haga clic en los otros **message** boxes en turno, escuchando el resultado. Observe los diferentes valores en las listas enviadas a los objetos **line~**, así como las diferentes frecuencias a las que los objetos **cycle~** en el tutorial están configurados.
+
+Hay varios otros objetos que pueden usar los datos en un **buffer~**, como verá en capítulos posteriores.
+
+## Creando envolventes complejas con line~
+
+En el patch de ejemplo previo, usamos **line~** para hacer una señal que cambia linealmente enviándole una lista de dos números. El primer número en la lista era un valor objetivo y el segundo era la cantidad de tiempo, en milisegundos, para que **line~** llegara al valor objetivo.
+
+![line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)](/images/basicchapter03b.webp "line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)")
+
+Si queremos, podemos enviar a **line~** una lista más larga que contenga muchos pares de números valor-tiempo (hasta 64 pares de números). De esta manera, podemos hacer que un objeto **line~** realice una función más elaborada compuesta de muchos segmentos de línea adyacentes. Después de completar el primer segmento de línea, **line~** procede inmediatamente hacia el siguiente valor objetivo en la lista, tomando la cantidad especificada de tiempo para llegar allí. De esta manera, podemos crear curvas de función para sintetizadores que comúnmente se denominan **envolventes**.
+
+![Una función compuesta de segmentos de línea - una 'envolvente' clásica](/images/basicchapter03c.webp "Una función compuesta de segmentos de línea - una 'envolvente' clásica")
+
+Los usuarios de sintetizadores están familiarizados con el uso de este tipo de función para generar envolventes como las curvas 'ADSR' que controlan el ataque, decaimiento, sostenido y liberación de la amplitud de un sonido independientemente. Eso es lo que estamos haciendo en este patch de ejemplo, aunque podemos elegir cuántos segmentos de línea deseamos usar para la envolvente.
+
+- Haga clic en los **message** boxes de nuevo en secuencia y descifre cómo las listas para cada objeto **line~** afectan el sonido. Observe que cada **message** box comienza con un `0` seguido de una coma; esto envía un mensaje individual de `0` al objeto **line~** inmediatamente seguido de la lista subsiguiente. Enviar un número por sí solo a un objeto **line~** hace que cambie **inmediatamente** a un valor. Una notación equivalente sería comenzar nuestras listas de envolvente con `0 0` (ir a 0 en 0 milisegundos, es decir, ahora mismo).
+
+## Sumar señales para producir un sonido compuesto
+
+Cada vez que dos o más señales se conectan al mismo inlet de señal, esas señales se suman y su suma es usada por el objeto receptor.
+
+![Múltiples señales se suman (mezclan) en un inlet de señal](/images/basicchapter03d.webp "Múltiples señales se suman (mezclan) en un inlet de señal")
+
+La adición de señales digitales es equivalente a mezcla de ganancia unitaria en audio analógico. Es importante notar que incluso si todas sus señales tienen amplitud menor o igual a 1, la suma de tales señales puede fácilmente exceder 1. En MSP está bien tener una señal con una amplitud que exceda 1 en cualquier lugar dentro de la cadena de señal, pero antes de enviar la señal a **dac~** debe escalarla (usualmente con un objeto **\*~**) para mantener su amplitud menor o igual a 1. Una señal con amplitud mayor que 1 será distorsionada por **dac~**.
+
+En el patch de ejemplo estamos usando tres objetos **cycle~** diferentes que están oscilando la forma de onda almacenada en el **buffer~** llamado `richtone`. Si bien hasta ahora los hemos estado reproduciendo uno a la vez, todos podrían mezclarse juntos para producir un sonido de instrumento compuesto.
+
+- Establezca el volumen de nuestro patch de tutorial a un nivel máximo de `0.3` para prevenir clipping (recuerde que estamos usando tres sonidos diferentes, cada uno con una salida máxima hipotética de 1). Haga clic en el **button** en la parte superior del patcher para reproducir las tres señales simultáneamente.
+
+Cada uno de los tres tonos tiene una envolvente de amplitud diferente, causando que el timbre de la nota evolucione a lo largo de su duración de 1 segundo. Al mismo tiempo, aunque los tres tonos están reproduciendo desde la misma muestra, están configurados a diferentes frecuencias, creando un espectro mucho más rico que el que existe en el archivo de audio original usado para la tabla de ondas. Como veremos en el próximo tutorial, mezclar tablas de ondas de diferentes frecuencias es una técnica clave en algo llamado **síntesis aditiva**.
+
+## Resumen
+
+El objeto **ezdac~** es un botón para encender y apagar el audio. El objeto **buffer~** almacena un sonido en la memoria de la computadora. Puede cargar un archivo de audio en **buffer~** con un mensaje `replace`. Si un objeto **cycle~** tiene un argumento escrito que le da el mismo nombre que un objeto **buffer~**, el **cycle~** usará 512 muestras de ese **buffer~** como su forma de onda en lugar de la onda coseno predeterminada.
+
+Siempre que conecte más de una señal a un inlet de señal dado, el objeto receptor suma esas señales y usa la suma como su entrada en ese inlet. Tenga cuidado al mezclar (sumar) señales de audio, para evitar distorsión causada por enviar una señal con amplitud mayor que 1 al **dac~**.
+
+El objeto **line~** puede recibir una lista en su inlet izquierdo que consiste en hasta 64 pares de números representando valores objetivo y tiempos de transición. Producirá una señal que cambia linealmente de un valor objetivo a otro en las cantidades de tiempo especificadas. Esto puede usarse para hacer una función de segmentos de línea describiendo cualquier forma deseada, lo cual es particularmente útil como señal de control para envolventes de amplitud. Puede lograr crossfades entre señales usando diferentes envolventes de amplitud de diferentes objetos **line~**.
+
+## Ver También
+
+- **buffer~** - Almacenar muestras de audio
+- **ezdac~** - Salida de audio y botón de encendido/apagado
