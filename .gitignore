@@ -17,6 +17,13 @@ pnpm-debug.log*
 .env
 .env.production
 
+# agent instructions (keep local, not public)
+AGENTS.md
+CLAUDE.md
+
+# local editor settings
+.vscode/
+
 # macOS-specific files
 .DS_Store
 
