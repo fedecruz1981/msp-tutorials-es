@@ -1,5 +1,7 @@
 # MSP Tutoriales ES
 
+![Build](https://github.com/fedecruz1981/msp-tutorials-es/actions/workflows/build.yml/badge.svg)
+
 > Tutoriales de MSP de [Cycling '74](https://cycling74.com) traducidos al español y organizados como una experiencia web moderna de aprendizaje.
 
 ![MSP Tutoriales ES](./public/images/screenshot.png)
@@ -85,6 +87,7 @@ npm run preview    # Previsualiza el build
 
 - ✅ Traducción completa de los 63 capítulos
 - ✅ Sitio estático construido y verificado (80 páginas)
+- ✅ CI: build automático con GitHub Actions (npm ci + astro build)
 - 🚧 Deploy pendiente (Vercel / GitHub Pages)
 - 🚧 Descarga local de imágenes y patchers en curso
 
@@ -95,7 +98,7 @@ El roadmap se gestiona como [Issues del repositorio](https://github.com/fedecruz
 - [ ] Publicar el sitio en línea
 - [ ] Revisar terminología de síntesis
 - [ ] Mejorar la búsqueda
-- [ ] Automatizar la comprobación del build (CI)
+- [x] Automatizar la comprobación del build (CI)
 - [ ] Mejorar la accesibilidad y la navegación móvil
 
 ## Créditos y atribución
