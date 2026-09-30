@@ -111,3 +111,9 @@ El contenido original pertenece a **Cycling '74** y está sujeto a sus términos
 ## Licencia
 
 Los derechos sobre el contenido original pertenecen a sus autores (Cycling '74). El código de este sitio (estructura, componentes y configuración de Astro) es de uso libre con fines educativos. Antes de distribuir el contenido traducido, revisa los términos de Cycling '74.
+
+## Sitio publicado
+
+- **Producción:** https://fedecruz1981.github.io/msp-tutorials-es/
+- **Rama servida:** `gh-pages` (se construye desde `dist/` y se publica con `deploy-ghpages.js`).
+- `main` contiene el sitio fuente; `npm run build` compila y ejecuta `scripts/rebase-dist.mjs`, que antepone el base path a las rutas relativas en el HTML generado.
