@@ -1,0 +1,73 @@
+---
+title: "Tutorial 4: Tabla de ondas de longitud variable"
+description: "Uso de buffer~ con cycle~ para tablas de onda de tamaño variable, morphing de formas de onda, wave sequencing."
+section: "muestreo-grabacion"
+order: 18
+slug: "07-muestreo-04-tabla-ondas-variable"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter04/"
+---
+
+# Tutorial de Muestreo 4: Tabla de Ondas de Longitud Variable
+
+Este tutorial explora el uso de **buffer~** con **cycle~** para crear osciladores de tabla de ondas donde el **tamaño de la tabla** (wavetable size) puede variar dinámicamente.
+
+## cycle~ y buffer~: Tamaño de tabla configurable
+
+Por defecto, **cycle~** usa 512 muestras de un **buffer~**. Pero puede usar cualquier potencia de 2 (o tamaño arbitrario con interpolación).
+
+### Atributos clave de cycle~:
+- **`buffer_sizeinsamps`**: Tamaño de la tabla en muestras (potencia de 2)
+- **`buffer_offset`**: Punto de inicio en el buffer (muestras)
+
+## Ventajas de tablas variables
+
+1. **Morphing de forma de onda**: Cambiar `buffer_offset` recorre el buffer
+2. **Wave sequencing**: Secuencia de tablas de ondas diferentes
+3. **Formantes**: Tablas pequeñas = formantes fijos; grandes = más detalle
+4. **Eficiencia**: Tablas pequeñas = menos CPU
+
+## Wave Sequencing
+
+Secuenciar múltiples tablas de ondas en el tiempo:
+- Cada "frame" = una tabla de ondas diferente
+- Transiciones suaves entre frames (crossfade)
+- Control por MIDI, secuenciador, o envolventes
+
+## Patch de ejemplo
+
+Demuestra:
+1. **buffer~** grande (varios segundos) con múltiples ciclos de ondas
+2. **cycle~** con `buffer_sizeinsamps` modulable (64 a 4096)
+3. **line~** para `buffer_offset` (wave sequencing)
+4. Secuenciador de pasos para seleccionar "frames"
+5. Crossfade entre frames adyacentes
+
+## Aplicaciones
+
+### Síntesis de formantes (VOSIM, FOF)
+- Tablas cortas (64-256 muestras) = formantes fijos
+- Frecuencia fundamental independiente de formantes
+
+### Wave sequencing estilo Korg Wavestation
+- 100s de frames en un buffer
+- Secuenciación rítmica de timbres
+- Crossfade suave entre frames
+
+### Morphing espectral
+- Buffer con análisis FFT resintetizado
+- `buffer_offset` recorre el tiempo del análisis
+
+## Resumen
+
+- **cycle~** puede usar tablas de cualquier tamaño (potencia de 2)
+- **buffer_sizeinsamps** = Control de resolución espectral
+- **buffer_offset** = Posición en el buffer (wave sequencing)
+- Permite **wave sequencing**, **morphing**, **formantes**
+- Más eficiente que múltiples **cycle~** para secuencias largas
+
+## Ver También
+
+- **cycle~** - Oscilador de tabla de ondas
+- **buffer~** - Almacenamiento
+- **waveform~** - Visualización

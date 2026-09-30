@@ -1,0 +1,222 @@
+---
+import { BASE } from '../lib/urls.mjs';
+interface Props {
+  currentSlug?: string;
+}
+const { currentSlug } = Astro.props;
+
+const sections = [
+  {
+    title: 'Introducción',
+    slug: 'introduccion',
+    chapters: [
+      { title: 'MSP: Introducción', slug: '01-msp-introduccion', order: 1 },
+      { title: 'Cómo funciona el audio digital', slug: '02-como-funciona-audio-digital', order: 2 },
+      { title: 'Cómo funciona MSP', slug: '03-como-funciona-msp', order: 3 },
+      { title: 'Entrada y salida de audio', slug: '04-entrada-salida-audio', order: 4 },
+    ],
+  },
+  {
+    title: 'Fundamentos',
+    slug: 'fundamentos',
+    chapters: [
+      { title: 'Tutorial 1: Tono de prueba', slug: '05-basico-01-tono-prueba', order: 5 },
+      { title: 'Tutorial 2: Oscilador ajustable', slug: '05-basico-02-oscilador-ajustable', order: 6 },
+      { title: 'Tutorial 3: Oscilador de tabla de ondas', slug: '05-basico-03-oscilador-tabla-ondas', order: 7 },
+      { title: 'Tutorial 4: Enrutamiento de señales', slug: '05-basico-04-enrutamiento-senales', order: 8 },
+      { title: 'Tutorial 5: Repaso de fundamentos', slug: '05-basico-05-repaso-fundamentos', order: 9 },
+    ],
+  },
+  {
+    title: 'Síntesis aditiva y de modulación',
+    slug: 'sintesis-aditiva-modulacion',
+    chapters: [
+      { title: 'Tutorial 1: Síntesis aditiva', slug: '06-sintesis-01-aditiva', order: 10 },
+      { title: 'Tutorial 2: Trémolo y modulación en anillo', slug: '06-sintesis-02-tremolo-modulacion-anillo', order: 11 },
+      { title: 'Tutorial 3: Uso de modulación de amplitud', slug: '06-sintesis-03-modulacion-amplitud', order: 12 },
+      { title: 'Tutorial 4: Vibrato y FM', slug: '06-sintesis-04-vibrato-fm', order: 13 },
+      { title: 'Tutorial 5: Síntesis FM', slug: '06-sintesis-05-fm', order: 14 },
+    ],
+  },
+  {
+    title: 'Muestreo y grabación',
+    slug: 'muestreo-grabacion',
+    chapters: [
+      { title: 'Tutorial 1: Grabación y reproducción', slug: '07-muestreo-01-grabacion-reproduccion', order: 15 },
+      { title: 'Tutorial 2: Reproducción desde múltiples puntos', slug: '07-muestreo-02-multiples-puntos', order: 16 },
+      { title: 'Tutorial 3: Reproducción con bucles', slug: '07-muestreo-03-bucles', order: 17 },
+      { title: 'Tutorial 4: Tabla de ondas de longitud variable', slug: '07-muestreo-04-tabla-ondas-variable', order: 18 },
+      { title: 'Tutorial 5: Waveshaping', slug: '07-muestreo-05-waveshaping', order: 19 },
+      { title: 'Tutorial 6: Grabar y reproducir archivos de audio', slug: '07-muestreo-06-archivos-audio', order: 20 },
+      { title: 'Tutorial 7: Repaso de muestreo', slug: '07-muestreo-07-repaso', order: 21 },
+    ],
+  },
+  {
+    title: 'Filtros y síntesis sustractiva',
+    slug: 'filtros-sintesis-sustractiva',
+    chapters: [
+      { title: 'Tutorial 1: Filtros simples', slug: '08-filtros-01-simples', order: 22 },
+      { title: 'Tutorial 2: Filtros de tipo variable', slug: '08-filtros-02-tipo-variable', order: 23 },
+      { title: 'Tutorial 3: Síntesis estilo analógico', slug: '08-filtros-03-estilo-analogico', order: 24 },
+      { title: 'Tutorial 4: Síntesis sustractiva', slug: '08-filtros-04-sustractiva', order: 25 },
+      { title: 'Tutorial 5: Filtros en paralelo', slug: '08-filtros-05-paralelos', order: 26 },
+    ],
+  },
+  {
+    title: 'Procesamiento de dinámicas',
+    slug: 'procesamiento-dinamicas',
+    chapters: [
+      { title: 'Tutorial 1: Seguimiento de envolvente', slug: '09-dinamicas-01-seguimiento-envolvente', order: 27 },
+      { title: 'Tutorial 2: Procesamiento de dinámicas', slug: '09-dinamicas-02-procesamiento', order: 28 },
+      { title: 'Tutorial 3: Distorsión', slug: '09-dinamicas-03-distorsion', order: 29 },
+    ],
+  },
+  {
+    title: 'MIDI y MSP',
+    slug: 'midi-msp',
+    chapters: [
+      { title: 'Tutorial 1: Mapeo MIDI a MSP', slug: '10-midi-01-mapeo', order: 30 },
+      { title: 'Tutorial 2: Sintetizador MIDI', slug: '10-midi-02-sintetizador', order: 31 },
+      { title: 'Tutorial 3: Sampler MIDI', slug: '10-midi-03-sampler', order: 32 },
+    ],
+  },
+  {
+    title: 'Polifonía y gestión de recursos',
+    slug: 'polifonia-gestion-recursos',
+    chapters: [
+      { title: 'Tutorial 1: Uso del objeto poly~', slug: '11-poli-01-poly-objeto', order: 33 },
+      { title: 'Tutorial 2: Síntesis granular', slug: '11-poli-02-granular', order: 34 },
+      { title: 'Tutorial 3: Datos de control a tasa de audio', slug: '11-poli-03-datos-control-audio', order: 35 },
+    ],
+  },
+  {
+    title: 'Secuenciación',
+    slug: 'secuenciacion',
+    chapters: [
+      { title: 'Tutorial 1: Secuenciación a tasa de audio', slug: '12-secuenciacion-01-tasa-audio', order: 36 },
+    ],
+  },
+  {
+    title: 'Panoramización',
+    slug: 'panoramizacion',
+    chapters: [
+      { title: 'Tutorial 1: Panoramización simple', slug: '13-pan-01-simple', order: 37 },
+      { title: 'Tutorial 2: Panoramización estéreo', slug: '13-pan-02-estereo', order: 38 },
+      { title: 'Tutorial 3: Panoramización multicanal', slug: '13-pan-03-multicanal', order: 39 },
+    ],
+  },
+  {
+    title: 'Análisis',
+    slug: 'analisis',
+    chapters: [
+      { title: 'Tutorial 1: Señales y medidores', slug: '14-analisis-01-senales-medidores', order: 40 },
+      { title: 'Tutorial 2: Osciloscopio y espectroscopio', slug: '14-analisis-02-osciloscopio-espectroscopio', order: 41 },
+      { title: 'Tutorial 3: Uso de la FFT', slug: '14-analisis-03-fft', order: 42 },
+      { title: 'Tutorial 4: Procesamiento de señal con pfft~', slug: '14-analisis-04-pfft', order: 43 },
+    ],
+  },
+  {
+    title: 'Retardos',
+    slug: 'retardos',
+    chapters: [
+      { title: 'Tutorial 1: Líneas de retardo', slug: '15-retardos-01-lineas', order: 44 },
+      { title: 'Tutorial 2: Líneas de retardo con realimentación', slug: '15-retardos-02-realimentacion', order: 45 },
+      { title: 'Tutorial 3: Realimentación con control automático de ganancia', slug: '15-retardos-03-ganancia-auto', order: 46 },
+      { title: 'Tutorial 4: Flanger', slug: '15-retardos-04-flanger', order: 47 },
+      { title: 'Tutorial 5: Chorus', slug: '15-retardos-05-chorus', order: 48 },
+      { title: 'Tutorial 6: Filtro peine', slug: '15-retardos-06-filtro-peine', order: 49 },
+    ],
+  },
+  {
+    title: 'Plug-ins',
+    slug: 'plugins',
+    chapters: [
+      { title: 'Tutorial 1: Efectos', slug: '16-plugins-01-efectos', order: 50 },
+      { title: 'Tutorial 2: Instrumentos', slug: '16-plugins-02-instrumentos', order: 51 },
+      { title: 'Tutorial 3: Dispositivos AMXD', slug: '16-plugins-03-amxd', order: 52 },
+    ],
+  },
+  {
+    title: 'Compresión',
+    slug: 'compresion',
+    chapters: [
+      { title: 'Introducción: ¿Qué es la compresión?', slug: '17-compresion-00-introduccion', order: 53 },
+      { title: 'Tutorial 1: Limitación de picos', slug: '17-compresion-01-limite-picos', order: 54 },
+      { title: 'Tutorial 2: Compresión básica', slug: '17-compresion-02-basica', order: 55 },
+      { title: 'Tutorial 3: Ajuste de compresión', slug: '17-compresion-03-ajuste', order: 56 },
+      { title: 'Tutorial 4: Compresión en instrumentos reales', slug: '17-compresion-04-instrumentos-reales', order: 57 },
+      { title: 'Tutorial 5: Compresión multibanda 1', slug: '17-compresion-05-multibanda-1', order: 58 },
+      { title: 'Tutorial 6: Compresión multibanda 2', slug: '17-compresion-06-multibanda-2', order: 59 },
+      { title: 'Tutorial 7: Keying', slug: '17-compresion-07-keying', order: 60 },
+      { title: 'Tutorial 8: Microsounds', slug: '17-compresion-08-microsounds', order: 61 },
+      { title: 'Tutorial 9: Ducking', slug: '17-compresion-09-ducking', order: 62 },
+      { title: 'Tutorial 10: Control de realimentación', slug: '17-compresion-10-control-realimentacion', order: 63 },
+    ],
+  },
+];
+---
+
+<nav class="sidebar-nav" aria-label="Tabla de contenidos">
+  {sections.map((section) => (
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">{section.title}</div>
+      {section.chapters.map((chapter) => (
+        <a
+          href={`${BASE}/tutoriales/${chapter.slug}/`}
+          class={`sidebar-link ${currentSlug === chapter.slug ? 'active' : ''}`}
+          aria-current={currentSlug === chapter.slug ? 'page' : undefined}
+        >
+          {chapter.title}
+        </a>
+      ))}
+    </div>
+  ))}
+</nav>
+
+<style>
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .sidebar-section {
+    margin-bottom: 1rem;
+  }
+  .sidebar-section:last-child {
+    margin-bottom: 0;
+  }
+  .sidebar-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    padding: 0.25rem 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .sidebar-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+  }
+  .sidebar-link:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+    border-color: var(--color-border);
+  }
+  .sidebar-link.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+  .sidebar-link.active:hover {
+    color: white;
+  }
+</style>

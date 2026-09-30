@@ -1,0 +1,148 @@
+---
+title: "Tutorial 3: Realimentación con control automático de ganancia"
+description: "Automatic Gain Control (AGC) en feedback: compresor en lazo, limitador, ducking inteligente, estabilización de feedback largo."
+section: "retardos"
+order: 46
+slug: "15-retardos-03-ganancia-auto"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter03/"
+---
+
+# Tutorial de Retardos 3: Realimentación con Control Automático de Ganancia
+
+El **Control Automático de Ganancia (AGC - Automatic Gain Control)** en lazos de feedback previene **explosiones**, **estabiliza colas largas** y permite **feedback cercano a 1** de forma segura.
+
+## Problema del Feedback Largo
+
+Con **fb ≈ 0.99-0.999**:
+- **Colas muy largas** (30-60+ segundos)
+- **Riesgo**: Acumulación de ruido, DC offset, resonancias → explosión
+- **Transientes** en entrada → Pico en lazo → Explosión retardada
+
+## AGC en el Lazo de Feedback
+
+### Arquitectura:
+```
+[tapout~] → [AGC] → [*~ fb_base] → [+~] → [tapin~]
+```
+
+### Componentes del AGC:
+
+#### 1. Detector de nivel (Envelope Follower):
+```
+[tapout~] → [abs~] → [slide~ 10 1000] → [Detector]
+```
+- **Attack rápido** (1-10 ms): Detecta transientes
+- **Release lento** (500-2000 ms): Sigue cola
+
+#### 2. Computador de ganancia (Gain Computer):
+```
+Target Gain = min(1, Threshold / Current_Level)
+Gain = rampsmooth~ (Current_Gain, Target, Attack, Release)
+```
+- **Threshold** = Nivel máximo permitido (ej. 0.5 = -6 dB)
+- **Ratio** = Compresión sobre threshold (∞:1 = hard limit)
+
+#### 3. Aplicación:
+```
+[tapout~] → [*~ AGC_Gain] → [*~ fb_base] → [tapin~]
+```
+
+## Tipos de AGC para Feedback
+
+### 1. Hard Limiter (Límite duro)
+```
+gain = (level > thresh) ? thresh/level : 1
+```
+- **Instantáneo** (attack ≈ 0)
+- **Click risk** si gain cambia bruscamente
+- **Uso**: Seguridad absoluta
+
+### 2. Soft Limiter / Compressor (Suave)
+```
+gain = 1 + (1/ratio - 1) × max(0, level - thresh) / level
+```
+- **Attack/Release** configurables
+- **Suave** (rampsmooth~ en gain)
+- **Musical**: Transparente
+
+### 3. Lookahead Limiter (Anticipación)
+- **Delay línea principal** (tapout~) → AGC procesa **antes** de feedback
+- **Lookahead** = delay compensado en detector
+- **Cero overshoot** garantizado
+
+## Ducking Inteligente en Feedback
+
+### Sidechain desde entrada:
+```
+[Input] → [Envelope Follower] → [Invert+Scale] → [Feedback Gain Mod]
+```
+- **Entrada presente** → Feedback ↓ (claridad)
+- **Entrada ausente** → Feedback ↑ (cola larga)
+
+### Parámetros:
+- **Threshold**: Nivel entrada para activar duck
+- **Depth**: Cuánto reduce feedback (0-100%)
+- **Attack/Release**: Velocidad respuesta
+- **Hold**: Tiempo mínimo duck activo
+
+## Estabilización Avanzada
+
+### 1. DC Blocking (Bloqueo DC):
+```
+[tapout~] → [biquad~ highpass 10Hz] → [AGC] → [tapin~]
+```
+- **Elimina deriva DC** (causa explosión lenta)
+- **10-20 Hz** = Inaudible, efectivo
+
+### 2. Noise Gate en Feedback:
+```
+[Feedback Signal] → [Gate: thresh -80dB] → [AGC]
+```
+- **Silencia** ruido de fondo acumulado
+- **Evita** amplificación infinita de ruido
+
+### 3. Frequency-Dependent AGC (Multiband AGC):
+```
+[tapout~] → [Crossover 3-band] → [AGC per band] → [Sum] → [tapin~]
+```
+- **Low**: AGC agresivo (evita boom)
+- **Mid**: AGC moderado
+- **High**: AGC suave (preserva brillo)
+
+## Patch de ejemplo: Ultra-Stable Long Feedback Delay
+
+Incluye:
+1. **tapin~ 30000** (30 seg max)
+2. **Feedback Path**:
+   - tapout~ → DC Block (HP 10Hz) → Multiband AGC (3 bandas) → fb_base (0.999) → tapin~
+2. **AGC por banda** (Low/Mid/High):
+   - Crossover: 200 Hz / 4 kHz (Linkwitz-Riley 4º)
+   - Por banda: Threshold, Ratio, Attack, Release, Makeup
+   - Link bands: On/Off (estéreo link)
+3. **Input Ducking**:
+   - Sidechain input → Envelope → Duck depth (0-100%) → Modula fb_global
+3. **Safety Net**:
+   - Hard limiter @ 0.9 (post-AGC)
+   - DC Block (HP 5Hz) en lazo
+   - Noise Gate (-90 dB) en feedback
+   - Kill Switch (fb=0 instant)
+4. **Freeze Mode**: fb=1, AGC bypass, input mute
+5. **Visualización**: Gain reduction per band, level meters, GR history
+
+## Resumen
+
+- **AGC en feedback** = Estabiliza fb ≈ 1 (colas 30-60s+)
+- **Multiband AGC** = Control por frecuencia (Low agresivo, High suave)
+- **Ducking** = Feedback ↓ con entrada, ↑ sin entrada
+- **Lookahead** = Cero overshoot (delay compensado)
+- **Safety Net** = Hard limit + DC Block + Noise Gate + Kill Switch
+- **Freeze** = fb=1, AGC off = sustain infinito controlado
+
+## Ver También
+
+- **omx.comp~ / omx.lim~** - Compresor/limitador optimizado (objetos omx)
+- **rampsmooth~ / slide~** - Suavizado ganancia AGC
+- **biquad~** - Crossover / DC Block / Filtros
+- **slide~ / rampsmooth~** - Envelope follower / Gain smoothing
+- **tapin~ / tapout~** - Delay line base

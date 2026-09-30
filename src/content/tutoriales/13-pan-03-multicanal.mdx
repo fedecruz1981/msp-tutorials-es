@@ -1,0 +1,142 @@
+---
+title: "Tutorial 3: Panoramización multicanal"
+description: "Panoramización multicanal: 5.1, 7.1, Ambisonics, VBAP, binaural, HRTF, decoding para altavoces."
+section: "panoramizacion"
+order: 39
+slug: "13-pan-03-multicanal"
+originalUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter03/"
+---
+
+# Tutorial de Panoramización 3: Panoramización Multicanal
+
+Este tutorial explora la **panoramización más allá del estéreo**: **5.1, 7.1, Ambisonics, VBAP, binaural** y **HRTF** para sistemas de altavoces y auriculares.
+
+## Formatos Multicanal Estándar
+
+| Formato | Canales | Configuración | Uso |
+|---------|---------|---------------|-----|
+| **5.1** | 6 | L, C, R, Ls, Rs, LFE | Cine, TV, Gaming |
+| **7.1** | 8 | L, C, R, Ls, Rs, Lrs, Rrs, LFE | Cine premium, VR |
+| **7.1.4** | 12 | + 4 height (Atmos) | Dolby Atmos |
+| **22.2** | 24 | NHK Super Hi-Vision | Broadcast 8K |
+
+### Canales 5.1 (ITU-R BS.775):
+```
+L (30°)    C (0°)    R (-30°)
+Ls (110°)        Rs (-110°)
+LFE (Subwoofer, canal .1)
+```
+
+## Panning 5.1 / 7.1
+
+### Vector Base Amplitude Panning (VBAP)
+**VBAP** = Generalización de panning a N altavoces:
+1. **Triangulación** de altavoces (triángulos en esfera)
+2. **Ganancias** = coordenadas baricéntricas
+3. **Suavizado** en bordes de triángulo
+
+### En MSP:
+- **vbap~** (externo, ICST) o **spat~** (Ircam Spat)
+- **Entradas**: Azimut, Elevación, Distancia
+- **Salidas**: Ganancias por canal (5.1, 7.1, etc.)
+
+### Panning simple 5.1 (matrix~):
+```
+[señal] → [matrix~ 1 6] → L, C, R, Ls, Rs, LFE
+```
+- **Coeficientes** calculados por VBAP o ley elegida
+- **LFE** = Low-pass + gain separado (solo graves)
+
+## Ambisonics
+
+### Formato B-Format (1er orden = 4 canales):
+| Canal | Componente | Descripción |
+|-------|------------|-------------|
+| **W** | Omnidireccional (presión) | Mono |
+| **X** | Frente-Atrás (gradiente) | Figura-8 |
+| **Y** | Izq-Der (gradiente) | Figura-8 |
+| **Z** | Arriba-Abajo (gradiente) | Figura-8 |
+
+### Superior (2º orden = 9 canales, 3º = 16):
+- **HOA** (Higher-Order Ambisonics)
+- **SH** (Spherical Harmonics)
+- Más resolución direccional
+
+### Flujo Ambisonics:
+```
+[Fuente mono] → [Ambisonic Encoder] → B-Format (W,X,Y,Z)
+                                    ↓
+                              [Rotación/Procesamiento]
+                                    ↓
+                          [Ambisonic Decoder] → Salidas altavoces
+```
+
+### Ventajas:
+- **Independiente de layout** altavoces
+- **Rotación libre** de campo sonoro
+- **Escalable** a cualquier configuración
+
+## Binaural / HRTF (Para auriculares)
+
+### HRTF (Head-Related Transfer Function):
+- **Filtros** que simulan cabeza/orejas
+- **Pares** (L/R) por dirección
+- **Individualizados** = mejor localización
+
+### Binaural rendering:
+```
+[Fuente mono] → [HRTF L(az,el)] → L_auricular
+             ↘ [HRTF R(az,el)] → R_auricular
+```
+
+### En MSP:
+- **hrtf~** (externo, MIT Media Lab)
+- **binaural~** (Ircam Spat, HOA library)
+- **Spat~** (Ircam) = Binaural + Ambisonics + VBAP
+
+### Head-tracking:
+- **IMU/Giroscopio** → Rotación binaural en tiempo real
+- **OSC/Serial** → Max → Actualiza HRTF ángulos
+
+## Decoders para Altavoces
+
+### Decoder Ambisonics → 5.1/7.1:
+- **Pseudo-inversa** de matriz de decodificación
+- **Max-rE** (regularización) para evitar lóbulos
+- **In-phase** / **Max-rE** / **Energy preserving**
+
+### En MSP:
+- **ambidec~** (externo) = Ambisonic decoder
+- **spat5.decoder~** (Ircam Spat 5)
+- **Matrix~** con coeficientes precalculados
+
+## Patch de ejemplo: Spatializer 5.1 + Binaural
+
+Incluye:
+1. **Entrada**: Mono / Estéreo / B-Format
+2. **Encoder**: Mono → B-Format (azimut, elevación, distancia)
+3. **Procesamiento B-Format**: Rotación, mirror, gain
+4. **Decoder 5.1**: B-Format → 5.1 (VBAP/Ambisonic)
+5. **Binaural Out**: HRTF → Estéreo auriculares
+6. **LFE Management**: Crossover 80-120 Hz → LFE
+7. **Visualización**: Esfera 3D (OpenGL/jit.gl) posición fuente
+8. **Head-tracking**: OSC input → rotación binaural
+9. **Presets**: Layouts 5.1, 7.1, 7.1.4, estéreo, binaural
+
+## Resumen
+
+- **VBAP** = Panning vectorial para N altavoces
+- **Ambisonics (B-Format)** = W,X,Y,Z = Independiente de layout
+- **HRTF/Binaural** = Para auriculares (simula cabeza)
+- **Decoder** = B-Format → Layout específico (5.1, 7.1, etc.)
+- **LFE** = Canal dedicado graves (\<120 Hz)
+- **Head-tracking** = Esencial para VR/AR binaural
+
+## Ver También
+
+- **vbap~** - Vector Base Amplitude Panning (externo)
+- **ambisonic~** - Encode/decode (externo, ICST)
+- **spat~ / spat5~** - Ircam Spat (completo)
+- **hrtf~** - Head-Related Transfer Function (externo)
+- **matrix~** - Panning multicanal simple

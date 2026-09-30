@@ -1,0 +1,231 @@
+<!DOCTYPE html><html lang="es" data-theme="light" data-astro-cid-ju4pidww><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="Astro v7.3.1"><link rel="canonical" href="https://fedecruz1981.github.io/msp-tutorials-es/tutoriales/17-compresion-08-microsounds/"><title>Tutorial 8: Microsounds | MSP Tutorials ES</title><meta name="description" content="Compresión de microsounds / granos: transient shaping granular, micro-dynamics, grain-level compression, spectral compression granular, microsound dynamics."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (!theme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/msp-tutorials-es/assets/Sidebar.C4lDIUiC.css"><style>.tutorial-header[data-astro-cid-wfcvaqdp]{border-bottom:1px solid var(--color-border);margin-bottom:2rem;padding-bottom:1.5rem}.breadcrumb[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);text-decoration:none}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]:hover{color:var(--color-primary);text-decoration:underline}.breadcrumb[data-astro-cid-wfcvaqdp] span[data-astro-cid-wfcvaqdp][aria-current]{color:var(--color-text);font-weight:500}.tutorial-header[data-astro-cid-wfcvaqdp] h1[data-astro-cid-wfcvaqdp]{margin-bottom:.5rem;font-size:clamp(1.75rem,4vw,2.5rem)}.tutorial-meta[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);font-size:.875rem}.chapter-nav[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);flex-wrap:wrap;justify-content:space-between;gap:1rem;margin-top:3rem;padding-top:2rem;display:flex}.nav-link[data-astro-cid-wfcvaqdp]{background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);min-width:200px;max-width:350px;transition:all var(--transition);flex:1;padding:1rem 1.25rem;text-decoration:none;display:block}.nav-link[data-astro-cid-wfcvaqdp]:hover{border-color:var(--color-primary);box-shadow:var(--shadow-md);text-decoration:none;transform:translateY(-1px)}.nav-label[data-astro-cid-wfcvaqdp]{text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:.25rem;font-size:.7rem;font-weight:600;display:block}.nav-title[data-astro-cid-wfcvaqdp]{color:var(--color-text);font-size:.875rem;font-weight:500}.nav-link[data-astro-cid-wfcvaqdp].prev .nav-title[data-astro-cid-wfcvaqdp]:before{content:"← "}.nav-link[data-astro-cid-wfcvaqdp].next .nav-title[data-astro-cid-wfcvaqdp]:after{content:" →"}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:right}.tutorial-footer[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-muted);margin-top:3rem;padding-top:2rem;font-size:.875rem}.tutorial-footer[data-astro-cid-wfcvaqdp] p[data-astro-cid-wfcvaqdp]{margin:.5rem 0}.tutorial-footer[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-primary)}@media (width<=640px){.chapter-nav[data-astro-cid-wfcvaqdp]{flex-direction:column}.nav-link[data-astro-cid-wfcvaqdp]{text-align:center;max-width:none}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:center}}
+</style></head><body data-astro-cid-ju4pidww><a href="#main-content" class="skip-link" data-astro-cid-ju4pidww>Saltar al contenido principal</a><div class="page-wrapper" data-astro-cid-ju4pidww><header class="site-header" role="banner" data-astro-cid-ju4pidww><div class="header-inner" data-astro-cid-ju4pidww><a href="/msp-tutorials-es" class="site-logo" aria-label="MSP Tutorials ES - Inicio" data-astro-cid-ju4pidww><svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-ju4pidww><rect width="32" height="32" rx="6" fill="currentColor" data-astro-cid-ju4pidww></rect><path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round" data-astro-cid-ju4pidww></path></svg><span data-astro-cid-ju4pidww>MSP Tutorials</span></a><button class="theme-toggle" aria-label="Cambiar tema" id="theme-toggle" data-astro-cid-ju4pidww><svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><circle cx="12" cy="12" r="5" data-astro-cid-ju4pidww></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" data-astro-cid-ju4pidww></path></svg><svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" data-astro-cid-ju4pidww></path></svg></button></div></header><div class="main-grid" data-astro-cid-ju4pidww><aside class="sidebar" role="navigation" aria-label="Navegación de tutoriales" id="sidebar" data-astro-cid-ju4pidww><nav class="sidebar-nav" data-astro-cid-ju4pidww></nav></aside><main class="main-content" id="main-content" role="main" data-astro-cid-ju4pidww><article class="content-article" data-astro-cid-ju4pidww><nav class="sidebar-nav" aria-label="Tabla de contenidos" data-astro-cid-wv7whodv><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Introducción</div><a href="/msp-tutorials-es/tutoriales/01-msp-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>MSP: Introducción</a><a href="/msp-tutorials-es/tutoriales/02-como-funciona-audio-digital/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona el audio digital</a><a href="/msp-tutorials-es/tutoriales/03-como-funciona-msp/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona MSP</a><a href="/msp-tutorials-es/tutoriales/04-entrada-salida-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Entrada y salida de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Fundamentos</div><a href="/msp-tutorials-es/tutoriales/05-basico-01-tono-prueba/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Tono de prueba</a><a href="/msp-tutorials-es/tutoriales/05-basico-02-oscilador-ajustable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Oscilador ajustable</a><a href="/msp-tutorials-es/tutoriales/05-basico-03-oscilador-tabla-ondas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Oscilador de tabla de ondas</a><a href="/msp-tutorials-es/tutoriales/05-basico-04-enrutamiento-senales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Enrutamiento de señales</a><a href="/msp-tutorials-es/tutoriales/05-basico-05-repaso-fundamentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Repaso de fundamentos</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Síntesis aditiva y de modulación</div><a href="/msp-tutorials-es/tutoriales/06-sintesis-01-aditiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Síntesis aditiva</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-02-tremolo-modulacion-anillo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Trémolo y modulación en anillo</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-03-modulacion-amplitud/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de modulación de amplitud</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-04-vibrato-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Vibrato y FM</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-05-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Síntesis FM</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Muestreo y grabación</div><a href="/msp-tutorials-es/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Grabación y reproducción</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-02-multiples-puntos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Reproducción desde múltiples puntos</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-03-bucles/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Reproducción con bucles</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-04-tabla-ondas-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Tabla de ondas de longitud variable</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-05-waveshaping/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Waveshaping</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-06-archivos-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Grabar y reproducir archivos de audio</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-07-repaso/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Repaso de muestreo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Filtros y síntesis sustractiva</div><a href="/msp-tutorials-es/tutoriales/08-filtros-01-simples/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Filtros simples</a><a href="/msp-tutorials-es/tutoriales/08-filtros-02-tipo-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Filtros de tipo variable</a><a href="/msp-tutorials-es/tutoriales/08-filtros-03-estilo-analogico/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Síntesis estilo analógico</a><a href="/msp-tutorials-es/tutoriales/08-filtros-04-sustractiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Síntesis sustractiva</a><a href="/msp-tutorials-es/tutoriales/08-filtros-05-paralelos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Filtros en paralelo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Procesamiento de dinámicas</div><a href="/msp-tutorials-es/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Seguimiento de envolvente</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-02-procesamiento/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Procesamiento de dinámicas</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-03-distorsion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Distorsión</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>MIDI y MSP</div><a href="/msp-tutorials-es/tutoriales/10-midi-01-mapeo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Mapeo MIDI a MSP</a><a href="/msp-tutorials-es/tutoriales/10-midi-02-sintetizador/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Sintetizador MIDI</a><a href="/msp-tutorials-es/tutoriales/10-midi-03-sampler/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Sampler MIDI</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Polifonía y gestión de recursos</div><a href="/msp-tutorials-es/tutoriales/11-poli-01-poly-objeto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Uso del objeto poly~</a><a href="/msp-tutorials-es/tutoriales/11-poli-02-granular/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Síntesis granular</a><a href="/msp-tutorials-es/tutoriales/11-poli-03-datos-control-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Datos de control a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Secuenciación</div><a href="/msp-tutorials-es/tutoriales/12-secuenciacion-01-tasa-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Secuenciación a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Panoramización</div><a href="/msp-tutorials-es/tutoriales/13-pan-01-simple/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Panoramización simple</a><a href="/msp-tutorials-es/tutoriales/13-pan-02-estereo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Panoramización estéreo</a><a href="/msp-tutorials-es/tutoriales/13-pan-03-multicanal/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Panoramización multicanal</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Análisis</div><a href="/msp-tutorials-es/tutoriales/14-analisis-01-senales-medidores/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Señales y medidores</a><a href="/msp-tutorials-es/tutoriales/14-analisis-02-osciloscopio-espectroscopio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Osciloscopio y espectroscopio</a><a href="/msp-tutorials-es/tutoriales/14-analisis-03-fft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de la FFT</a><a href="/msp-tutorials-es/tutoriales/14-analisis-04-pfft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Procesamiento de señal con pfft~</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Retardos</div><a href="/msp-tutorials-es/tutoriales/15-retardos-01-lineas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Líneas de retardo</a><a href="/msp-tutorials-es/tutoriales/15-retardos-02-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Líneas de retardo con realimentación</a><a href="/msp-tutorials-es/tutoriales/15-retardos-03-ganancia-auto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Realimentación con control automático de ganancia</a><a href="/msp-tutorials-es/tutoriales/15-retardos-04-flanger/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Flanger</a><a href="/msp-tutorials-es/tutoriales/15-retardos-05-chorus/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Chorus</a><a href="/msp-tutorials-es/tutoriales/15-retardos-06-filtro-peine/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Filtro peine</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Plug-ins</div><a href="/msp-tutorials-es/tutoriales/16-plugins-01-efectos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Efectos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-02-instrumentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Instrumentos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-03-amxd/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Dispositivos AMXD</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Compresión</div><a href="/msp-tutorials-es/tutoriales/17-compresion-00-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Introducción: ¿Qué es la compresión?</a><a href="/msp-tutorials-es/tutoriales/17-compresion-01-limite-picos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Limitación de picos</a><a href="/msp-tutorials-es/tutoriales/17-compresion-02-basica/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Compresión básica</a><a href="/msp-tutorials-es/tutoriales/17-compresion-03-ajuste/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Ajuste de compresión</a><a href="/msp-tutorials-es/tutoriales/17-compresion-04-instrumentos-reales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Compresión en instrumentos reales</a><a href="/msp-tutorials-es/tutoriales/17-compresion-05-multibanda-1/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Compresión multibanda 1</a><a href="/msp-tutorials-es/tutoriales/17-compresion-06-multibanda-2/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Compresión multibanda 2</a><a href="/msp-tutorials-es/tutoriales/17-compresion-07-keying/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Keying</a><a href="/msp-tutorials-es/tutoriales/17-compresion-08-microsounds/" class="sidebar-link active" aria-current="page" data-astro-cid-wv7whodv>Tutorial 8: Microsounds</a><a href="/msp-tutorials-es/tutoriales/17-compresion-09-ducking/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 9: Ducking</a><a href="/msp-tutorials-es/tutoriales/17-compresion-10-control-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 10: Control de realimentación</a></div></nav><header class="tutorial-header" data-astro-cid-wfcvaqdp><nav class="breadcrumb" aria-label="Navegación" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es" data-astro-cid-wfcvaqdp>Inicio</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><a href="/msp-tutorials-es/tutoriales/compresion/" data-astro-cid-wfcvaqdp>Compresión</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><span aria-current="page" data-astro-cid-wfcvaqdp>Tutorial 8: Microsounds</span></nav><h1 data-astro-cid-wfcvaqdp>Tutorial 8: Microsounds</h1><p class="tutorial-meta" data-astro-cid-wfcvaqdp>Capítulo 61 de 63 · Sección: Compresión</p><a href="https://docs.cycling74.com/learn/articles/17_msp_compress_08/" class="patcher-download" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-wfcvaqdp><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" data-astro-cid-wfcvaqdp></path></svg>Descargar patcher (.maxpat)</a></header><div class="tutorial-content" data-astro-cid-wfcvaqdp><h1 id="tutorial-de-compresión-8-microsounds-compresión-a-nivel-de-grano">Tutorial de Compresión 8: Microsounds (Compresión a Nivel de Grano)</h1>
+<p>La <strong>compresión de microsounds</strong> aplica procesamiento dinámico a <strong>nivel de grano individual</strong> (1-100 ms) en síntesis granular, permitiendo control dinámico imposible con compresores tradicionales.</p>
+<h2 id="concepto-compresión-a-nivel-de-grano">Concepto: Compresión a Nivel de Grano</h2>
+<h3 id="grano--unidad-de-procesamiento">Grano = Unidad de procesamiento:</h3>
+<ul>
+<li><strong>Duración</strong>: 1-100 ms</li>
+<li><strong>Envolvente</strong>: Ventana (Hann, Gauss, etc.)</li>
+<li><strong>Parámetros</strong>: Pitch, Pan, Gain, Position, Duration</li>
+</ul>
+<h3 id="compresión-tradicional-vs-granular">Compresión Tradicional vs Granular:</h3>
+<table>
+<thead>
+<tr>
+<th>Tradicional</th>
+<th>Granular (Microsound)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Señal continua</td>
+<td>Granos discretos</td>
+</tr>
+<tr>
+<td>Un detector global</td>
+<td>Detector <strong>por grano</strong></td>
+</tr>
+<tr>
+<td>Gain único</td>
+<td>Gain <strong>por grano</strong></td>
+</tr>
+<tr>
+<td>Release global</td>
+<td>Release <strong>por grano</strong></td>
+</tr>
+<tr>
+<td>Latencia ms</td>
+<td>Latencia = duración grano</td>
+</tr>
+</tbody>
+</table>
+<h2 id="arquitectura-compresor-granular">Arquitectura: Compresor Granular</h2>
+<h3 id="flujo-de-señal">Flujo de señal:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Buffer~] → [Grain Generator] → [Por Grano: Detector → Gain Computer → Gain Apply] → [Salida]</span></span>
+<span class="line"><span>                    ↓</span></span>
+<span class="line"><span>              [Parámetros por grano: Pos, Dur, Pitch, Pan, Gain]</span></span></code></pre>
+<h3 id="componentes-por-grano">Componentes por grano:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Grain Signal] → [Envelope Follower] → [Gain Computer] → [*~] → [Output Grain]</span></span>
+<span class="line"><span>                     ↓</span></span>
+<span class="line"><span>              [Parámetros grano: Thresh, Ratio, Att, Rel]</span></span></code></pre>
+<h2 id="tipos-de-compresión-granular">Tipos de Compresión Granular</h2>
+<h3 id="1-compresión-por-grano-individual-per-grain">1. Compresión por Grano Individual (Per-Grain):</h3>
+<ul>
+<li><strong>Detector</strong> calcula nivel <strong>cada grano</strong></li>
+<li><strong>Gain Computer</strong> aplica ganancia <strong>individual</strong></li>
+<li><strong>Control total</strong> dinámica por grano</li>
+</ul>
+<h3 id="2-compresión-por-ventana-de-granos-windowed">2. Compresión por Ventana de Granos (Windowed):</h3>
+<ul>
+<li><strong>Agrupa N granos</strong> (ej. 10-50 ms ventana)</li>
+<li><strong>Detector</strong> = RMS/Peak de ventana</li>
+<li><strong>Más eficiente</strong> CPU, suaviza transiciones</li>
+</ul>
+<h3 id="3-compresión-espectral-granular-spectral-granular">3. Compresión Espectral Granular (Spectral Granular):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Grano] → [FFT] → [Compresión por bin] → [IFFT] → Grano procesado</span></span></code></pre>
+<ul>
+<li><strong>Compresión por banda</strong> dentro del grano</li>
+<li><strong>Control espectral</strong> micro-dinámico</li>
+</ul>
+<h2 id="aplicaciones-por-tipo-de-sonido">Aplicaciones por Tipo de Sonido</h2>
+<h3 id="1-granular-synthesis-síntesis-granular">1. Granular Synthesis (Síntesis Granular):</h3>
+<ul>
+<li><strong>Control dinámico granos</strong> = Evita picos aleatorios</li>
+<li><strong>Normalización granos</strong> = Nivel consistente</li>
+<li><strong>Envelope shaping</strong> = Ataque/sustain por grano</li>
+</ul>
+<h3 id="2-granular-time-stretching">2. Granular Time-Stretching:</h3>
+<ul>
+<li><strong>Compresión por grano</strong> = Control dinámico stretch</li>
+<li><strong>Transient preservation</strong> = Ataques preservados al estirar</li>
+<li><strong>Sustain leveling</strong> = Nivel constante cola</li>
+</ul>
+<h3 id="3-granular-reverb--textures">3. Granular Reverb / Textures:</h3>
+<ul>
+<li><strong>Density control</strong> = Compresión = control densidad</li>
+<li><strong>Dynamic shaping</strong> = Ataque/sustain por grano de reverb</li>
+<li><strong>Spectral compression</strong> = Control tonal granos</li>
+</ul>
+<h3 id="4-microsound--glitch--clicks">4. Microsound / Glitch / Clicks:</h3>
+<ul>
+<li><strong>Micro-transientes</strong> (1-5 ms) = Compresión sample-accurate</li>
+<li><strong>Envelope following</strong> ultra-rápido (attack &lt; 0.1 ms)</li>
+<li><strong>Sample-level compression</strong> = <code>sah~</code> + <code>rampsmooth~</code></li>
+</ul>
+<h2 id="implementación-msp-compresor-granular">Implementación MSP: Compresor Granular</h2>
+<h3 id="enfoque-1-poly-por-grano-máximo-control">Enfoque 1: poly~ por grano (Máximo control)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[poly~ grain_comp 128]  ← 128 granos máx</span></span>
+<span class="line"><span>  → [in 1: trigger] → [grain_engine] → [out~ 1] [out~ 2]</span></span></code></pre>
+<ul>
+<li><strong>Cada voz = 1 grano</strong></li>
+<li><strong>Detector + Gain Computer</strong> dentro de voz</li>
+<li><strong>Máximo control</strong> = CPU alto</li>
+</ul>
+<h3 id="enfoque-2-gen--genexpr-sample-accurate">Enfoque 2: gen~ / genexpr (Sample-accurate)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[gen~ grain_compressor]</span></span>
+<span class="line"><span>  → Entrada: audio + trigger + params</span></span>
+<span class="line"><span>  → Salida: audio procesado</span></span>
+<span class="line"><span>  → Todo sample-accurate, 0 latencia extra</span></span></code></pre>
+<h3 id="enfoque-3-pfft-spectral-granular">Enfoque 3: pfft~ Spectral Granular</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[pfft~ granular_comp 1024 4]</span></span>
+<span class="line"><span>  → FFT por grano → Spectral comp → IFFT</span></span></code></pre>
+<ul>
+<li><strong>Compresión espectral</strong> por grano</li>
+<li><strong>Control tonal</strong> micro-dinámico</li>
+</ul>
+<h2 id="envelope-following-a-nivel-de-grano">Envelope Following a Nivel de Grano</h2>
+<h3 id="detector-ultra-rápido-microseconds">Detector Ultra-Rápido (Microseconds):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Grano] → [abs~] → [slide~ 1 10] → [Detector nivel]</span></span></code></pre>
+<ul>
+<li><strong>Attack slide~ 1</strong> = 1 sample attack (22 µs @ 44.1k)</li>
+<li><strong>Release slide~ 10</strong> = 10 samples (227 µs)</li>
+<li><strong>Más rápido</strong> que cualquier compresor tradicional</li>
+</ul>
+<h3 id="gain-computer-per-grain">Gain Computer Per-Grain:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Nivel] → [expr~ ($f1&gt;$thresh) ? (1+($thresh-$f1)*(1-1/$ratio)) : 1] → [Gain]</span></span></code></pre>
+<ul>
+<li><strong>Sample-accurate</strong> en gen~</li>
+<li><strong>Cero latencia</strong> extra</li>
+</ul>
+<h2 id="microsound-dynamics-casos-de-uso">Microsound Dynamics: Casos de Uso</h2>
+<h3 id="1-granular-drum-synthesis">1. Granular Drum Synthesis:</h3>
+<ul>
+<li><strong>Grano = hit drum</strong> (1-50 ms)</li>
+<li><strong>Compresión por hit</strong> = Nivel consistente</li>
+<li><strong>Transient shaping</strong> por grano = Click control</li>
+</ul>
+<h3 id="2-granular-vocal-processing">2. Granular Vocal Processing:</h3>
+<ul>
+<li><strong>Grano = formante/ventana</strong> (20-50 ms)</li>
+<li><strong>Formant preservation</strong> = Compresión selectiva formantes</li>
+<li><strong>Breath control</strong> = Compresión granos respiración</li>
+</ul>
+<h3 id="3-granular-ambienttexture">3. Granular Ambient/Texture:</h3>
+<ul>
+<li><strong>Miles de granos</strong> = Control estadístico</li>
+<li><strong>Density compression</strong> = Control densidad vía gain</li>
+<li><strong>Spectral balance</strong> = Compresión espectral granular</li>
+</ul>
+<h3 id="4-microsound--lowercase-music">4. Microsound / Lowercase Music:</h3>
+<ul>
+<li><strong>Sonidos &lt; 100 ms</strong> = Compresión sample-level</li>
+<li><strong>Clicks, pops, microsilence</strong> = Control dinámico extremo</li>
+<li><strong>Dynamic range microsound</strong> = Expansión/compresión micro</li>
+</ul>
+<h2 id="patch-de-ejemplo-granular-dynamics-processor">Patch de ejemplo: Granular Dynamics Processor</h2>
+<p>Incluye:</p>
+<ol>
+<li><strong>Granular Engine</strong> (poly~ 256 voces):
+<ul>
+<li>Buffer~ source (muestra / live input)</li>
+<li>Grain params: Pos, Dur, Pitch, Pan, Gain, Window</li>
+<li>Trigger: Metro / MIDI / Audio threshold / Manual</li>
+</ul>
+</li>
+<li><strong>Per-Grain Dynamics</strong> (dentro poly~):
+<ul>
+<li>Detector: Peak / RMS / Envelope (slide~ 1 10)</li>
+<li>Threshold, Ratio, Attack, Release, Knee (por grano o global)</li>
+<li>Gain Computer: Downward / Upward / Both</li>
+<li>Transient Shaper: Attack/Sustain gain per grain</li>
+</ul>
+</li>
+<li><strong>Spectral Granular</strong> (pfft~ 1024):
+<ul>
+<li>FFT per grain → Spectral comp → IFFT</li>
+<li>Spectral Gate / Spectral Comp / Spectral EQ</li>
+</ul>
+</li>
+<li><strong>Global Controls</strong>:
+<ul>
+<li>Grain Density (granos/seg)</li>
+<li>Position Spread / Duration Spread / Pitch Spread</li>
+<li>Window Type (Hann/Gauss/Tri/Rect)</li>
+<li>Stereo Spread (L/R grain distribution)</li>
+</ul>
+</li>
+<li><strong>Modulation</strong>:
+<ul>
+<li>LFOs en todos params (Rate, Depth, Shape)</li>
+<li>Random/Chaos (Brownian, Perlin)</li>
+<li>MIDI/OSC control all params</li>
+</ul>
+</li>
+<li><strong>Analysis/Visualization</strong>:
+<ul>
+<li>Grain activity display (particles)</li>
+<li>Level histogram per grain</li>
+<li>Spectral waterfall</li>
+<li>GR history per grain stream</li>
+</ul>
+</li>
+</ol>
+<h2 id="resumen">Resumen</h2>
+<ul>
+<li><strong>Microsound Compression</strong> = Compresión a nivel de grano (1-100 ms)</li>
+<li><strong>Detector ultra-rápido</strong> = slide~ 1 sample attack</li>
+<li><strong>Gain Computer per-grain</strong> = Control total dinámica</li>
+<li><strong>Arquitecturas</strong>: poly~ (control), gen~ (sample-accurate), pfft~ (espectral)</li>
+<li><strong>Aplicaciones</strong>: Granular drums, vocal, texture, microsound</li>
+<li><strong>Transient shaping per grain</strong> = Control click/attack granular</li>
+<li><strong>Spectral granular</strong> = Control tonal micro-dinámico</li>
+</ul>
+<h2 id="ver-también">Ver También</h2>
+<ul>
+<li><strong>poly~</strong> - Motor granular (voces = granos)</li>
+<li><strong>gen~</strong> - Sample-accurate processing</li>
+<li><strong>pfft~</strong> - Spectral granular</li>
+<li><strong>slide~ / rampsmooth~</strong> - Ultra-fast envelope</li>
+<li><strong>grain~ / granule~</strong> (externos) - Granular engines</li>
+<li><strong>transient~</strong> - Transient shaping</li>
+</ul></div><nav class="chapter-nav" aria-label="Navegación entre capítulos" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link prev" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Capítulo anterior</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 7: Keying</span></a><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link next" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Siguiente capítulo</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 9: Ducking</span></a></nav><footer class="tutorial-footer" data-astro-cid-wfcvaqdp><p data-astro-cid-wfcvaqdp>Contenido original: <a href="https://docs.cycling74.com/learn/articles/17_msp_compress_08/" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp>Cycling '74 MSP Tutorials</a></p><p data-astro-cid-wfcvaqdp>Traducción no oficial con fines educativos. Código y sintaxis MSP en inglés original.</p></footer></article></main></div><footer class="site-footer" role="contentinfo" data-astro-cid-ju4pidww><div class="footer-inner" data-astro-cid-ju4pidww><p data-astro-cid-ju4pidww>Traducción no oficial de los <a href="https://docs.cycling74.com/learn/series/msp-tutorials/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>MSP Tutorials</a> de Cycling '74.</p><p data-astro-cid-ju4pidww>Código y sintaxis de objetos MSP se mantienen en inglés original.</p><p class="license" data-astro-cid-ju4pidww>Contenido bajo licencia de Cycling '74. <a href="https://docs.cycling74.com/learn/license/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>Ver licencia</a></p></div></footer></div><script type="module">var e=document.getElementById(`theme-toggle`),t=document.documentElement;e.addEventListener(`click`,()=>{let e=t.getAttribute(`data-theme`)===`dark`?`light`:`dark`;t.setAttribute(`data-theme`,e),localStorage.setItem(`theme`,e)});var n=document.getElementById(`sidebar`),r=0;window.addEventListener(`scroll`,()=>{let e=window.pageYOffset;e>r&&e>100?n.classList.add(`scrolled`):n.classList.remove(`scrolled`),r=e});</script></body></html>

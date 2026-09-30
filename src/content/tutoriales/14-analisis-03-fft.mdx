@@ -1,0 +1,163 @@
+---
+title: "Tutorial 3: Uso de la FFT"
+description: "FFT en MSP: fft~, ifft~, pfft~, real/imag, magnitude/phase, windowing, overlap, convolution, filtering, pitch shifting, spectral processing."
+section: "analisis"
+order: 42
+slug: "14-analisis-03-fft"
+originalUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter03/"
+---
+
+# Tutorial de Análisis 3: Uso de la FFT
+
+La **Transformada Rápida de Fourier (FFT)** convierte señales del **dominio del tiempo** al **dominio de la frecuencia**, permitiendo procesamiento espectral: filtrado, convolución, pitch-shifting, time-stretching, análisis.
+
+## FFT en MSP: Objetos básicos
+
+### fft~ / ifft~ (Par básico)
+```
+[señal] → [fft~ size] → [real] [imag] → [procesamiento] → [ifft~ size] → [señal]
+```
+- **Tamaño**: Potencia de 2 (256, 512, 1024, 2048, 4096, 8192)
+- **Salidas fft~**: 1=Real, 2=Imaginaria (señales a tasa de control/frame)
+- **Entradas ifft~**: 1=Real, 2=Imaginaria
+- **Ventana**: Automática (Hann) con overlap 2x
+
+### Magnitud / Fase (Más intuitivo):
+```
+[real] [imag] → [cartopol~] → [magnitud] [fase]
+[magnitud] [fase] → [poltocar~] → [real] [imag]
+```
+- **cartopol~**: Cartesian → Polar (magnitud, fase en radianes)
+- **poltocar~**: Polar → Cartesian
+
+## pfft~ (FFT con patching) - RECOMENDADO
+
+### Ventajas pfft~:
+- **Subpatch** para procesamiento espectral
+- **Gestión automática** de overlap/window
+- **Inlets/Outlets** = señales de audio (rate = SR/FFT_size × overlap)
+- **Argumentos**: `pfft~ subpatch size overlap window`
+
+### Estructura pfft~:
+```
+[pfft~ spectral_proc 1024 4 hann]
+  → Inlets: in 1 (audio), in 2... (params)
+  → Outlets: out 1 (audio), out 2... (analysis)
+  → Inside: fftin~ 1, fftout~ 1, procesamiento
+```
+
+### Objetos dentro de pfft~:
+- **fftin~ N** → Entrada N (real, imag)
+- **fftout~ N** → Salida N (real, imag)
+- **fftinfo~** → Info: framecount, framesize, overlap
+- **frameaccum~** / **framedelta~** / **framereverse~** - Utilidades temporales
+
+## Procesamiento Espectral Básico
+
+### 1. Filtrado Espectral (Máscara):
+```
+[fftin~ 1] → [cartopol~] → [*~ mask] → [poltocar~] → [fftout~ 1]
+```
+- **mask** = 1 (pass), 0 (stop) por bin
+- **Suavizado** de máscara evita artefactos
+
+### 2. Convolución (Convolution):
+```
+[fftin~ 1] → [cartopol~] → [*~ IR_magnitud] → [poltocar~] → [fftout~ 1]
+       ↘ [fftin~ 2] → [cartopol~] → [*~ IR_fase]    → [poltocar~] → [fftout~ 2]
+```
+- **IR** = Impulse Response (pre-cargada en buffer~)
+- **Multiplicación compleja** = Convolución en tiempo
+
+### 3. Pitch Shifting (Phase Vocoder):
+```
+[fftin~] → [cartopol] → [frameaccum~] → [phase correction] → [poltocar] → [fftout]
+```
+- **frameaccum~** = Acumula fase entre frames
+- **Phase correction** = Mantiene coherencia de fase
+- **Ratio** = pitch_shift_factor (2 = octava arriba, 0.5 = abajo)
+
+### 4. Time Stretching:
+```
+[fftin~] → [cartopol] → [framedelta~] → [phase vocoder] → [framereverse~] → [fftout]
+```
+- **framedelta~** = Diferencia fase entre frames
+- **Rate control** = Velocidad reproducción (0.5 = 2x largo)
+
+## Windowing y Overlap
+
+### Tamaño FFT (Trade-off):
+| Tamaño | Resolución Freq | Resolución Temporal | Latencia | Uso |
+|--------|-----------------|---------------------|----------|-----|
+| 256 | ~172 Hz | ~5.8 ms | Baja | Pitch shift, transientes |
+| 512 | ~86 Hz | ~11.6 ms | Media | General |
+| 1024 | ~43 Hz | ~23 ms | Media | Filtrado, pitch shift |
+| 2048 | ~21 Hz | ~46 ms | Alta | Análisis armónico |
+| 4096 | ~10 Hz | ~93 ms | Muy alta | Separación tonal fina |
+
+### Overlap Factor:
+- **2x (50%)**: Mínimo para reconstrucción perfecta (Hann)
+- **4x (75%)**: Mejor calidad (pitch shift, stretch)
+- **8x (87.5%)**: Máxima calidad (phase vocoder pro)
+- **CPU** ∝ overlap factor
+
+## Aplicaciones Prácticas
+
+### 1. Ecualizador Espectral (Graphic EQ):
+- 31 bandas (1/3 octava) → ganancia por banda
+- Suavizado entre bandas (interpolación)
+
+### 2. Noise Reduction (Spectral Gating):
+```
+Magnitud → [Threshold gate] → Gain (0-1) por bin
+```
+- **Noise profile** = Medición ruido solo
+- **Gate** = Magnitud \< threshold × noise_profile → atenuar
+
+### 3. Vocal Removal / Isolation:
+- **Center cancel** (L-R) = Elimina centro (vocales)
+- **Side isolate** (L+R cancel) = Aísla centro
+
+### 4. Spectral Morphing (Cross-síntesis):
+```
+Fuente A mag × Fuente B fase → Híbrido
+Fuente A mag × Fuente A fase mod B → Timbre morph
+```
+
+## Patch de ejemplo: Spectral Processor pfft~
+
+Incluye:
+1. **pfft~ spectral_fx 1024 4 hann**
+2. **Módulos conmutables**:
+   - Spectral Gate (noise reduction)
+   - Spectral EQ (32 bandas)
+   - Convolver (IR selector)
+   - Pitch Shifter (±2 oct, formants)
+   - Time Stretcher (0.25x-4x)
+   - Spectral Freeze (hold frame)
+   - Spectral Blur (desenfoque temporal)
+   - Cross-síntesis (A mag × B phase)
+3. **Control**: MIDI/OSC para todos params
+4. **Visualización**: spectroscope~ pre/post
+5. **CPU monitor**: pfft~ load
+
+## Resumen
+
+- **fft~/ifft~** = Básicos, manual window/overlap
+- **pfft~** = Recomendado: auto-window, overlap, subpatch
+- **cartopol~/poltocar~** = Real/Imag ↔ Mag/Fase
+- **fftin~/fftout~** = I/O dentro pfft~
+- **frameaccum~/framedelta~** = Utilidades fase temporal
+- **Overlap 4x+** = Calidad para pitch/stretch
+- **CPU** ∝ FFT_size × Overlap
+
+## Ver También
+
+- **pfft~** - FFT patching (principal)
+- **fft~ / ifft~** - FFT básico
+- **cartopol~ / poltocar~** - Coordenadas
+- **fftin~ / fftout~ / fftinfo~** - I/O pfft~
+- **frameaccum~ / framedelta~ / framereverse~** - Fase temporal
+- **fftinfo~** - Info frame
+

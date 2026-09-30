@@ -1,0 +1,67 @@
+---
+title: "Tutorial 1: Mapeo MIDI a MSP"
+description: "Integración de control MIDI en patches MSP: escalado de valores MIDI con scale y mtof, control de parámetros de síntesis FM."
+section: "midi-msp"
+order: 30
+slug: "10-midi-01-mapeo"
+originalUrl: "https://docs.cycling74.com/learn/articles/10_midichapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/10_midichapter01/"
+---
+
+# Tutorial MIDI 1: Mapeo MIDI a MSP
+
+En este grupo de tutoriales, veremos diferentes estrategias para integrar control MIDI en patchers MSP. Los sintetizadores y samplers de hardware comerciales típicamente implementan MIDI de alguna forma u otra de maneras bastante estandarizadas; los sistemas de software que imitan estos dispositivos (como patches Max) pueden usar todos los mismos sistemas de enrutamiento y mapeo para controlar exitosamente nuestros sistemas de producción de sonido con controladores MIDI.
+
+Una revisión de los tutoriales que cubren **objetos MIDI** en Max puede ser útil antes de leer estos tutoriales.
+
+- Para usar los patchers de tutorial en esta sección, asegúrese de tener un controlador MIDI correctamente configurado conectado a su computadora. Los tutoriales en esta sección usan una variedad de mensajes MIDI como entrada de ejemplo; si su controlador carece de alguna de estas características, puede simular su entrada con objetos de interfaz de usuario en el tutorial.
+
+## MIDI, otra vez
+
+El estándar MIDI fue desarrollado para permitir el control de dispositivos de música electrónica mediante el uso de un estándar de comunicaciones serial simple que sería fácil de implementar en cualquier plataforma y podría ser usado por cualquiera. A medida que el equipo de ejecución musical ha evolucionado en los 25 años desde entonces, MIDI ha permanecido como una interfaz de protocolo estándar para casi todo equipo de creación musical, ya sea que hablemos de hardware o software. Ya sea que esté interesado en enrutar un teclado, caja de sliders, o secuenciador de software en Max, necesita lidiar con la traducción de mensajes MIDI en números que tengan sentido para MSP.
+
+- Eche un vistazo al patcher del tutorial. La lógica del patcher consiste en una abstracción de síntesis FM llamada `simpleFM~` controlada por una serie de objetos de señal, los valores de los cuales se establecen por **number** boxes de punto flotante. Encienda el audio en el patcher y suba el slider **gain~**. Familiarícese con la forma en que la porción de audio del patcher funciona probando diferentes valores en los **number** boxes etiquetados `1` a `5`.
+
+Nuestro patcher usa síntesis de modulación de frecuencia como vimos antes en los tutoriales, con la adición de un circuito que proporciona **vibrato** a la frecuencia principal del sintetizador. El objeto **cycle~** etiquetado `Vibrato rate` se escala por el control `Vibrato depth` para oscilar la frecuencia principal (la salida del objeto **line~** a la derecha del patcher. A diferencia de un circuito de vibrato que **suma** la salida de un oscilador modulador a una frecuencia constante, esta lógica de patcher **multiplica** la frecuencia constante por la salida del oscilador tratada como exponente por el objeto **pow~**. Una profundidad de vibrato de `1`, por lo tanto, tiene el equivalente de apagar el vibrato (elevar `1` a cualquier potencia produce `1`, lo que deja nuestra frecuencia principal intacta). Una profundidad de `2` escala el objeto **cycle~** al rango de `0.5` a `2.0`, escalando la frecuencia principal arriba y abajo en una octava.
+
+El valor `Octave bend` a la izquierda nos permite usar un valor como multiplicador de frecuencia en un rango donde cada unidad de valor transpone el tono por una octava. Como el circuito de vibrato, usa una lógica de escalado exponencial; un valor de `0.` como cantidad de bend eleva `2` a la potencia de `0.`, produciendo un multiplicador de `1.` para la frecuencia. Un octave bend de `1.` produce un múltiplo de `2.`; un bend de `-1.` produce un múltiplo de `0.5`.
+
+## Escalando MIDI para control de señal
+
+- Configure un controlador continuo MIDI conectado a su computadora para que envíe CC#1 en cualquier canal MIDI (la rueda de modulación en un controlador de teclado es un buen candidato para este mapeo). Desde el objeto **umenu** etiquetado `A`, seleccione la opción `1` ('Octave Pitch Bend'). Mueva su controlador y escuche y observe el resultado.
+
+El objeto Max **ctlin** transmite nuestro controlador a través del objeto **slider** en el patcher y desde allí a través de un objeto **scale**. El objeto **gate** nos permite enrutar el controlador a diferentes **number** boxes de destino en el patcher. Observe que, con el escalado predeterminado, nuestro rango de números MIDI (`0` a `127`) se mapea a un valor de punto flotante entre `0.` y `1.`
+
+Cuando se trabaja con mensajes MIDI, la regla general es que transmiten enteros que típicamente están en el rango de `0` a `127`. Si bien estos valores tienen sentido dentro del dominio MIDI, cuando se aplican a valores de señal estos rangos usualmente son incorrectos. Cuando queremos controlar un oscilador, necesitamos pensar en términos de **frecuencia** (ciclos por segundo o Hz), no el **tono** al que los números de nota MIDI se refieren. Cuando pensamos en **amplitud**, podríamos querer estos números escalados entre `0.` y `1.` para controlar la salida de un objeto **\*~**. El objeto **scale** es un objeto utilitario increíblemente útil en Max para realizar estos cálculos.
+
+- En el objeto **preset** a la derecha del patcher, haga clic en el primer círculo. Los valores para el objeto **scale** deberían cambiar para que los valores `xmin` y `xmax` lean `0` y `127`; los valores `ymin` y `ymax` deberían leer `0.` y `2.` Mueva el controlador MIDI y observe la diferencia.
+
+Usando los ajustes controlados por este preset, podemos tomar un controlador MIDI y usarlo para darnos un rango de octave bend de dos octavas. Configurar el controlador a su valor más bajo dejará nuestro sintetizador FM sin transponer. Moviéndolo todo arriba causará que la frecuencia salga dos octavas más alta, a `880` Hz.
+
+- Haga clic en el **number** box etiquetado `ymin` e ingrese el valor `-2.` Mueva su controlador MIDI y observe la diferencia.
+
+El objeto **scale** puede mapear cualquier rango a cualquier otro rango, incluyendo valores negativos. Ahora nuestro controlador deja el sintetizador sin transponer en el **centro** de su rango; moverlo hacia abajo y hacia arriba nos da dos octavas de cambio en cualquier dirección.
+
+- Haga clic en los otros estados **preset** disponibles y pruébelos; cada uno contiene un mapeo y enrutamiento diferente:
+
+1. **Octave Pitch Bend.** El controlador emite valores de `0.` a `2.`
+2. **Vibrato Rate.** El controlador emite valores de `2.` a `0.`, invirtiendo el escalado para que vaya de alto a bajo.
+3. **Vibrato Depth.** El controlador escala su entrada para que vaya de `1.` a `100.`
+4. **Modulation Index.** El MIDI se escala de `0.` a `20.`
+5. **Amplitude.** El MIDI va de `0.` a `1.` con un factor de **escalado exponencial** de `1.06`. Usar este valor significa que los valores superiores del rango MIDI controlan una parte más amplia del mapeo que los valores inferiores.
+    
+
+Observe que diferentes parámetros MSP en nuestro patch requieren diferentes escalados, ninguno de los cuales corresponde directamente a los valores predeterminados de controladores MIDI.
+
+- En el área del patcher `B`, mire los **number** boxes debajo del objeto **notein**. Toque algunas notas en un teclado MIDI conectado a su computadora.
+
+Al lidiar con tono en valores MIDI, un objeto utilitario Max llamado **mtof** nos permite convertir directamente a frecuencia. El objeto **stripnote** en este patch es necesario para prevenir el doble disparo de valores debido a los eventos note-off generados por el teclado. Observe que debido a que nuestro sintetizador MSP en este patch es monofónico, solo una nota puede sonar a la vez.
+
+## Resumen
+
+Trabajar con controladores MIDI dentro del entorno Max es extremadamente simple. Usar estos valores con patches MSP requiere una comprensión de cómo **mapear** los valores MIDI apropiadamente para los diferentes parámetros de una red de señal digital. Los objetos Max **scale** y **mtof** son increíblemente útiles para realizar esta función, y le permiten mapear entrada MIDI en rangos apropiados para cualquier número de aplicaciones.
+
+## Ver También
+
+- **scale** - Mapear un rango de valores de entrada a un rango de salida
+- **mtof** - Convertir un número de nota MIDI a frecuencia

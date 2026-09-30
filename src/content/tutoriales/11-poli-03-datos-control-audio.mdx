@@ -1,0 +1,162 @@
+---
+title: "Tutorial 3: Datos de control a tasa de audio"
+description: "Downsampling de señales de audio a datos de control: sah~, snapshot~, downsampling, control-rate processing, poly~ para control rate."
+section: "polifonia-gestion-recursos"
+order: 35
+slug: "11-poli-03-datos-control-audio"
+originalUrl: "https://docs.cycling74.com/learn/articles/11_polychapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/11_polychapter03/"
+---
+
+# Tutorial de Polifonía 3: Datos de Control a Tasa de Audio
+
+Este tutorial explora cómo **convertir señales de audio (tasa de muestreo) a datos de control (tasa de control)** y viceversa, usando **downsampling**, **sample-and-hold** y **poly~** para procesamiento a tasa de control.
+
+## Tasas en MSP: Repaso
+
+| Tasa | Frecuencia | Uso |
+|------|------------|-----|
+| **Audio rate** | 44,100 Hz (SR) | Señales, procesamiento DSP |
+| **Control rate** | ~1-2 kHz (vector) | Mensajes Max, UI, MIDI |
+| **Scheduler** | 1 kHz (1 ms) | Eventos temporizados |
+
+## Downsampling: Audio → Control
+
+Convertir señal de 44.1 kHz a ~1-2 kHz:
+
+### 1. snapshot~ (Más simple)
+```
+[señal audio] → [snapshot~] → [números Max]
+```
+- **Bang** = sample actual
+- **Intervalo** = cada N samples (ej. cada 64 = 689 Hz)
+- **Problema**: Jitter temporal, no sample-accurate
+
+### 2. sah~ (Sample-and-Hold) - Recomendado
+```
+[señal audio] → [sah~] → [señal control-rate]
+           ↓
+      [trigger signal] (ej. phasor~ @ 1 kHz)
+```
+- **Sample-accurate** en trigger
+- **Trigger** puede ser señal de audio (phasor~, click~)
+- **Salida**: Señal a tasa de trigger (constante entre triggers)
+
+### 3. downsampling en poly~
+```
+[poly~ control_voice 1 target 2] → Procesamiento a tasa de control
+```
+- **target 2** = thread pool separado
+- **Vector size** configurable (ej. 256 samples = 172 Hz)
+- Ideal para: Envolventes complejas, LFOs, secuenciadores
+
+## Upsampling: Control → Audio
+
+Convertir datos de control a señal de audio:
+
+### 1. line~ / ramp~ (Interpolar)
+```
+[números Max] → [line~] → [señal audio]
+```
+- Interpola linealmente entre valores
+- **Tiempo** = transición suave
+
+### 2. sah~ inverso
+```
+[señal control] → [sah~] → [señal audio]
+           ↓
+      [phasor~ @ SR] (trigger cada sample)
+```
+- Repite cada valor de control por N samples
+
+### 3. poly~ para upsampling
+- Procesar en poly~ a tasa control
+- Salida `out~` → interpolada automáticamente a SR
+
+## Aplicaciones prácticas
+
+### 1. Envolventes complejas a tasa de control
+```
+[function] → [line~] → [sah~ @ 1kHz] → [poly~ env_voice] → [out~] → [\*~] audio
+```
+- **Ventaja**: Cientos de envolventes baratas
+- **poly~** gestiona voces de envolvente
+
+### 2. LFOs y moduladores baratos
+```
+[cycle~ 0.1] → [sah~ @ 500Hz] → [poly~ lfo_bank 16] → [out~] → moduladores
+```
+- 16 LFOs a 500 Hz vs 16× cycle~ a 44.1 kHz
+- **Ahorro CPU**: ~90%
+
+### 3. Secuenciador sample-accurate
+```
+[phasor~ 120bpm] → [sah~] → [poly~ seq_voice 32] → triggers sample-accurate
+```
+- Trigger preciso en samples, no ms
+- **poly~** gestiona pasos/voices
+
+### 4. Análisis → Síntesis (Vocoder style)
+```
+[fft~] → [sah~ @ 100Hz] → [poly~ filter_bank 32] → [out~] → resíntesis
+```
+- Análisis espectral a 100 Hz
+- 32 filtros controlados a tasa baja
+- Resíntesis a audio rate
+
+## sah~ en detalle
+
+### Entradas:
+1. **Señal a samplear** (audio o control)
+2. **Trigger** (señal: cada vez que cruza 0→positivo)
+
+### Salida:
+- **Señal** = valor mantenido entre triggers
+
+### Ejemplo: Reducir LFO a 1 kHz
+```
+[cycle~ 5] → [sah~] → LFO a 1 kHz
+       ↓
+[phasor~ 1000] (trigger 1000 Hz)
+```
+
+## poly~ para procesamiento híbrido
+
+### Arquitectura híbrida:
+```
+[Audio In] → [Análisis @ SR] → [sah~ @ 1kHz] → [poly~ procesamiento @ 1kHz] → [out~] → [Síntesis @ SR]
+```
+
+### Ventajas:
+- **Análisis/Síntesis** a audio rate (calidad)
+- **Procesamiento medio** a control rate (eficiencia)
+- **poly~** aísla contexto DSP
+
+## Patch de ejemplo: Hybrid Processor
+
+Incluye:
+1. **Entrada audio** → **fft~** (análisis espectral)
+2. **sah~ @ 500Hz** → downsample espectro
+3. **poly~ spectral_proc 64 target 2** → procesamiento espectral
+   - Modificación de magnitudes/fases
+   - Compresión espectral, noise reduction
+4. **out~** → **ifft~** (resíntesis)
+5. **Bypass** A/B comparativo
+6. **CPU monitor**: poly~ vs full SR
+
+## Resumen
+
+- **snapshot~** = Simple, bang-driven, jitter
+- **sah~** = Sample-accurado, trigger por señal, recomendado
+- **Downsampling** = Audio → Control (eficiencia)
+- **Upsampling** = Control → Audio (line~ / sah~ inverso)
+- **poly~ target 2** = Procesamiento híbrido a tasa control
+- **Ahorro CPU** = 10-100x para LFOs, envolventes, análisis
+
+## Ver También
+
+- **snapshot~** - Sample a número
+- **sah~** - Sample-and-hold sample-accurado
+- **line~** - Interpolación lineal
+- **poly~** - Motor híbrido (target 2)
+- **phasor~** - Trigger sample-accurado

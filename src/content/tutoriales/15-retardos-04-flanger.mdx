@@ -1,0 +1,129 @@
+---
+title: "Tutorial 4: Flanging"
+description: "Flanging: delay modulado corto (1-10ms), LFO senoidal/triangular, feedback, through-zero, estéreo, through-zero flanging."
+section: "retardos"
+order: 47
+slug: "15-retardos-04-flanger"
+originalUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/15_delaychapter04/"
+---
+
+# Tutorial de Retardos 4: Flanging
+
+El **flanging** es un efecto de **delay modulado muy corto** (1-10 ms) con **feedback**, creando el característico barrido "jet plane" / "tunnel" con picos y valles armónicos móviles.
+
+## Principio del Flanging
+
+### Delay muy corto + Modulación + Feedback:
+```
+[Input] → [tapin~ 20] → [tapout~ delay(t)] → [*~ fb] → [tapin~]
+                              ↘ [*~ mix] → Output
+```
+- **Delay base**: 1-10 ms (modulado ±50-100%)
+- **LFO**: Senoidal/triangular, 0.1-2 Hz
+- **Feedback**: 50-95% (resonancia)
+- **Mix**: Dry/Wet balance
+
+### Origen histórico:
+- **Tape flanging**: 2 grabadoras, dedo en flanco (flange) de una → delay variable
+- **Through-zero**: Delay cruza 0 ms (suma/restión de fase)
+
+## Parámetros Críticos
+
+| Parámetro | Rango | Efecto |
+|-----------|-------|--------|
+| **Delay base** | 1-10 ms | Frecuencia del peine (notch spacing) |
+| **Depth** | 0-100% | Excursión delay (ej. 5ms ± 4ms) |
+| **Rate** | 0.05-2 Hz | Velocidad barrido |
+| **Feedback** | 0-95% | Resonancia / intensidad |
+| **Waveform** | Sin/Tri/Saw | Forma barrido |
+| **Stereo Spread** | L/R phase offset | Ancho estéreo |
+
+## Interpolación Cúbica (OBLIGATORIA)
+
+```
+[tapout~ 1]  ← Argumento 1 = Interpolación cúbica
+```
+- **Sin ella**: Zipper noise, aliasing, glitches horribles
+- **tapout~ 1** = Interpolación cúbica de 4 puntos
+
+## Through-Zero Flanging (Cruce por cero)
+
+### Concepto:
+Delay modulado **cruza 0 ms** → Señal retardada **adelanta** a la original → **Canción de fase** en cruce.
+
+### Implementación:
+- **Delay base** = Depth/2 (ej. Depth=10ms → base=5ms)
+- **LFO** = Rango ±Depth/2 (ej. ±5ms → 0 a 10ms)
+- **En 0 ms**: Suma coherente (boost) o cancelación (notch) según fase
+
+### Implementación MSP:
+```
+[cycle~ rate] → [scale -1 1 0 10] → [tapout~]  (con tapin~ 20)
+```
+- Para through-zero: Offset LFO para cruzar 0
+
+## Flanging Estéreo
+
+### Técnicas:
+1. **LFO Phase Offset**: L 0°, R 180° (rebote)
+2. **Delay Offset**: L base=3ms, R base=7ms
+3. **Feedback Cross**: L fb → R, R fb → L (ping-pong flange)
+4. **Inverted FB**: L fb+, R fb- (cancelación central)
+
+### Patch Estéreo:
+```
+L_in → [tapin~ L] → [tapout~ delay_L(t)] → [fb] → [tapin~ L]
+R_in → [tapin~ R] → [tapout~ delay_R(t)] → [fb] → [tapin~ R]
+```
+- **delay_L(t)** = base + depth × sin(ωt + 0)
+- **delay_R(t)** = base + depth × sin(ωt + π)  (180° offset)
+
+## Flanger vs Chorus vs Phaser
+
+| Efecto | Delay | Modulación | Feedback | Notches |
+|--------|-------|------------|----------|---------|
+| **Flanging** | 1-10 ms | LFO ±50-100% | Alto (50-95%) | Armónicos (peine) |
+| **Chorus** | 15-30 ms | LFO ±20-50% | Bajo (0-20%) | Inarmónicos, sutiles |
+| **Phaser** | N/A (allpass) | LFO en freq | Bajo-Medio | No armónicos (fase) |
+
+## Patch de ejemplo: Pro Flanger Stereo
+
+Incluye:
+1. **tapin~ 50** (50 ms max, suficiente para flanging)
+2. **LFO Section**:
+   - Rate: 0.01-5 Hz (log scale)
+   - Depth: 0-100% (0-10 ms excursion)
+   - Waveform: Sin / Tri / Saw Up / Saw Down / Random (S&H)
+   - Phase Offset L/R: 0-360° (estéreo)
+3. **Delay Section**:
+   - Base Delay: 0.5-10 ms
+   - Mod Depth: 0-100%
+   - Through-Zero: On/Off (auto-offset base)
+4. **Feedback Section**:
+   - Amount: 0-98%
+   - Tone: LPF/HPF/BPF en feedback (biquad~)
+   - Cross-feedback L↔R: 0-100%
+5. **Mix Section**:
+   - Dry/Wet: 0-100%
+   - Stereo Width: 0-200% (mid-side)
+   - Output Gain
+6. **Tempo Sync**: Rate = note values (1/4, 1/8, 1/16, triplet, dotted)
+7. **Presets**: Classic, Through-Zero, Jet, Subtle, Wide, Ping-Pong
+
+## Resumen
+
+- **Flanging** = Delay 1-10ms + LFO + Feedback alto
+- **Interpolación cúbica** = tapout~ 1 (OBLIGATORIO)
+- **Through-zero** = Delay cruza 0 ms = cancelación total momentánea
+- **Estéreo** = Phase offset LFO + Cross-feedback
+- **Feedback tone** = Filtro en lazo (oscurece/aclara resonancia)
+- **Tempo sync** = Rate = valores nota musicales
+
+## Ver También
+
+- **tapin~ / tapout~** - Delay line (tapout~ 1 para cúbica)
+- **cycle~ / phasor~ / tri~** - LFOs
+- **biquad~** - Tone control en feedback
+- **matrix~** - Cross-feedback estéreo
+- **phaser~** (externo) - Phaser allpass-based

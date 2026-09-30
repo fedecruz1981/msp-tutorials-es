@@ -1,0 +1,88 @@
+---
+title: "Tutorial 6: Grabar y reproducir archivos de audio"
+description: "Grabación a disco con sfrecord~, reproducción con sfplay~, formatos de archivo, gestión de buffers de disco."
+section: "muestreo-grabacion"
+order: 20
+slug: "07-muestreo-06-archivos-audio"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter06/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter06/"
+---
+
+# Tutorial de Muestreo 6: Grabar y Reproducir Archivos de Audio
+
+Este tutorial cubre la **grabación directa a disco** y **reproducción desde archivo** usando **sfrecord~** y **sfplay~**, evitando las limitaciones de RAM de **buffer~**.
+
+## sfrecord~: Grabación a Disco
+
+Escribe señal de audio directamente a un archivo de sonido en el disco duro.
+
+### Mensajes principales:
+- **`open nombre.wav`**: Crear/abrir archivo (formatos: WAV, AIFF, CAF)
+- **`record`**: Iniciar grabación
+- **`stop`**: Detener grabación
+- **`append`**: Añadir al final del archivo existente
+
+### Argumentos:
+- Canales: 1 (mono), 2 (estéreo), hasta 512
+- Formato: 16-bit, 24-bit, 32-bit float
+
+### Consideraciones:
+- **Espacio en disco**: ~10 MB/min estéreo 44.1kHz 16-bit
+- **Rendimiento**: Depende de velocidad de disco (SSD recomendado)
+- **Buffer de escritura**: Interno, configurable
+
+## sfplay~: Reproducción desde Archivo
+
+Reproduce archivos de audio directamente desde disco, con **streaming** (carga por chunks).
+
+### Mensajes principales:
+- **`open nombre.wav`**: Cargar archivo (pre-carga primer chunk)
+- **`1` / `0`**: Play / Stop
+- **`speed valor`**: Velocidad (-4 a 4, negativo = reversa)
+- **`loop 1/0`**: Activar bucle
+- **`loopstart` / `loopend`**: Puntos de bucle (ms)
+- **`seek tiempo`**: Saltar a posición (ms)
+
+### Ventajas vs buffer~:
+- **Sin límite de RAM** (archivos de horas)
+- **Carga instantánea** (solo pre-carga inicio)
+- **Múltiples archivos** abiertos simultáneamente
+
+## Formatos soportados
+
+| Formato | Extensión | Calidad | Uso típico |
+|---------|-----------|---------|------------|
+| WAV | .wav | PCM 16/24/32-bit | Estándar Windows |
+| AIFF | .aiff | PCM 16/24/32-bit | Estándar Mac |
+| CAF | .caf | PCM, AAC, etc. | Core Audio |
+| FLAC | .flac | Lossless comprimido | Archivo |
+
+## Patch de ejemplo: Grabador/Reproductor simple
+
+Incluye:
+1. **sfrecord~** con controles: open, record, stop, append
+2. **sfplay~** con controles: open, play, stop, speed, loop
+3. Visualización de nivel (VU meters) durante grabación
+4. Selector de formato y profundidad de bits
+5. Navegador de archivos para abrir/guardar
+
+## Grabación sincronizada (Overdub)
+
+Para grabar sincronizado con reproducción:
+1. **sfplay~** reproduciendo pista base
+2. **sfrecord~** grabando nueva pista
+3. Ambos sincronizados vía **transport** o **phasor~**
+
+## Resumen
+
+- **sfrecord~** = Grabación directa a disco (sin límite RAM)
+- **sfplay~** = Streaming desde disco (carga instantánea)
+- Formatos: **WAV, AIFF, CAF, FLAC**
+- **sfplay~** soporta: speed, loop, seek, múltiples archivos
+- Ideal para: Grabación multitrack, samples largos, DJ tools
+
+## Ver También
+
+- **sfrecord~** - Grabación a archivo
+- **sfplay~** - Reproducción desde archivo
+- **buffer~** - Almacenamiento en RAM (comparación)

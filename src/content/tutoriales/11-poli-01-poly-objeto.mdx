@@ -1,0 +1,131 @@
+---
+title: "Tutorial 1: Uso del objeto poly~"
+description: "Gestión de polifonía con poly~: asignación de voces, aislamiento DSP, argumentos, target, voice stealing, thispoly~."
+section: "polifonia-gestion-recursos"
+order: 33
+slug: "11-poli-01-poly-objeto"
+originalUrl: "https://docs.cycling74.com/learn/articles/11_polychapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/11_polychapter01/"
+---
+
+# Tutorial de Polifonía 1: Uso del objeto poly~
+
+El objeto **poly~** es la herramienta central de MSP para **polifonía** y **gestión de recursos**. Permite ejecutar múltiples copias de un subpatch (voces) con asignación automática y aislamiento de DSP.
+
+## Conceptos básicos
+
+```
+[notein] → [poly~ synth_voice 16] → Salida
+```
+
+### Argumentos de poly~:
+1. **Nombre del subpatch** (ej. `synth_voice`)
+2. **Número de voces** (ej. `16`)
+3. **Opcional**: `target 0` (CPU), `target 1` (GPU), `target 2` (thread pool)
+
+### I/O de poly~:
+- **Entradas**: `in`, `in~` (mensajes y señales a TODAS las voces)
+- **Salidas**: `out`, `out~` (mezcla de TODAS las voces)
+- **Por voz**: `in 1`, `in~ 1` → voz 1; `in 2` → voz 2, etc.
+
+## Asignación de voces (Voice Allocation)
+
+**poly~** recibe mensajes en su inlet principal y los **rutea a una voz libre**:
+
+### Mensajes especiales:
+- **`note`** + pitch + velocity → Busca voz libre, envía a `in 1`/`in 2`
+- **`midinote`** + note + vel → Igual que `note` pero formato MIDI
+- **`mute`** + voice_num → Silencia voz específica
+- **`busy`** → Consulta voces ocupadas
+
+### Algoritmo de asignación:
+1. Busca voz **libre** (gate = 0)
+2. Si ninguna libre → **Voice stealing** (roba la más antigua en release)
+3. Envía `1` (gate on) + pitch + velocity a la voz elegida
+
+## Aislamiento DSP
+
+Cada voz en **poly~** tiene su **propio contexto DSP**:
+- **Señales no sangran** entre voces
+- **CPU por voz** = independiente (voz muda = 0% CPU)
+- **Buffer~** locales a cada voz (si creados dentro)
+- **Send~/receive~** locales (prefijo `~#`)
+
+### Ventajas:
+- 16 voces = 16× CPU de 1 voz (solo voces activas)
+- Sin interferencia de fase/ruido entre voces
+- Escalable: más voces = más CPU lineal
+
+## thispoly~ (Contexto de voz)
+
+Dentro del subpatch de voz, **thispoly~** da info de la voz actual:
+- **`thispoly~`** → Número de voz (1-N)
+- **`thispoly~ mute`** → Auto-mute al terminar envolvente
+- **`thispoly~ busy`** → Estado ocupado/libre
+
+### Uso típico:
+```
+[thispoly~ mute] → Conectado a gate de envolvente
+```
+Cuando envolvente termina (release=0), envía `mute` → poly~ marca voz libre.
+
+## Voice Stealing (Robo de voz)
+
+Cuando **todas las voces están ocupadas** y llega nueva nota:
+1. **Poly~** busca voz en **fase de release** (gate=0 pero envolvente > 0)
+2. Si hay → Corta release, reasigna
+3. Si no hay → Roba la **más antigua** (FIFO)
+4. Envía `0` (gate off) a voz robada → release forzado
+
+### Control de stealing:
+- **`steal 0/1`** → Desactivar/activar (default: 1)
+- **Prioridad**: Notas con sustain pedal (CC64) no se roban
+
+## Target: CPU vs Thread Pool
+
+- **`target 0`** (default): Hilos de audio principales
+- **`target 1`**: GPU (si disponible, vía Metal/CUDA)
+- **`target 2`**: Thread pool separado (para poly~ pesados)
+
+### Cuándo usar target 2:
+- Muchas voces (>32) con DSP pesado
+- Evitar glitches en hilo principal
+- Latencia ligeramente mayor
+
+## Patch de ejemplo: poly~ avanzado
+
+Incluye:
+1. **poly~ synth 32 target 2**
+2. **synth**: 2 osciladores, svf~, ADSR×2, VCA
+3. **thispoly~ mute** → Auto-mute en release
+3. **notein** → `midinote` a poly~
+4. **ctlin 64** (sustain) → Mensaje `sustain` a poly~
+5. **Voice monitor**: `busy` → multislider (voces activas)
+6. **CPU monitor**: `cpuload` de poly~
+
+## Argumentos y atributos clave
+
+| Atributo | Función |
+|----------|---------|
+| `voices N` | Número de voces |
+| `target 0/1/2` | Motor de ejecución |
+| `steal 0/1` | Voice stealing on/off |
+| `parallel 0/1` | Procesamiento paralelo (target 2) |
+| `mute` | Silenciar voz específica |
+| `busy` | Consulta voces activas |
+
+## Resumen
+
+- **poly~** = Motor polifónico nativo de MSP
+- **Voces** = Subpatches aislados con DSP independiente
+- **Asignación** = Automática + voice stealing inteligente
+- **thispoly~** = Contexto local (número, mute, busy)
+- **Target 2** = Thread pool para cargas pesadas
+- **Escalable** = CPU lineal con voces activas
+
+## Ver También
+
+- **poly~** - Referencia completa
+- **thispoly~** - Contexto de voz
+- **in / in~ / out / out~** - I/O de poly~
+- **notein / midinote** - Entrada MIDI a poly~

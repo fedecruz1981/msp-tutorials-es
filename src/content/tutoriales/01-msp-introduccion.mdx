@@ -1,0 +1,75 @@
+---
+title: "MSP: Introducción"
+description: "Introducción a MSP: procesamiento de señal digital en Max, redes de señal, control MIDI y cómo usar este manual."
+section: "introduccion"
+order: 1
+slug: "01-msp-introduccion"
+originalUrl: "https://docs.cycling74.com/learn/articles/01_mspintro/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/01_mspintro/"
+---
+
+# Introducción
+
+## Procesamiento de señal en Max
+
+MSP le ofrece más de 200 objetos Max con los que construir sus propios sintetizadores, samplers y procesadores de efectos como instrumentos de software que realizan procesamiento de audio digital.
+
+![Red de señal para un instrumento FM](/images/mspintro01.png "Una red de señal para un instrumento FM")
+
+Como sabe, Max le permite diseñar sus propios programas interactivos que dibujan, reproducen películas y sonidos, responden al control del ratón y teclado, e integran dispositivos externos a través de MIDI y otros sistemas de comunicación.
+
+## Control MIDI con Max
+
+Con la adición de los objetos MSP, también puede crear sus propios diseños de dispositivos de audio digital — sus propios instrumentos de música por computadora — e incorporarlos directamente en sus programas Max. Si lo desea, puede especificar exactamente cómo quiere que sus instrumentos respondan a su control, e implementar todo el sistema en un patcher Max.
+
+![Control MIDI de un parámetro de un proceso de audio](/images/mspintro02.png "Control MIDI de un parámetro de un proceso de audio")
+
+Los objetos MSP se conectan entre sí mediante patch cords de la misma manera que los objetos Max. Estos objetos MSP conectados forman una **red de señal** que describe un esquema para la producción y modificación de señales de audio digital. (Esta red de señal es aproximadamente comparable a la **definición de instrumento** familiar para los usuarios de lenguajes de síntesis de sonido **Music N** como Csound.) Las señales de audio se reproducen a través de la salida de audio de su computadora, o a través de una tarjeta de sonido instalada, usando CoreAudio en Macintosh o MME, DirectSound, o ASIO en Windows. Si está trabajando con Max for Live, el audio se enruta hacia y desde MSP a través del software Ableton Live.
+
+![Procesador de efectos filtro y retardo en MSP](/images/mspintro03.png "Un procesador de efectos filtro y retardo en MSP")
+
+## Cómo usar este manual
+
+La documentación de MSP contiene las siguientes secciones:
+
+**Audio Digital** explica cómo las computadoras representan el sonido. Leer este capítulo puede ser útil si MSP es su primera exposición a la manipulación digital de audio. Si ya tiene experiencia en esta área, probablemente pueda saltarse este capítulo.
+
+**Cómo funciona MSP** proporciona una visión general de las ideas detrás de MSP y cómo el software se integra en el entorno Max. Casi todo el mundo querrá leer este breve capítulo.
+
+**Entrada y Salida de Audio** describe el soporte de MSP para Core Audio en sistemas Macintosh, soporte para DirectSound en sistemas Windows, y tarjetas de interfaz de audio. Explica cómo usar la ventana Estado de Audio para monitorear y ajustar el rendimiento de MSP.
+
+**Los Tutoriales MSP** son más de 60 lecciones paso a paso en los fundamentos del uso de MSP para crear aplicaciones de audio digital. Cada capítulo viene acompañado de un patcher que se encuentra en la carpeta MSP Tutorial. Al igual que los Tutoriales Max, los capítulos están agrupados bajo encabezados que facilitan encontrar lo que busca y navegar por los tutoriales según su tema de interés. Los Tutoriales MSP se agrupan en trece secciones:
+
+- **Fundamentos:** Este puñado de capítulos le enseña los fundamentos del trabajo con audio digital en MSP, incluyendo el trabajo con osciladores simples y el enrutamiento de señales dentro de una red.
+- **Síntesis Aditiva y de Modulación:** Estos capítulos discuten algunas de las técnicas de síntesis más comunes que implican principalmente la manipulación de **osciladores**, incluyendo la síntesis aditiva clásica y la síntesis FM digital.
+- **Muestreo y Grabación:** Esta sección de los tutoriales trata sobre la manipulación de datos de audio en MSP, mientras observamos el trabajo tanto con archivos de sonido almacenados en disco duro como con muestras almacenadas en la memoria de la computadora.
+- **Filtros y Síntesis Sustractiva:** Estos capítulos discuten técnicas que giran en torno a la manipulación de sonidos complejos con **filtros**, incluyendo síntesis sustractiva y ecualización de audio.
+- **Procesamiento de Dinámicas:** Este grupo de tres tutoriales discute el trabajo con la **dinámica** de las señales de audio para lograr seguimiento de envolvente, limitación de picos de audio y distorsión.
+- **MIDI y MSP:** Estos tutoriales muestran cómo modificar los patchers MSP para simular la funcionalidad básica de sintetizadores comerciales, samplers y unidades de efectos permitiendo que sean controlados con dispositivos de entrada MIDI.
+- **Polifonía y Gestión de Recursos:** Estos capítulos discuten cómo sacar el máximo provecho de su sistema con MSP, incluyendo la creación y gestión de más de una copia de una **Abstracción** MSP para crear motores de sonido polifónicos.
+- **Secuenciación:** Esta sección discute el uso de señales de control MSP para secuenciar eventos de audio y Max.
+- **Panoramización:** Este trío de tutoriales discute estrategias básicas para panoramización así como demuestra cómo integrar MSP con sistemas de audio multicanal.
+- **Análisis:** Estos capítulos repasan técnicas comunes de análisis en el mundo del audio digital, desde medición precisa de niveles hasta análisis de Fourier.
+- **Retardos:** Este grupo de capítulos discute el uso de objetos de retardo en MSP para crear flangers, efectos de eco, armonizadores y reverbs.
+- **Plug-ins:** Estos dos tutoriales muestran cómo usar plug-ins de efectos e instrumentos VST dentro de MSP.
+- **Compresión:** Este último grupo discute el grupo de objetos **omx** que ofrecen procesamiento de dinámicas avanzado dentro de MSP.
+
+Incluso si se sentía cómodo con otros entornos de programación de audio digital antes de empezar con MSP, debería al menos echar un vistazo al primer tutorial, que cubre la configuración de Max para que salga audio digital de su computadora.
+
+La sección **Referencia de Objetos MSP** describe el funcionamiento de cada uno de los objetos MSP. Está organizada en orden alfabético.
+
+## Encontrar información
+
+Puede encontrar fácilmente información específica usando la barra de búsqueda en la parte superior de esta página. Si escribe un término, se le mostrará una lista de páginas que contienen el término, incluyendo páginas de referencia de objetos, fragmentos (partes de patchers que muestran el objeto en uso), tutoriales y artículos de guía que contienen el término.
+
+## Otros recursos para usuarios de MSP
+
+Los archivos de ayuda encontrados en la carpeta **max-help** proporcionan ejemplos interactivos del uso de cada objeto MSP.
+
+La carpeta **Max Examples** contiene una serie de demostraciones interesantes y divertidas de lo que se puede hacer con MSP.
+
+El [sitio web de Cycling'74](http://www.cycling74.com) proporciona las últimas actualizaciones de nuestro software, así como una extensa lista de preguntas frecuentes y otra información de soporte. También encontrará artículos y entrevistas con artistas y músicos que usan Max/MSP/Jitter. Toda la documentación de Max está disponible bajo la pestaña Support/Documentation.
+
+El sitio web también cuenta con un foro de discusión de Max en línea donde puede hacer preguntas sobre programación, intercambiar ideas y enterarse de nuevos objetos y ejemplos que otros usuarios están compartiendo. Para información sobre cómo unirse a la discusión, así como una guía de recursos de Max de terceros, visite [http://www.cycling74.com/community](http://www.cycling74.com/community)
+
+Finalmente, si tiene problemas con el funcionamiento de MSP, envíe un correo electrónico a **support@cycling74.com**, e intentaremos ayudarle.

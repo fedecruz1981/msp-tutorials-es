@@ -1,0 +1,79 @@
+---
+title: "Tutorial 2: Reproducción desde múltiples puntos"
+description: "Uso de groove~ para reproducción desde múltiples puntos de muestra simultáneos, control de velocidad y dirección."
+section: "muestreo-grabacion"
+order: 16
+slug: "07-muestreo-02-multiples-puntos"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter02/"
+---
+
+# Tutorial de Muestreo 2: Reproducción desde Múltiples Puntos de Muestra
+
+El objeto **groove~** es un reproductor de muestras avanzado que permite reproducir desde **múltiples puntos** de un **buffer~** simultáneamente, con control independiente de velocidad, dirección y bucle para cada voz.
+
+## groove~ vs play~
+
+- **play~**: Un solo cabezal de reproducción, control por señal
+- **groove~**: Múltiples voces (hasta 128), control por mensajes y señales
+
+## Características de groove~
+
+### Múltiples voces
+```
+groove~ nombre_buffer 4
+```
+Crea 4 voces de reproducción independientes.
+
+### Control por voz (mensajes):
+- **`position`**: Posición de inicio (ms)
+- **`speed`**: Velocidad (-1 a 1, negativo = reversa)
+- **`loop`**: Activar/desactivar bucle (0/1)
+- **`loopstart` / `loopend`**: Puntos de bucle (ms)
+
+### Control por señal (inlets):
+- Inlet 1: Velocidad (speed) - señal
+- Inlet 2: Posición - señal (para scrubbing)
+
+## Interpolación
+
+**groove~** usa **interpolación cúbica** de alta calidad, permitiendo cambios de velocidad suaves sin artefactos.
+
+## Patch de ejemplo
+
+Demuestra:
+1. 4 voces de **groove~** reproduciendo la misma muestra
+2. Cada voz con velocidad, posición y bucle independientes
+3. Control MIDI: notas disparan voces diferentes
+4. **poly~** para gestión polifónica de voces
+5. Visualización de posiciones de reproducción
+
+## Técnicas creativas
+
+### Granular synthesis con groove~
+- Voces cortas (50-100ms) superpuestas
+- Posiciones aleatorias en el buffer
+- Envolventes de amplitud por voz
+
+### Time-stretching
+- Velocidad \< 1.0 con bucle activado
+- Crossfade entre ciclos de bucle
+
+### Pitch-shifting
+- Velocidad ≠ 1.0 sin bucle
+- Compensación de duración con envelopes
+
+## Resumen
+
+- **groove~** = Reproductor multi-voz avanzado
+- Hasta **128 voces** simultáneas
+- Control independiente: velocidad, posición, bucle
+- **Interpolación cúbica** para calidad
+- Ideal para síntesis granular, time-stretching, pitch-shifting
+
+## Ver También
+
+- **groove~** - Reproductor multi-voz
+- **buffer~** - Almacenamiento de muestras
+- **poly~** - Gestión polifónica
+

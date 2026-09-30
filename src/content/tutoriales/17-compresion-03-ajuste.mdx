@@ -1,0 +1,246 @@
+---
+title: "Tutorial 3: Ajuste de Compresión"
+description: "Técnicas avanzadas de ajuste: serial/parallel compression, multiband, upward compression, dynamic EQ, transient shaping, de-essing, vocal riding."
+section: "compresion"
+order: 56
+slug: "17-compresion-03-ajuste"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_03/"
+---
+
+# Tutorial de Compresión 3: Ajuste de Compresión (Técnicas Avanzadas)
+
+Este tutorial cubre **técnicas avanzadas de ajuste** para sacar el máximo partido a la compresión: compresión serial/paralela, multibanda, upward compression, dynamic EQ, transient shaping y vocal riding.
+
+## Compresión Serial (En Serie)
+
+### Concepto:
+Múltiples compresores **en cadena**, cada uno con función específica.
+
+### Cadena típica (3 etapas):
+```
+[Entrada] → [Comp 1: Suave/Slow] → [Comp 2: Media] → [Comp 3: Pico/Fast] → Salida
+```
+
+### Configuración típica:
+
+| Etapa | Ratio | Attack | Release | Función |
+|-------|-------|--------|---------|---------|
+| **1. General** | 1.5:1 - 2:1 | 30-50 ms | Auto/300ms | Control macro, "glue" |
+| **2. Control** | 3:1 - 4:1 | 10-20 ms | 150-200ms | Control dinámico |
+| **4. Pico** | 10:1 - ∞:1 | 0.5-2 ms | 50 ms | Picos sueltos |
+
+### Ventajas:
+- **Cada compresor trabaja menos** = Menos artefactos
+- **Especialización** = Cada uno optimizado
+- **Más transparente** que 1 compresor fuerte
+
+### En MSP:
+```
+[Entrada] → [omx.comp~ @ratio 1.5 @attack 30 @release auto] → 
+            [omx.comp~ @ratio 3 @attack 15 @release 150] →
+            [omx.lim~ @ceiling -1] → Salida
+```
+
+## Compresión Paralela (Parallel / New York Compression)
+
+### Concepto:
+```
+Señal Original (Dry)  ──────────────────────┐
+                                              ├─ [Mezcla 50/50] → Salida
+Señal Comprimida Fuerte (Wet) ──────────────┘
+```
+
+### Configuración Wet (Fuerte):
+- **Ratio**: 10:1 - ∞:1
+- **Attack**: Muy rápido (0.5-2 ms)
+- **Release**: Rápido (50-100 ms)
+- **Threshold**: Bajo (-20 a -30 dB)
+- **Makeup**: Alto (+15 a +20 dB)
+
+### Mezcla:
+```
+Salida = Dry × (1 - Mix) + Wet × Mix
+Mix típico: 30-50% (30% sutil, 50% clásico NY)
+```
+
+### Ventajas:
+- **Transientes intactos** (Dry)
+- **Cuerpo/Sustain** añadido (Wet)
+- **Control de cantidad** vía Mix knob
+- **Fácil de automatizar** (Mix automation)
+
+### En MSP:
+```
+[Entrada] → [*~ 0.5] → [omx.comp~ @ratio 20 @attack 1 @release 50 @threshold -30 @makeup 18] → [*~ 0.5] → [+~] → Salida
+                ↑
+           Dry path (o *~ 0.5)
+```
+
+## Compresión Multibanda (Multiband Compression)
+
+### Concepto:
+```
+Entrada → [Crossover 3-4 bandas] → [Comp por banda] → Suma → Salida
+```
+
+### Bandas típicas (3-4 bandas):
+
+| Banda | Rango | Uso típico |
+|-------|-------|------------|
+| **Low** | 20-120 Hz | Control sub/bajo, mono |
+| **Low-Mid** | 120-500 Hz | Cuerpo, calidez, mud |
+| **High-Mid** | 500-5000 Hz | Presencia, dureza, vocales |
+| **High** | 5-20 kHz | Aire, brillo, sibilancias |
+
+### Configuración por banda:
+
+| Banda | Ratio | Attack | Release | Threshold | Uso |
+|-------|-------|--------|---------|-----------|-----|
+| **Low** | 2:1 | 30ms | Auto | -12 dB | Control sub, mono |
+| **Low-Mid** | 3:1 | 20ms | Auto | -10 dB | Control mud |
+| **High-Mid** | 4:1 | 10ms | 150ms | -8 dB | Presencia |
+| **High** | 2:1 | 5ms | 100ms | -6 dB | De-ess, aire |
+
+### Crossover (Crítico):
+- **Linkwitz-Riley 4º orden** (24 dB/oct) = Suma plana, fase coherente
+- **Frecuencias**: 120 Hz / 500 Hz / 5 kHz (típico)
+
+### En MSP:
+```
+[Entrada] → [crossover~ 4 120 500 5000] → 
+  [omx.comp~ banda1] →
+  [omx.comp~ banda2] →
+  [omx.comp~ banda3] →
+  [omx.comp~ banda4] →
+  [+~] → Salida
+```
+
+## Upward Compression (Compresión Ascendente)
+
+### Concepto:
+**Amplifica** señales **debajo** del threshold (en lugar de reducir arriba).
+```
+Entrada ≤ Threshold: Salida = Entrada × Ratio_up (Ratio > 1)
+Entrada > Threshold: Salida = Entrada (sin cambio)
+```
+
+### Uso:
+- **Aumenta detalles** bajos (reverb tail, room tone)
+- **Aumenta sustain** sin afectar transientes
+- **Más transparente** que downward + makeup
+
+### En MSP (omx.comp~ no nativo, construir):
+```
+[Señal] → [Detector: nivel \< Threshold] → [Gain Computer: 1 + (Thresh-Nivel)×(Ratio-1)] → [*~]
+```
+
+## Dynamic EQ (Ecualización Dinámica)
+
+### Concepto:
+**EQ que solo actúa** cuando señal en banda supera threshold.
+```
+[Banda EQ] → [Detector banda] → [Gain Computer] → [Gain Apply] → [EQ Band]
+```
+
+### Diferencia vs Multiband Comp:
+- **Dynamic EQ**: Gain = 0 dB hasta threshold (transparente)
+- **Multiband**: Siempre procesando (coloración constante)
+
+### Implementación MSP:
+```
+[Entrada] → [biquad~ peak EQ] → [Detector banda] → [Gain Computer] → [*~] → Salida
+     ↘ [Sidechain: biquad~ same freq] → [Detector]
+```
+
+## Transient Shaping (Modelado de Transientes)
+
+### Concepto:
+**Control independiente** de Attack y Sustain **sin ratio/threshold**.
+```
+[Entrada] → [Detector Transiente] → [Attack Gain] [Sustain Gain] → Salida
+```
+
+### Parámetros:
+| Parámetro | Función | Rango |
+|-----------|---------|-------|
+| **Attack** | Nivel transiente inicial | -24 a +24 dB |
+| **Sustain** | Nivel cuerpo/cola | -24 a +24 dB |
+| **Sensitivity** | Umbral detección | 0-100% |
+
+### Uso:
+- **Attack +**: Más "punch", click
+- **Attack -**: Suaviza, menos click
+- **Sustain +**: Más cuerpo, room
+- **Sustain -**: Más "tight", gate-like
+
+### En MSP (transient~ externo o DIY):
+```
+[Entrada] → [transient~ @attack 6 @sustain -3] → Salida
+```
+
+## De-Essing (Control de Sibilancias)
+
+### Específico para voces:
+- **Banda**: 4-10 kHz (sibilancias s, t, ch)
+- **Threshold**: -20 a -30 dB
+- **Ratio**: 5:1 - 10:1
+- **Attack**: Ultra-rápido (0.1-1 ms)
+- **Release**: Rápido (20-50 ms)
+- **Sidechain EQ**: Bandpass 4-10 kHz (crítico)
+
+### Wideband vs Split-band:
+- **Wideband**: Comprime toda señal al detectar ess
+- **Split-band**: Solo reduce banda 4-10 kHz (más transparente)
+
+### En MSP:
+```
+[Entrada] → [biquad~ bandpass 6000 2] → [Detector] → [omx.comp~ @ratio 10 @attack 0.5] → [biquad~ notch 6000] → Salida
+```
+
+## Vocal Riding (Automatización de Ganancia Vocal)
+
+### Manual vs Automático:
+- **Manual**: Fader riding (ingeniero) = Más musical
+- **Automático**: Plugin "vocal rider" = Consistencia
+
+### Vocal Rider (Plugin estilo):
+```
+[Voz] → [Detector RMS largo] → [Target Level] → [Gain Computer lento] → [Gain Apply] → Salida
+```
+- **Target Level**: Nivel objetivo (ej. -18 dBFS RMS)
+- **Range**: ±6 dB (limita corrección)
+- **Speed**: Muy lento (Attack 500ms, Release 2s)
+- **Freeze**: Pausa durante pausas (gate)
+
+## Patch de ejemplo: Advanced Dynamics Suite
+
+Incluye módulos conmutables:
+1. **Serial Comp Chain** (3 etapas, presets)
+2. **Parallel Compressor** (Mix knob, wet solo)
+3. **Multiband Compressor** (4 bandas, crossover LR4, solo/bypass por banda)
+3. **Dynamic EQ** (4 bandas, threshold + gain, sidechain EQ)
+4. **Transient Shaper** (Attack/Sustain ±24dB, sensitivity)
+5. **De-Esser** (Split-band, wideband, auto-detect freq)
+5. **Vocal Rider** (Target, Range, Speed, Freeze)
+6. **Metering Suite**: GR por banda, LUFS, True Peak, Correlation
+
+## Resumen
+
+- **Serial** = Etapas especializadas (glue → control → pico)
+- **Paralela** = Dry + Wet fuerte = Transientes + Cuerpo
+- **Multibanda** = Control por banda (crossover LR4 crítico)
+- **Upward** = Amplifica bajo threshold (detalles, sustain)
+- **Dynamic EQ** = EQ solo cuando necesario (transparente)
+- **Transient Shaper** = Attack/Sustain independientes
+- **De-Essing** = Split-band 4-10 kHz, sidechain BPF
+- **Vocal Riding** = Gain riding automático lento
+
+## Ver También
+
+- **omx.comp~ / omx.lim~** - Procesadores base
+- **crossover~** - Crossover LR4 (matrix~ + biquad~)
+- **transient~** - Transient shaper (externo)
+- **biquad~** - Dynamic EQ bands
+- **omx.dyn~** - Dynamic processor general
+

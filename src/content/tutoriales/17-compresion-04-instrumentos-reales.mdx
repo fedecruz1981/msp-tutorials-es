@@ -1,0 +1,276 @@
+---
+title: "Tutorial 4: Compresión en Instrumentos Reales"
+description: "Aplicación práctica: compresión por instrumento (voz, bajo, batería, guitarra, piano, vientos, sintetizadores, bus/master)."
+section: "compresion"
+order: 57
+slug: "17-compresion-04-instrumentos-reales"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_04/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_04/"
+---
+
+# Tutorial de Compresión 4: Compresión en Instrumentos Reales
+
+Guía práctica de **configuración de compresor por instrumento** con parámetros de partida, ajustes finos y cadenas recomendadas.
+
+## Principios Generales por Tipo de Instrumento
+
+| Instrumento | Dinámica natural | Objetivo compresión | Ratio típico |
+|-------------|------------------|---------------------|--------------|
+| **Voz** | Muy alta (30-40 dB) | Control, presencia, consistencia | 3:1 - 4:1 |
+| **Bajo** | Media-alta | Consistencia, peso, control fundamental | 3:1 - 4:1 |
+| **Batería** | Muy alta (transientes) | Punch, control, glue | 4:1 - 8:1 (paralela) |
+| **Guitarra** | Media | Consistencia, sustain, "glue" | 2:1 - 4:1 |
+| **Piano** | Muy alta | Control, equilibrio manos | 2:1 - 3:1 |
+| **Vientos** | Alta | Control, consistencia fraseo | 2:1 - 3:1 |
+| **Sintetizadores** | Variable | Control, consistencia, glue | 2:1 - 4:1 |
+
+---
+
+## 1. Voz (Cantada / Hablada)
+
+### Cadena recomendada:
+```
+[De-Esser] → [Comp 1: Suave] → [Comp 2: Control] → [Comp 3: Pico opcional]
+```
+
+### Configuración por etapa:
+
+| Etapa | Threshold | Ratio | Attack | Release | Knee | Función |
+|-------|-----------|-------|--------|---------|------|---------|
+| **De-Esser** | -25 dB | 8:1 | 0.5 ms | 30 ms | Hard | 5-8 kHz BPF |
+| **Comp 1 (Suave)** | -18 dB | 2:1 | 20 ms | Auto | 6 dB | "Glue" general |
+| **Comp 2 (Control)** | -12 dB | 3:1 | 10 ms | 150 ms | 3 dB | Control fraseo |
+| **Comp 3 (Pico)** | -3 dB | 10:1 | 1 ms | 50 ms | Hard | Solo picos sueltos |
+
+### Ajustes finos:
+- **Attack 10-15 ms** = Deja consonantes (claridad)
+- **Attack 3-5 ms** = Más "in your face", agresivo
+- **Release Auto** = Mejor para fraseo natural
+- **Sidechain HPF 100-150 Hz** = Evita pumping por respiraciones
+- **Paralela 30%** = Mantiene vida + control
+
+### De-Essing (Crítico):
+- **Frecuencia**: 5-8 kHz (detectar "s", "t", "ch")
+- **Split-band** = Solo reduce 5-8 kHz (más natural)
+- **Threshold**: -25 a -30 dB
+- **Ratio**: 5:1 - 10:1
+
+---
+
+## 2. Bajo Eléctrico / Contrabajo
+
+### Objetivos:
+- **Consistencia nota a nota**
+- **Control fundamental** (40-100 Hz)
+- **Definición ataque** (claridad notas)
+- **Peso/sustain** controlado
+
+### Configuración:
+| Parámetro | Valor | Nota |
+|-----------|-------|------|
+| **Threshold** | -12 a -18 dB | |
+| **Ratio** | 3:1 - 4:1 | |
+| **Attack** | 15-30 ms | Deja ataque dedo/púa |
+| **Release** | Auto / 200 ms | Sostenido natural |
+| **Knee** | 3-6 dB | Suave |
+| **Sidechain HPF** | 60-80 Hz | Ignora sub en detector |
+
+### Tips:
+- **Attack 20-30 ms** = Deja "click" dedo = definición
+- **Attack 5-10 ms** = Más "compressed", sustain
+- **Paralela 30-50%** = Peso + definición
+- **Multibanda**: Low band (20-120 Hz) 2:1, Mid 3:1
+
+---
+
+## 3. Batería (Kit Completo)
+
+### Enfoque por elemento:
+
+| Elemento | Threshold | Ratio | Attack | Release | Nota |
+|----------|-----------|-------|--------|---------|------|
+| **Kick** | -12 dB | 4:1 | 10 ms | 100 ms | Punch 10-20ms |
+| **Snare** | -10 dB | 4:1 | 5 ms | 80 ms | Snap 3-10ms |
+| **Toms** | -8 dB | 3:1 | 10 ms | 200 ms | Sustain |
+| **Overheads** | -18 dB | 2:1 | 30 ms | Auto | Glue |
+| **Room** | -20 dB | 2:1 | 50 ms | Auto | Ambience |
+| **Bus Drums** | -12 dB | 4:1 | 10 ms | 100 ms | Glue |
+
+### Compresión Paralela (NY) - Clave en batería:
+```
+[Drum Bus] → [Comp Fuerte: 10:1, Att 1ms, Rel 50ms, Thresh -25dB] → Mix 30-50% → Drum Bus Out
+```
+
+### Paralela "New York" clásica:
+- **Threshold**: -25 a -30 dB
+- **Ratio**: 10:1 - 20:1
+- **Attack**: 0.5-2 ms (muy rápido)
+- **Release**: 50-100 ms (rápido)
+- **Mix**: 30-50%
+- **EQ Post**: LPF 8-10 kHz (quita harshness)
+
+### Bus Drums (Glue):
+- **Ratio 2:1 - 4:1**
+- **Attack 10-30 ms** (deja transientes)
+- **Release Auto** (100-200 ms)
+- **Sidechain HPF 100 Hz** (evita pumping kick)
+
+---
+
+## 4. Guitarra (Eléctrica / Acústica)
+
+### Eléctrica (Distorsionada):
+- **Ya comprimida** por distorsión
+- **Ligera** (1.5:1 - 2:1) solo para "glue"
+- **Threshold**: -15 dB
+- **Attack**: 20-30 ms
+
+### Acústica (Dedos / Púa):
+| Estilo | Threshold | Ratio | Attack | Release |
+|--------|-----------|-------|--------|---------|
+| **Fingerstyle** | -15 dB | 2:1 | 20 ms | Auto |
+| **Strumming** | -12 dB | 3:1 | 10 ms | 150 ms |
+| **Púa agresiva** | -10 dB | 4:1 | 5 ms | 100 ms |
+
+### Tips:
+- **Attack 20-30 ms** = Deja ataque púa = claridad
+- **Sidechain HPF 80 Hz** = Evita pumping cuerpo
+- **Paralela 20-30%** = Cuerpo + definición
+
+---
+
+## 5. Piano
+
+### Desafío: Dinámica extrema (pp a ff), dos manos
+
+### Configuración:
+| Parámetro | Valor | Nota |
+|-----------|-------|------|
+| **Threshold** | -15 a -20 dB | |
+| **Ratio** | 2:1 - 3:1 | Suave |
+| **Attack** | 30-50 ms | Deja ataque martillo |
+| **Release** | Auto / 300 ms | Largo, natural |
+| **Knee** | 6-10 dB | Muy suave |
+| **Sidechain HPF** | 100 Hz | Evita pumping graves |
+
+### Tips:
+- **Attack largo (50ms+)** = Preserva ataque natural
+- **Ratio bajo (2:1)** = Control sin aplastar
+- **Paralela 20%** = Peso sin perder dinámica
+- **Multibanda**: Low 1.5:1, Mid 2:1, High 1.5:1
+
+---
+
+## 6. Vientos (Sax, Trompeta, Flauta, Clarinete)
+
+### Características: Fraseo legato, dinámica expresiva
+
+### Configuración general:
+| Parámetro | Valor |
+|-----------|-------|
+| **Threshold** | -15 dB |
+| **Ratio** | 2:1 - 3:1 |
+| **Attack** | 20-30 ms |
+| **Release** | Auto / 250 ms |
+| **Knee** | 6 dB |
+| **Sidechain HPF** | 150 Hz |
+
+### Por instrumento:
+- **Sax/Trompeta**: Más compresión (3:1), attack 15ms
+- **Flauta/Clarinete**: Menos (2:1), attack 30ms
+- **Sección vientos**: Bus 2:1, attack 30ms (glue)
+
+---
+
+## 7. Sintetizadores
+
+### Pads / Atmosféricos:
+- **Threshold**: -18 dB
+- **Ratio**: 2:1
+- **Attack**: 50 ms
+- **Release**: Auto (largo)
+- **Objetivo**: Control dinámico sutil
+
+### Leads / Basslines:
+- **Threshold**: -12 dB
+- **Ratio**: 3:1 - 4:1
+- **Attack**: 10 ms
+- **Release**: 150 ms
+- **Sidechain HPF**: 60 Hz
+
+### Arpegiadores / Secuencias:
+- **Threshold**: -10 dB
+- **Ratio**: 4:1
+- **Attack**: 5 ms
+- **Release**: 50 ms
+- **Objetivo**: Nivelación notas
+
+---
+
+## 8. Bus de Mezcla (Mix Bus) / Mastering
+
+### Mix Bus (Glue):
+| Parámetro | Valor |
+|-----------|-------|
+| **Threshold** | -10 a -15 dB |
+| **Ratio** | 1.5:1 - 2:1 |
+| **Attack** | 30-50 ms |
+| **Release** | Auto |
+| **Knee** | 6-10 dB |
+| **Stereo Link** | 100% |
+| **GR Target** | 1-3 dB máx |
+
+### Mastering Chain:
+```
+[EQ] → [Comp Serial 1.5:1] → [Comp Serial 2:1] → [Limitador] → [Dither]
+```
+
+---
+
+## Resumen de Configuraciones Iniciales
+
+| Instrumento | Thresh | Ratio | Attack | Release | Knee | Sidechain HPF |
+|-------------|--------|-------|--------|---------|------|---------------|
+| **Voz** | -18 | 3:1 | 10ms | Auto | 3dB | 100Hz |
+| **Bajo** | -15 | 3:1 | 20ms | Auto | 3dB | 80Hz |
+| **Kick** | -12 | 4:1 | 10ms | 100ms | 0dB | - |
+| **Snare** | -10 | 4:1 | 5ms | 80ms | 0dB | - |
+| **Overheads** | -18 | 2:1 | 30ms | Auto | 3dB | 100Hz |
+| **Drum Bus** | -12 | 4:1 | 10ms | 100ms | 3dB | 100Hz |
+| **Guitarra Ac** | -15 | 2:1 | 20ms | Auto | 3dB | 80Hz |
+| **Piano** | -18 | 2:1 | 40ms | Auto | 6dB | 100Hz |
+| **Vientos** | -15 | 2:1 | 25ms | Auto | 6dB | 150Hz |
+| **Synth Pad** | -18 | 2:1 | 50ms | Auto | 3dB | 60Hz |
+| **Mix Bus** | -12 | 1.5:1 | 40ms | Auto | 6dB | 100Hz |
+
+---
+
+## Patch de ejemplo: Instrument Compressor Presets
+
+Incluye banco de presets por instrumento con:
+1. **Selector instrumento** (12 categorías + custom)
+2. **Carga preset** → Configura todos params
+3. **Fine-tune**: Todos params editables
+4. **A/B Compare**: Compara preset vs ajustado
+5. **Gain Match**: Auto makeup gain match
+6. **Metering**: GR, In/Out, LUFS
+7. **Sidechain EQ**: HPF/BPF visual + audit
+
+## Resumen
+
+- **Voz**: De-Esser → Serial 3 etapas → Paralela 30%
+- **Bajo**: HPF sidechain, attack 20ms, paralela 30%
+- **Batería**: Por elemento + Bus glue + Paralela NY 30-50%
+- **Guitarra**: Attack según estilo (púa=5ms, dedos=20ms)
+- **Piano**: Attack largo (40ms+), ratio bajo (2:1)
+- **Vientos**: Attack medio, HPF sidechain alto (150Hz)
+- **Sintetizadores**: Según tipo (pad=suave, lead=control)
+- **Bus/Master**: Serial suave, GR 1-3dB, stereo link 100%
+
+## Ver También
+
+- **omx.comp~** - Compresor base
+- **omx.lim~** - Limitador picos
+- **omx.gate~** - Gate/Expansor
+- **biquad~** - Sidechain EQ
+- **Tutorials 17-26** - Técnicas específicas

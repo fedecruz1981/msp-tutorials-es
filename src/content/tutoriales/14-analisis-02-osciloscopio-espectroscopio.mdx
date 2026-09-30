@@ -1,0 +1,144 @@
+---
+title: "Tutorial 2: Osciloscopio y espectroscopio"
+description: "Visualización de señales: scope~, spectroscope~, waveform, spectrum, waterfall, sonogram, trigger, timebase, FFT size."
+section: "analisis"
+order: 41
+slug: "14-analisis-02-osciloscopio-espectroscopio"
+originalUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/14_analysischapter02/"
+---
+
+# Tutorial de Análisis 2: Osciloscopio y Espectroscopio
+
+Este tutorial cubre la **visualización de señales en el dominio del tiempo y frecuencia** usando **scope~** (osciloscopio) y **spectroscope~** (espectroscopio/FFT visual).
+
+## scope~ (Osciloscopio)
+
+### Visualización dominio del tiempo:
+- **Eje X**: Tiempo (ms o samples)
+- **Eje Y**: Amplitud (-1 a 1)
+- **Trigger**: Sincronización de forma de onda
+
+### Parámetros clave:
+| Parámetro | Función | Valores típicos |
+|-----------|---------|-----------------|
+| **Timebase** | Ventana temporal | 1-1000 ms |
+| **Trigger** | Sincronización | off, rising, falling, both |
+| **Trigger level** | Umbral trigger | -1 a 1 |
+| **Channels** | Canales mostrados | 1-4 (L, R, L+R, overlay) |
+| **Grid** | Cuadrícula | on/off, divisiones |
+| **Buffer size** | Samples mostrados | 128-4096 |
+
+### Modos de trigger:
+- **Off**: Free-running (desplazamiento continuo)
+- **Rising**: Flanco positivo (cruce 0→+)
+- **Falling**: Flanco negativo (cruce 0→-)
+- **Both**: Cualquier flanco
+
+### Trigger externo:
+```
+[señal audio] → [scope~]
+[trigger señal] → [scope~ trigger inlet]
+```
+- Útil para: Sync a reloj, análisis de transientes
+
+## spectroscope~ (Espectroscopio / FFT Visual)
+
+### Visualización dominio frecuencia:
+- **Eje X**: Frecuencia (Hz, log o lineal)
+- **Eje Y**: Magnitud (dB)
+- **Ventana FFT**: Tamaño y tipo
+
+### Parámetros clave:
+| Parámetro | Función | Valores típicos |
+|-----------|---------|-----------------|
+| **FFT Size** | Resolución freq. | 256, 512, 1024, 2048, 4096, 8192 |
+| **Window** | Ventana FFT | Hann, Hamming, Blackman, Rect |
+| **Overlap** | Solapamiento | 2x, 4x, 8x (50%, 75%, 87.5%) |
+| **Range** | Rango freq. | 20 Hz - 20 kHz (o Nyquist) |
+| **Scale** | Eje X | Log (musical) / Linear |
+| **Floor** | Piso dB | -120 a -60 dB |
+| **Ceiling** | Techo dB | 0 a +20 dB |
+| **Channels** | L, R, L+R, M, S, Diff |
+
+### Ventanas FFT (Trade-offs):
+| Ventana | Ancho lóbulo principal | Nivel lóbulos laterales | Uso |
+|---------|------------------------|-------------------------|-----|
+| **Rectangular** | Estrecho | Alto (-13 dB) | Transientes, precisión freq |
+| **Hann** | Medio | Bajo (-31 dB) | General, estándar |
+| **Hamming** | Medio | Muy bajo (-43 dB) | Análisis armónico |
+| **Blackman** | Ancho | Muy bajo (-58 dB) | Separación tonal |
+| **Kaiser** | Ajustable (β) | Ajustable | Optimizable |
+
+### Overlap (Solapamiento):
+- **2x (50%)**: Estándar, buena resolución temporal
+- **4x (75%)**: Mejor resolución temporal
+- **8x (87.5%)**: Máxima resolución temporal, más CPU
+
+## Sonogram / Waterfall (Espectrograma)
+
+### Visualización 3D: Tiempo × Frecuencia × Intensidad
+- **Eje X**: Frecuencia
+- **Eje Y**: Tiempo (historial)
+- **Color**: Intensidad (dB)
+
+### Implementación:
+- **jit.matrix** + **jit.pwindow** + **fft~** → frames
+- **pfft~** para procesamiento FFT eficiente
+- **Color mapping**: Viridis, plasma, inferno, jet, grayscale
+
+## Análisis Harmónico
+
+### Detección de fundamentales:
+- **Peak picking** en espectro
+- **HPS** (Harmonic Product Spectrum)
+- **Cepstrum** (quefrency analysis)
+- **YIN** / **MPM** (pitch detection algorithms)
+
+### En MSP:
+- **pitch~** (externo, YIN)
+- **fiddle~** (externo, PD port)
+- **sigmund~** (externo, pitch+formantes)
+
+## Patch de ejemplo: Analizador Dual Scope + Spectro
+
+Incluye:
+1. **Entrada**: L/R/M/S selector
+2. **Scope~** (arriba):
+   - Timebase: 1-500 ms
+   - Trigger: Rising/Falling/Both/Ext
+   - Grid on/off
+   - Cursor: tiempo, amplitud en cruce
+3. **Spectroscope~** (abajo):
+   - FFT Size: 512-8192 (selector)
+   - Window: Hann/Hamming/Blackman/Kaiser
+   - Scale: Log/Linear
+   - Range: 20Hz-20kHz, floor -120dB
+   - Peak hold: on/off (decay adjustable)
+   - Peak markers: Freq + dB en picos
+4. **Sonogram** (derecha, opcional):
+   - Historial 30s
+   - Color map selector
+5. **Medidores**: Peak, RMS, LUFS integrados
+6. **Herramientas**:
+   - Cursor armónico (múltiplos de fundamental)
+   - Medidor THD (distorsión armónica total)
+   - Export PNG/CSV datos
+
+## Resumen
+
+- **scope~** = Dominio tiempo, trigger crítico para formas periódicas
+- **spectroscope~** = Dominio frecuencia, FFT size = trade-off tiempo/freq
+- **Ventana FFT** = Hann general, Rectangular transientes, Blackman separación
+- **Overlap** = Más = mejor tiempo, más CPU
+- **Sonogram** = Tiempo × Freq × Color = evolución espectral
+- **Trigger** = Esencial para formas de onda estables en scope
+
+## Ver También
+
+- **scope~** - Osciloscopio
+- **spectroscope~** - Espectroscopio FFT
+- **pfft~** - FFT procesamiento (para sonogram custom)
+- **fft~ / ifft~** - FFT raw
+- **pitch~ / fiddle~ / sigmund~** - Pitch detection (externos)
+- **jit.matrix / jit.pwindow** - Visualización 2D/3D custom

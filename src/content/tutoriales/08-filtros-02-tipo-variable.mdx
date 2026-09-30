@@ -1,0 +1,101 @@
+---
+title: "Tutorial 2: Filtros de tipo variable"
+description: "Filtros con tipo morfeable: svf~, morphing entre pasa-bajos, pasa-altos, pasa-banda, notch. Control por señal."
+section: "filtros-sintesis-sustractiva"
+order: 23
+slug: "08-filtros-02-tipo-variable"
+originalUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter02/"
+---
+
+# Tutorial de Filtros 2: Filtros de Tipo Variable
+
+Este tutorial explora filtros cuyo **tipo de respuesta** (pasa-bajos, pasa-altos, pasa-banda, notch) puede **morfearse** continuamente en tiempo real, controlado por señales.
+
+## El objeto svf~ (revisión)
+
+El **svf~** (State Variable Filter) proporciona **4 salidas simultáneas**:
+1. **Lowpass** (pasa-bajos)
+2. **Highpass** (pasa-altos)
+3. **Bandpass** (pasa-banda)
+4. **Notch** (rechaza-banda)
+
+Todas comparten la misma **frecuencia de corte/central** y **Q/resonancia**.
+
+## Morphing de tipos de filtro
+
+Al mezclar las 4 salidas con **crossfade**, se puede transicionar suavemente entre tipos:
+
+```
+salida = LP × (1-t)×(1-b) + HP × t×(1-b) + BP × b×(1-t) + Notch × b×t
+```
+
+Donde **t** = posición lowpass↔highpass, **b** = cantidad de banda/notch.
+
+### Implementación con crossfade:
+- 2 **\*~** + **line~** para crossfade 2D
+- O **matrix~** para mezcla matricial
+
+## Filtros de tipo variable dedicados
+
+### filtergraph~ + biquad~
+- **filtergraph~**: Editor gráfico de respuesta
+- **biquad~**: Filtro biquad de 2º orden
+- Coeficientes calculados desde filtergraph~
+
+### cascade~
+- Cascada de biquads para orden superior
+- Control de tipo por coeficientes
+
+## Control por señal (Audio-rate)
+
+La **frecuencia de corte** y **Q** pueden ser controladas por **señales** (audio-rate):
+- **LFO** para sweep automático
+- **Envolvente** para filter envelope
+- **Audio** para modulación FM de filtro
+- **MIDI** → **line~** → señal para control suave
+
+### Ventajas del control por señal:
+- **Sin zipper noise** (ruido de cremallera)
+- **Modulación a tasa de audio** (FM de filtro)
+- **Sincronía sample-accurate**
+
+## Patch de ejemplo: Morphing Filter Bank
+
+Incluye:
+1. **svf~** con 4 salidas
+2. **matrix~** 4×1 para morphing 2D (X=LP/HP, Y=BP/Notch)
+3. **filtergraph~** para visualización en tiempo real
+4. LFO (**cycle~**) para automatización de morph
+5. Envolvente **function** + **line~** para filter envelope
+6. Control MIDI: CC para frecuencia, Q, morph X, morph Y
+
+## Aplicaciones musicales
+
+### Filter sweeps clásicos
+- Morfing LP → BP → HP en buildups
+- Resonancia alta para "wah" sintético
+
+### Formantes vocálicos
+- Múltiples **svf~** en paralelo
+- Frecuencias fijas de formantes (F1, F2, F3)
+- Morph entre vocales
+
+### Diseño de timbres FM
+- Filtrar portadora FM con svf~
+- Q alto + morfing para timbres metálicos
+
+## Resumen
+
+- **svf~** = 4 tipos simultáneos, ideal para morphing
+- **Crossfade 2D** = Transición suave entre tipos
+- **Control por señal** = Sin zipper noise, modulación audio-rate
+- **filtergraph~** = Visualización y diseño gráfico
+- **biquad~** = Implementación eficiente de coeficientes
+
+## Ver También
+
+- **svf~** - State variable filter
+- **biquad~** - Filtro biquad
+- **filtergraph~** - Editor gráfico de filtros
+- **matrix~** - Mezcla matricial

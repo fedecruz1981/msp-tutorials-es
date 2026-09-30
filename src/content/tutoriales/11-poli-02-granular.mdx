@@ -1,0 +1,137 @@
+---
+title: "Tutorial 2: Síntesis granular"
+description: "Síntesis granular con poly~: granos como voces, control de densidad, ventana, posición, pitch, duration, envelope shapes."
+section: "polifonia-gestion-recursos"
+order: 34
+slug: "11-poli-02-granular"
+originalUrl: "https://docs.cycling74.com/learn/articles/11_polychapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/11_polychapter02/"
+---
+
+# Tutorial de Polifonía 2: Síntesis Granular
+
+La **síntesis granular** trata el sonido como **miles de granos diminutos** (1-100 ms cada uno). **poly~** es ideal para esto: cada grano = una voz.
+
+## Conceptos granulares
+
+### Grano = Voz poly~
+```
+Grano = {
+ posición en buffer (inicio)
+ duración (1-100 ms)
+ envolvente (ventana: Hann, Gauss, triangular)
+ pitch (speed)
+ panorámica
+ ganancia
+}
+```
+
+### Parámetros macro (controlan nube de granos):
+- **Densidad** (granos/segundo): 10-1000 Hz
+- **Posición** (dónde en buffer): 0-1 o ms
+- **Duración** media + desviación
+- **Pitch** medio + desviación (aleatoriedad)
+- **Ventana** (shape): Hann, Gauss, triangular, rectangular
+- **Pan** distribución: estéreo, aleatorio, circular
+
+## Implementación con poly~
+
+### Subpatch de grano (grain_voice):
+Entradas (via `in 1`...`in 6`):
+1. **Posición inicio** (ms o 0-1)
+2. **Duración** (ms)
+3. **Pitch** (ratio speed)
+4. **Ganancia** (0-1)
+5. **Pan** (-1 a 1)
+6. **Gate** (trigger)
+
+Salidas: `out~ 1` (L), `out~ 2` (R)
+
+### Inside grain_voice:
+```
+Pos → [line~] → groove~ position
+Dur → [line~] → ventana (Hann window) → *~ salida
+Pitch → groove~ speed
+Gate → trigger envelope → mute via thispoly~
+Pan → [pan~] o [\*~] L/R
+```
+
+## Generador de granos (Cloud generator)
+
+Fuera de poly~, un **metro** o **qmetro** dispara granos:
+
+```
+[metro density] → [random position] → [pack pitch dur gain pan] → [poly~ grain 128]
+```
+
+### Control de densidad:
+- **Densidad fija**: `metro 1000/densidad`
+- **Densidad variable**: `qmetro` + `random` range
+- **Densidad por señal**: `phasor~` + `sah~` para precisión sample-accurate
+
+## Ventanas de grano (Grain Envelopes)
+
+| Ventana | Fórmula | Característica |
+|---------|---------|----------------|
+| **Hann** | 0.5 - 0.5×cos(2πt) | Suave, estándar |
+| **Gauss** | exp(-(t-0.5)²/σ) | Muy suave, sin click |
+| **Triangular** | 1 - |2t-1| | Lineal, eficiente |
+| **Rectangular** | 1 | Click fuerte, máximo espectro |
+
+### En MSP:
+- **function** + **line~** para formas custom
+- **window~** (externo) para ventanas optimizadas
+- **Pre-calculado** en buffer~ para eficiencia
+
+## Posicionamiento en buffer
+
+### Modos:
+1. **Fijo**: Posición fija (looping)
+2. **Aleatorio**: `random` en rango [start, end]
+3. **Secuencial**: `counter` avanza por buffer
+4. **Controlado**: MIDI, LFO, envelope → posición
+
+### Scrubbing (barrido):
+- **phasor~** → posición continua
+- **speed** controla dirección/velocidad
+- Ideal para time-stretch granular
+
+## Patch de ejemplo: Granular Synthesizer 128 voces
+
+Incluye:
+1. **poly~ grain_voice 128**
+2. **Grain generator**: qmetro + random (densidad 10-500 Hz)
+3. **Controles macro**:
+   - Densidad (granos/seg)
+   - Posición centro + desviación
+   - Duración media + spread
+   - Pitch centro + spread (semitonos)
+   - Ventana (selector: Hann/Gauss/Tri/Rect)
+   - Pan spread (estéreo/circular/aleatorio)
+4. **Freeze**: Hold posición actual (loop granos)
+5. **Modulación**: LFOs en todos params macro
+6. **MIDI**: Note → pitch center, Vel → density
+
+## Sincronización sample-accurate
+
+Para granos rítmicos precisos:
+- **phasor~** + **sah~** (sample-and-hold) en generador
+- **trigger** en zero-crossings de phasor
+- Elimina jitter de `metro`/`qmetro`
+
+## Resumen
+
+- **Grano = voz poly~** (ideal: 64-256 voces)
+- **Parámetros macro** → densidad, posición, dur, pitch, window, pan
+- **Ventana crítica** → Hann/Gauss evitan clicks
+- **Generador externo** → metro/qmetro/phasor+sah
+- **Freeze/Scrub** → Efectos de time-stretch
+- **Sample-accurate** → phasor~ + sah~ para ritmo
+
+## Ver También
+
+- **poly~** - Motor de granos
+- **groove~** - Reproducción en grano
+- **phasor~** / **sah~** - Trigger sample-accurate
+- **function** / **line~** - Ventanas custom
+- **window~** - Ventanas optimizadas (externo)

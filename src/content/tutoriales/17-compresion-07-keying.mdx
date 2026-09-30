@@ -1,0 +1,216 @@
+---
+title: "Tutorial 7: Keying"
+description: "Keying / Sidechaining avanzado: ducking, pumping rítmico, ghost sidechain, frequency-selective keying, MIDI-triggered keying, creative keying."
+section: "compresion"
+order: 60
+slug: "17-compresion-07-keying"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_07/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_07/"
+---
+
+# Tutorial de Compresión 7: Keying (Sidechaining Avanzado)
+
+El **keying** (o sidechaining avanzado) usa una **señal externa** para controlar la compresión de la señal principal. Es la base del **ducking**, **pumping rítmico**, **ghost sidechain** y técnicas creativas de producción.
+
+## Conceptos Fundamentales
+
+### Keying Básico:
+```
+[Señal Principal] → [Compresor] → Salida
+         ↑
+[Key Input] → [Detector] → Controla Gain
+```
+
+### Diferencia Sidechain vs Keying:
+- **Sidechain**: Señal externa → Detector (mismo compresor)
+- **Keying**: Término general = uso de key input
+- **Ghost Keying**: Key input = señal "fantasma" (no se oye)
+
+## Tipos de Keying
+
+### 1. Ducking Clásico (Radio/Podcast):
+```
+[Música] → [Compresor] → Salida
+       ↑
+[Voz] → [Detector] → Baja música al hablar
+```
+- **Threshold**: -20 dB
+- **Ratio**: 4:1 - 8:1
+- **Attack**: 5-10 ms (rápido)
+- **Release**: 200-500 ms (suave retorno)
+- **Makeup**: 0 dB (no compensar, queremos bajar)
+
+### 2. Pumping Rítmico (EDM/House):
+```
+[Synth/Bass] → [Compresor] → Salida
+          ↑
+[Kick Ghost] → [Detector] → Pump al ritmo
+```
+- **Key Input**: Kick (muted en mezcla)
+- **Threshold**: -20 a -30 dB
+- **Ratio**: 10:1 - ∞:1 (limitador)
+- **Attack**: 1-5 ms (muy rápido)
+- **Release**: 100-300 ms (tempo-sync: 1/4, 1/8)
+- **Release Tempo-Sync**: `Release = 60000 / BPM × beats`
+
+### 3. Ghost Sidechain (Sidechain Invisible):
+- **Ghost Signal**: Trigger rítmico **no audible** en mezcla
+- **Ventaja**: Control total timing, no afecta mezcla
+- **Fuentes**: Click track, MIDI trigger, silent kick sample
+
+### Implementación Ghost Sidechain MSP:
+```
+[MIDI Note] → [notein] → [select kick_note] → [click~] → [tapout~ delay] → [Detector]
+```
+- **click~** = Impulso sample-accurate
+- **tapout~** = Delay compensación lookahead
+
+### 4. Frequency-Selective Keying (Keying Selectivo Frecuencial):
+```
+[Key Input] → [Crossover / EQ] → [Detector] → Compresor
+```
+- **Solo frecuencias clave** disparan compresión
+- **Ejemplos**:
+  - **Kick only**: LPF 100 Hz en key input
+  - **Snare only**: BPF 150-250 Hz
+  - **Vocal sibilance**: BPF 5-10 kHz (de-ess key)
+  - **Hi-hat**: HPF 8 kHz
+
+### 5. MIDI-Triggered Keying (Keying Disparado por MIDI):
+```
+[MIDI Note] → [notein] → [select note] → [Envelope Generator] → [Detector]
+```
+- **Ventajas**: Timing perfecto, control total envelope, sin audio key
+- **Envelope Generator**: `function` + `line~` → shape personalizado
+- **MIDI Velocity** → Depth/Amount de compresión
+
+## Keying Multibanda (Keying por Banda)
+
+### Concepto:
+**Key input independiente por banda** = Control quirúrgico.
+
+### Arquitectura:
+```
+[Key Input] → [Crossover 4 bandas] →
+  [Detector Low] → [Comp Low Key] →
+  [Detector Low-Mid] → [Comp Low-Mid Key] →
+  [Detector High-Mid] → [Comp High-Mid Key] →
+  [Detector High] → [Comp High Key] →
+  [Suma] → Salida
+```
+
+### Aplicaciones por banda:
+
+| Banda | Key Source | Efecto |
+|-------|------------|--------|
+| **Low** | Kick | Ducking sub/bajo |
+| **Low-Mid** | Snare | Ducking mud/guitarra |
+| **High-Mid** | Voz | Ducking presencia |
+| **High** | Hi-hat / Ess | De-ess inteligente |
+
+## Creative Keying (Keying Creativo)
+
+### 1. Reverse Keying (Expansión por Key):
+```
+[Key] → [Detector] → [Gain Computer INVERTIDO] → 
+  Señal Key FUERTE → Gain UP (expansión)
+```
+- **Uso**: "Bloom" reverb al golpear kick, swell pads
+
+### 2. Rhythmic Gating (Gate Rítmico):
+```
+[Pad/Sustain] → [Gate] → Salida
+       ↑
+[Ghost Kick] → [Detector] → Abre gate al ritmo
+```
+- **Threshold**: Nivel para abrir gate
+- **Attack**: 1-5 ms (instantáneo)
+- **Release**: Tempo-sync (1/8, 1/16)
+- **Hold**: Duración gate abierta
+
+### 3. Frequency-Dependent Ducking (Ducking Frecuencial):
+```
+[Música] → [Crossover 3 bandas] →
+  [Low] → [Comp Key: Kick] →
+  [Mid] → [Comp Key: Snare] →
+  [High] → [Comp Key: Vocal] →
+  [Suma] → Salida
+```
+- **Low duck by Kick**: Limpia sub para kick
+- **Mid duck by Snare**: Espacio para snare
+- **High duck by Vocal**: Claridad vocal
+
+## Tempo-Sync Keying (Keying Sincronizado Tempo)
+
+### Release Tempo-Synced:
+```
+Release_ms = 60000 / BPM × Beats
+```
+| Nota | Beats | Release @ 120 BPM |
+|------|-------|-------------------|
+| **1/4** | 1.0 | 500 ms |
+| **1/8** | 0.5 | 250 ms |
+| **1/16** | 0.25 | 125 ms |
+| **1/32** | 0.125 | 62.5 ms |
+
+### Implementación MSP:
+```
+[translate] → [tempo] → [/ 60000] → [*~ beats] → [line~] → [Release time]
+```
+
+## Patch de ejemplo: Creative Keying Workstation
+
+Incluye:
+1. **Key Input Router**:
+   - Audio Key (Ext / Ghost / MIDI)
+   - Ghost Generator: MIDI → click~ → envelope
+   - Tempo Sync: Transport → BPM → Release calc
+2. **Key Processor**:
+   - Crossover 4 bandas (Key)
+   - Sidechain EQ por banda (HPF/BPF/LPF)
+   - Gain Computer por banda (Threshold, Ratio, Att, Rel, Knee)
+   - Stereo Link por banda (0-100%)
+3. **Keying Modes**:
+   - Ducking (Radio)
+   - Pumping (EDM, tempo-sync)
+   - Ghost Sidechain (MIDI trigger)
+   - Frequency-Selective (EQ en key)
+   - Multiband Keying (4 bandas)
+   - Creative: Reverse Key, Rhythmic Gate, Freq-Duck
+4. **Envelope Shaper (Ghost)**:
+   - Shape: `function` drawable
+   - Attack/Hold/Decay/Release
+   - Velocity → Depth
+5. **MIDI Trigger**:
+   - Note selector
+   - Velocity → Depth
+   - Channel filter
+6. **Tempo Sync**:
+   - BPM from Transport
+   - Release = note values (1/4, 1/8, 1/16, dotted, triplet)
+   - Swing offset
+7. **Metering**:
+   - Key Input Level
+   - GR per banda
+   - Key Activity LED
+   - Tempo Sync indicator
+
+## Resumen
+
+- **Ducking** = Voz baja música (Attack rápido, Release medio)
+- **Pumping** = Ghost kick, tempo-sync release, ratio alto
+- **Ghost Sidechain** = Control total timing, señal "fantasma"
+- **Frequency-Selective** = EQ en key input (solo frecuencias clave)
+- **MIDI-Triggered** = Timing perfecto, envelope custom
+- **Multiband Keying** = Key independiente por banda (quirúrgico)
+- **Creative**: Reverse key (bloom), Rhythmic Gate, Freq-Duck
+- **Tempo-Sync** = Release = 60000/BPM × beats
+
+## Ver También
+
+- **omx.comp~** - Compresor con sidechain
+- **omx.gate~** - Gate rítmico
+- **function / line~** - Envelope generator
+- **click~ / sah~** - Ghost trigger sample-accurate
+- **translate / tempo** - Tempo sync
+- **crossover~** - Multiband keying

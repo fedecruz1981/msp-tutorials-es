@@ -1,0 +1,137 @@
+---
+title: "Tutorial 2: Panoramización estéreo"
+description: "Panoramización estéreo avanzada: width, mid-side processing, stereo imaging, correlation meter, mono compatibility."
+section: "panoramizacion"
+order: 38
+slug: "13-pan-02-estereo"
+originalUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter02/"
+---
+
+# Tutorial de Panoramización 2: Panoramización Estéreo
+
+Este tutorial cubre el **procesamiento estéreo avanzado**: control de **width (anchura)**, **mid-side processing**, **stereo imaging** y **compatibilidad mono**.
+
+## Mid-Side (M/S) Processing
+
+### Conversión L/R ↔ M/S:
+```
+Mid  = (L + R) / 2      (información central)
+Side = (L - R) / 2      (información lateral/estéreo)
+
+L = Mid + Side
+R = Mid - Side
+```
+
+### Ventajas M/S:
+- **Procesamiento independiente** de centro vs lados
+- **Width control** = Gain en Side
+- **EQ independiente** Mid vs Side
+- **Compresión M/S** = Glue mastering
+
+## Control de Width (Anchura)
+
+### Width básico:
+```
+Width = 0    → Mono (Solo Mid)
+Width = 1    → Estéreo original
+Width > 1    → Ensanchado (Side boost)
+Width \< 0    → Inversión fase (efecto especial)
+```
+
+### Implementación:
+```
+[L_in, R_in] → [M/S encode] → [*~ width] en Side → [M/S decode] → [L_out, R_out]
+```
+
+### Automatización Width:
+- **Por frecuencia**: Multiband width (bajo=mono, agudo=wide)
+- **Dinámico**: Sidechain de Side → reduce width en transientes
+- **Psicoacústico**: Haas effect (delay 1-30 ms en Side)
+
+## Stereo Imaging (Imagen Estéreo)
+
+### Herramientas de análisis:
+
+| Medidor | Qué muestra | Uso |
+|---------|-------------|-----|
+| **Correlation meter** | Correlación L/R (-1 a +1) | Fase, mono-compat |
+| **Goniometer** (Lissajous) | Visual L vs R | Imagen estéreo |
+| **Vectorscope** | Polar plot | Balance, fase |
+| **Mid/Side meters** | Niveles M vs S | Width real |
+
+### Correlation Meter:
+- **+1** = Mono perfecto (L=R)
+- **0** = No correlacionado (estéreo amplio)
+- **-1** = Fase invertida (L=-R)
+- **Target**: > 0 para mono-compatibilidad
+
+## Procesamiento M/S Avanzado
+
+### EQ Mid-Side:
+```
+Mid  → [EQ: bell/shelf] → Mid'
+Side → [EQ: high-shelf] → Side'
+       ↓ M/S decode
+```
+- **Mid**: Cortar graves (\<100 Hz) para mono
+- **Side**: Boost agudos (>8 kHz) para aire/anchura
+
+### Compresión M/S:
+```
+Mid  → [Compressor: glue] → Mid'
+Side → [Compressor: gentle] → Side'
+```
+- **Mid**: Ratio 2:1, slow attack (glue)
+- **Side**: Ratio 1.5:1, fast attack (control width)
+
+### Saturación M/S:
+```
+Side → [Soft clip/tube] → Armónicos en lados
+```
+- Añade "aire" sin ensuciar centro
+
+## Mono Compatibility (Compatibilidad Mono)
+
+### Verificación:
+```
+Mono = (L + R) / 2
+```
+- **Cancellation test**: Escuchar mono → ¿desaparece algo?
+- **Problemas típicos**: Reverb ancho, chorus, hard-panned synths
+
+### Corrección:
+1. **High-pass Side** (>100-200 Hz) → Bajos a mono
+2. **Width reduction** en graves
+3. **Phase alignment** (delay compensation)
+4. **Mono maker** plugin (reduce Side gain)
+
+## Patch de ejemplo: Mastering M/S Processor
+
+Incluye:
+1. **M/S Encode/Decode** (bidireccional)
+2. **Width control**: 0-200% (Mid-Side gain)
+3. **Correlation meter** (tiempo real + history)
+4. **Goniometer** (Lissajous XY scope)
+5. **EQ M/S**: 4 bandas por canal (Mid/Side)
+6. **Compresor M/S**: Controles independientes
+7. **Saturación Side**: Tube/tape emulation
+8. **Mono check**: Botón mono + medidor cancelación
+9. **Presets**: Mono, Stereo, Wide, Club, Streaming
+
+## Resumen
+
+- **M/S = Mid + Side** = Centro + Lados
+- **Width** = Gain en Side (0=mono, 1=original, >1=wide)
+- **EQ/Comp M/S** = Procesamiento independiente centro/lados
+- **Correlation meter** = Verifica mono-compatibilidad (+1 a -1)
+- **Goniometer** = Visualización XY de imagen estéreo
+- **Mastering M/S** = Estándar profesional para control estéreo
+
+## Ver También
+
+- **matrix~** - M/S encode/decode
+- **vectorscope~** - Goniometer (externo)
+- **correlation~** - Correlation meter (externo)
+- **midside~** - M/S utils (externo)
+

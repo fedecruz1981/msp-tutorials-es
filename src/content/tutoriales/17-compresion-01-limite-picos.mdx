@@ -1,0 +1,155 @@
+---
+title: "Tutorial 1: Limitación de picos"
+description: "Peak Limiting: limitador brickwall, lookahead, true peak, ISP, ISP correction, streaming standards, mastering limiter chain."
+section: "compresion"
+order: 54
+slug: "17-compresion-01-limite-picos"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_01/"
+---
+
+# Tutorial de Compresión 1: Limitación de Picos (Peak Limiting)
+
+El **limitador de picos (peak limiter)** es un compresor con **ratio ∞:1** y **attack ultra-rápido** que impide que la señal supere un **techo (ceiling)**. Esencial para mastering, broadcasting y protección de altavoces.
+
+## Limitador vs Compresor
+
+| Parámetro | Compresor | Limitador |
+|-----------|-----------|-----------|
+| **Ratio** | 1.5:1 - 10:1 | ∞:1 (brickwall) |
+| **Attack** | 1-50 ms | 0-1 ms (lookahead) |
+| **Release** | 50-3000 ms | 10-500 ms |
+| **Knee** | Variable | Hard (0 dB) |
+| **Uso** | Control dinámico | Techo absoluto |
+
+## Brickwall Limiting (Muro de ladrillos)
+
+### Principio:
+```
+Salida = min(Entrada, Ceiling)
+```
+- **Ninguna muestra** supera el ceiling
+- **Ceiling típico**: -0.3 a -1 dBFS (headroom para true peak)
+
+### Implementación MSP:
+```
+[Señal] → [omx.lim~ ceiling -0.5] → Salida
+```
+- **omx.lim~** = Limitador optimizado (brickwall)
+- **Ceiling** = Nivel máximo salida (dBFS)
+
+## Lookahead (Anticipación)
+
+### Problema:
+Attack = 0 ms → **Distorsión** (cambio instantáneo ganancia)
+Attack > 0 ms → **Overshoot** (pico escapa antes de comprimir)
+
+### Solución: Lookahead
+```
+[Señal] → [Delay N ms] → [Limitador] → Salida
+              ↓
+        [Detector anticipado] → Gain Computer
+```
+- **Detector** ve señal **N ms antes** que limitador
+- **N típico**: 1-5 ms (1-2 ms suficiente para brickwall)
+
+### En MSP:
+- **omx.lim~** = Lookahead interno (1-2 ms)
+- **Manual**: `[tapin~ 5]` → `[tapout~]` en detector
+
+## True Peak vs Sample Peak
+
+### Sample Peak:
+- **Máximo valor** de muestra discreta
+- **Puede subestimar** picos reales (inter-sample)
+
+### True Peak (Inter-Sample Peak):
+- **Pico real** de onda analógica reconstruida
+- **Puede ser +1 a +3 dB** sobre sample peak
+- **Crítico** para: Streaming, broadcast, vinilo
+
+### Corrección True Peak (ISP Correction):
+1. **Oversampling** (4x-8x) → Detecta picos inter-sample
+2. **Ceiling reducido**: -1 dBFS (sample peak) ≈ -0.5 dBTP
+3. **Estándares**: -1 dBTP (streaming), -2 dBTP (broadcast)
+
+### En MSP:
+- **omx.lim~** = Oversampling interno (opcional)
+- **Ceiling recomendado**: -1 dBFS para -1 dBTP seguro
+
+## Latencia y Compensación
+
+### Latencia del limitador:
+- **Lookahead** = 1-5 ms latencia
+- **Oversampling** = Latencia adicional
+- **Total típico**: 2-10 ms
+
+### Compensación en cadena mastering:
+```
+[EQ] → [Compresor] → [Limitador] → [Delay compensación]
+                              ↓
+                    Latencia total = Σ latencias
+```
+
+## Cadena de Limitador para Mastering
+
+### Estructura típica:
+```
+[Entrada] → [Clipper suave] → [Limitador 1: Lookahead 2ms] → [Limitador 2: True Peak] → Salida
+```
+
+### Clipper suave (Pre-limiter):
+- **Recorta picos extremos** suavemente (tanh)
+- **Reduce trabajo** del limitador
+- **Menos distorsión** intermodulación
+
+### Limitador 1 (Control principal):
+- **Ceiling**: -0.3 dBFS
+- **Lookahead**: 2 ms
+- **Release**: Auto / 50-100 ms
+
+### Limitador 2 (True Peak Guard):
+- **Ceiling**: -1 dBFS
+- **Oversampling**: 4x-8x
+- **ISP Correction**: On
+
+## Patch de ejemplo: Mastering Limiter Chain Pro
+
+Incluye:
+1. **Input Meter**: True Peak + Sample Peak + LUFS
+2. **Soft Clipper** (Pre-limiter):
+   - Drive: 0-6 dB
+   - Shape: tanh / atan / cubic
+   - Mix: 0-100%
+2. **Primary Limiter** (omx.lim~):
+   - Ceiling: -0.1 a -3 dBFS
+   - Lookahead: 1-5 ms
+   - Release: Auto / Manual (10-500 ms)
+   - Release Curve: Lin / Log / Prog
+   - Stereo Link: 0-100%
+3. **True Peak Limiter** (omx.lim~ oversample):
+   - Ceiling: -1 dBFS (fixed)
+   - Oversampling: 4x / 8x
+   - ISP Correction: On/Off
+   - Release: 50 ms fixed
+4. **Dither / Noise Shaping** (Salida):
+   - 16/24 bit, TPDF / Noise Shaped
+4. **Meters**: True Peak, Sample Peak, LUFS-I/M/S, Gain Reduction
+5. **Standards Presets**: Streaming (-14 LUFS, -1 dBTP), CD (-9 LUFS, -0.3 dBTP), Broadcast (-23 LUFS, -2 dBTP)
+
+## Resumen
+
+- **Limitador** = Ratio ∞:1, attack ultra-rápido, brickwall
+- **Lookahead** = Esencial (1-5 ms) para cero overshoot
+- **True Peak** = Pico real analógico, crítico para streaming
+- **Ceiling** = -0.3 a -1 dBFS según estándar
+- **Cadena**: Clipper → Limiter → True Peak Limiter → Dither
+- **MSP**: omx.lim~ (lookahead, oversampling, ISP correction)
+
+## Ver También
+
+- **omx.lim~** - Limitador optimizado (lookahead, oversample)
+- **omx.comp~** - Compresor (ratio alto = limitador)
+- **limiter~** - Limitador clásico
+- **tapin~ / tapout~** - Lookahead manual
+- **dither~** - Dithering salida

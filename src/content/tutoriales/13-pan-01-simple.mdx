@@ -1,0 +1,142 @@
+---
+title: "Tutorial 1: Panoramización simple"
+description: "Panoramización básica: panning constante, *~ para gain, pan~ object, law (linear, equal power, square root), stereo placement."
+section: "panoramizacion"
+order: 37
+slug: "13-pan-01-simple"
+originalUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/13_panningchapter01/"
+---
+
+# Tutorial de Panoramización 1: Panoramización Simple
+
+La **panoramización (panning)** posiciona un sonido en el campo estéreo controlando el **balance de ganancia** entre canales izquierdo y derecho.
+
+## Leyes de Panning (Panning Laws)
+
+### 1. Linear (Lineal)
+```
+L = 1 - pan
+R = pan
+pan ∈ [0, 1]  (0=L, 0.5=centro, 1=R)
+```
+- **Problema**: Centro suena más fuerte (+3 dB)
+- **Uso**: Crossfades, no posicionamiento espacial
+
+### 2. Equal Power (Potencia igual) - Estándar
+```
+L = cos(pan × π/2)
+R = sin(pan × π/2)
+pan ∈ [0, 1]
+```
+- **Potencia total constante** (L² + R² = 1)
+- **Centro** = -3 dB cada canal (suma = 0 dB)
+- **Uso**: Posicionamiento espacial realista
+
+### 3. Square Root (Raíz cuadrada)
+```
+L = √(1 - pan)
+R = √pan
+```
+- Similar a equal power
+- **Computacionalmente más barato** (sin trig)
+
+### 4. -3 dB / -4.5 dB / -6 dB center
+- Compensación de acústica de sala
+- **-3 dB**: Estándar (equal power)
+- **-4.5 dB**: Cine (ITU-R BS.775)
+- **-6 dB**: Mono-compatibilidad máxima
+
+## Implementación en MSP
+
+### Con *~ (básico)
+```
+[señal] → [*~ L_gain] → L_out
+      ↘ [*~ R_gain] → R_out
+```
+- **L_gain, R_gain** = calculados por ley elegida
+
+### Con pan~ (objeto dedicado)
+```
+[señal] → [pan~ law] → L_out, R_out
+```
+- **Argumento/atributo `law`**: 0=linear, 1=equal power, 2=sqrt
+- **Entrada 2** = posición pan (-1 a 1, 0=centro)
+- **Salidas**: L, R
+
+### Con matrix~ (matriz de mezcla)
+```
+[señal] → [matrix~ 1 2] → L, R
+```
+- **Coeficientes** = gains L/R
+- **Ventaja**: Múltiples entradas/salidas, crossfades suaves
+
+## Panoramización Dinámica
+
+### LFO Pan (Auto-pan)
+```
+[cycle~ 0.5] → [scale -1 1 0 1] → [pan~]
+```
+- **Frecuencia** = velocidad pan (0.1-10 Hz)
+- **Profundidad** = scale range (ej. 0.2-0.8 = estrecho)
+
+### Envelope Pan
+```
+[function] → [line~] → [pan~]
+```
+- Movimiento programado (ej. fly-by, sweep)
+
+### MIDI Pan (CC10)
+```
+[ctlin 10] → [scale 0 127 -1 1] → [pan~]
+```
+- Estándar GM: CC10 = Pan
+
+## Patch de ejemplo: Panner estéreo completo
+
+Incluye:
+1. **Entrada mono/estéreo** (selector)
+2. **Selector ley**: Linear / Equal Power / Sqrt / -3dB / -4.5dB / -6dB
+3. **Posición pan**: Slider -1 a 1 (0=centro)
+4. **Modulación**:
+   - LFO (rate, depth, shape)
+   - Envelope (ADSR, trigger)
+   - MIDI CC10
+5. **Visualización**: VU meters L/R + posición gráfica
+6. **Mono compat check**: Suma L+R (fase)
+7. **Width control** (para entrada estéreo): 0=mono, 1=estéreo, >1=mid-side widen
+
+## Panoramización Estéreo (Width/Spread)
+
+Para entrada **estéreo** (L_in, R_in):
+
+### Balance (simple):
+```
+L_out = L_in × (1 - bal) + R_in × bal
+R_out = R_in × (1 - bal) + L_in × bal
+```
+
+### Width (Mid-Side):
+```
+Mid = (L + R) / 2
+Side = (L - R) / 2
+L_out = Mid + Side × width
+R_out = Mid - Side × width
+width = 0 (mono) ... 1 (estéreo) ... >1 (widen)
+```
+
+## Resumen
+
+- **Ley Equal Power** = Estándar para posicionamiento (cos/sin o sqrt)
+- **pan~** = Objeto dedicado con leyes integradas
+- **Leyes de centro** (-3/-4.5/-6 dB) = Compatibilidad mono/sala
+- **Dinámico** = LFO, envelope, MIDI CC10
+- **Estéreo width** = Mid-Side processing
+- **Ley linear** = Solo para crossfades, no posicionamiento
+
+## Ver También
+
+- **pan~** - Panner con leyes integradas
+- **matrix~** - Matriz de mezcla
+- **scale** - Escalado MIDI/control
+- **cycle~** / **line~** - Modulación

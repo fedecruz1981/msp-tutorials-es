@@ -1,0 +1,251 @@
+---
+title: "Tutorial 10: Control de Realimentación"
+description: "Feedback Control / Anti-Feedback: notch filtering automático, adaptive feedback suppression, frequency shifting, parametric notch banks, live sound, monitor control."
+section: "compresion"
+order: 63
+slug: "17-compresion-10-control-realimentacion"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_10/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_10/"
+---
+
+# Tutorial de Compresión 10: Control de Realimentación (Feedback Control / Anti-Feedback)
+
+El **control de realimentación (feedback control)** o **anti-feedback** usa técnicas de compresión/filtraje adaptativo para **eliminar aullidos (howling)** en sistemas de refuerzo sonoro en vivo, monitores de escenario y sistemas PA.
+
+## El Problema del Feedback
+
+### Mecanismo:
+```
+[Micrófono] → [PA System] → [Altavoz] → [Aire] → [Micrófono] → (Bucle)
+```
+
+### Condición de oscilación:
+- **Ganancia de bucle ≥ 1** (0 dB)
+- **Fase total = 0°** (o múltiplo 360°)
+- **Frecuencia** = Donde ganancia y fase coinciden
+
+### Resultado:
+- **Aullido (Howling)**: Tono puro en frecuencia resonante
+- **Ringing**: Decay lento post-señal (pre-feedback)
+- **Frecuencias típicas**: 1-4 kHz (formantes voz), 80-200 Hz (resonancia sala)
+
+## Enfoques Anti-Feedback
+
+### 1. Notch Filtering Automático (Auto-Notching)
+
+#### Principio:
+**Detecta frecuencia feedback** → **Inserta notch filter** en esa frecuencia.
+
+#### Algoritmo:
+```
+[Señal] → [Análisis Espectral] → [Detección Pico Sostenido] → 
+  [Freq Detectada] → [Notch Filter] → [Señal Procesada]
+```
+
+#### Detección:
+- **Pico espectral** que **persiste** > threshold tiempo (ej. 500ms)
+- **Ganancia** > nivel referencia (ej. +6 dB sobre promedio)
+- **Q alto** = Estrecho (feedback tonal)
+
+#### Implementación MSP:
+```
+[Señal] → [fft~ / pfft~] → [Peak Detect: peakamp~ peakfreq~] → 
+  [Threshold + Persistence Check] → 
+  [Notch Filter Bank: biquad~ notch] → [Salida]
+```
+
+### 2. Frequency Shifting (Desplazamiento Frecuencial)
+
+#### Principio:
+**Desplaza ligeramente** toda la señal (ej. ±5 Hz) → **Rompe coherencia fase** en bucle.
+
+#### Efecto:
+- **Rompe condición fase = 0°** en frecuencias feedback
+- **Permite +6 a +12 dB** más ganancia antes feedback
+- **Efecto secundario**: Ligero "chorus" / desafinación (inaudible \< 10 Hz)
+
+#### Implementación:
+```
+[Señal] → [Frequency Shifter: hilbert~ / fshift~] → [Salida]
+Shift = ±5 Hz (configurable)
+```
+
+#### En MSP:
+- **fshift~** (externo, Ircam) o **hilbert~ + freqshift~** custom
+- **Shift adaptativo**: Aumenta si detecta feedback inminente
+
+### 3. Parametric Notch Banks (Bancos de Notches Paramétricos)
+
+#### Configuración Proactiva:
+```
+[Señal] → [Notch 1] → [Notch 2] → [Notch 3] → ... → [Salida]
+   Freq 1    Freq 2    Freq 3
+   Q 30      Q 30      Q 30
+   Gain -∞   Gain -∞   Gain -∞
+```
+
+#### Frecuencias Problemáticas Comunes (Sala típica):
+| Frecuencia | Causa |
+|------------|-------|
+| **60-80 Hz** | Resonancia sala, HVAC |
+| **120-150 Hz** | Resonancia caja, piso |
+| **250-350 Hz** | Mud, resonancia media |
+| **500-800 Hz** | Nasal, resonancia caja |
+| **1-2 kHz** | Formantes voz, presencia |
+| **2.5-4 kHz** | Feedback clásico, sibilancia |
+| **5-8 kHz** | Sibilancia, brillo excesivo |
+
+#### Auto-Notching + Notch Bank Híbrido:
+- **Notches fijos** (profilácticos) en frecuencias conocidas
+- **Auto-notches** (reactivos) para frecuencias imprevistas
+
+### 4. Adaptive Feedback Suppression (Supresión Adaptativa)
+
+#### Algoritmo LMS/RLS (Least Mean Squares):
+```
+[Mic] → [Adaptive Filter] → [Estimación Feedback] → [Resta] → [Salida]
+                    ↑
+               [Referencia: PA Out]
+```
+
+#### Principio:
+- **Filtro adaptativo** modela **ruta acústica** Mic→Altavoz→Mic
+- **Resta estimación** de feedback de señal micrófono
+- **Convergencia**: Continua (tracking cambios sala)
+
+#### Ventajas:
+- **Elimina feedback** sin notches audibles
+- **Preserva tono** natural
+- **Tracking** cambios (gente moviéndose, temp/humedad)
+
+#### En MSP:
+- **lms~ / rls~** (externos, Ircam, ICST)
+- **Orden filtro**: 64-256 taps
+- **Step size (μ)**: 0.001-0.01 (estabilidad vs velocidad)
+
+## Aplicaciones por Contexto
+
+### 1. Monitores de Escena (Stage Monitors / Wedges):
+- **Problema**: Micrófono vocal → Wedge → Micrófono
+- **Solución**: Notch bank 6-12 notches + Auto-notch 2-4
+- **Gain antes feedback**: +12-18 dB típico
+
+### 2. Sistema Principal (FOH - Front of House):
+- **Problema**: Micrófonos → PA Principal → Sala → Micrófonos
+- **Solución**: Frequency Shifter (±5 Hz) + Notch Bank 8-12
+- **Gain antes feedback**: +15-20 dB
+
+### 3. Sistemas In-Ear / Auriculares:
+- **Problema**: Micrófono → IEM → Fuga acústica → Micrófono
+- **Solución**: Frequency Shifter (±3 Hz) + Limitador pico
+
+### 4. Conferencias / Instalaciones Fijas:
+- **Problema**: Múltiples micrófonos abiertos
+- **Solución**: Auto-mixer + Feedback Suppression adaptativo
+- **Auto-mixer**: Gates + Gain sharing (Dugan, etc.)
+
+## Implementación MSP: Sistema Anti-Feedback Completo
+
+### Arquitectura Modular:
+```
+[Entrada Mic] → [Pre-Gain] → 
+  [Frequency Shifter: ±5Hz] → 
+  [Notch Bank Proactivo: 12 notches] → 
+  [Auto-Notch Reactivo: 4 notches] → 
+  [Adaptive Filter (LMS): Opcional] → 
+  [Limitador Pico: -6 dBFS] → [Salida]
+```
+
+### Módulo 1: Frequency Shifter
+```
+[Señal] → [fshift~ ±5Hz] → [Salida]
+Control: Shift Amount (0-10 Hz), Modulation (LFO 0.1Hz)
+```
+
+### Módulo 2: Proactive Notch Bank (12 notches fijos)
+```
+[Señal] → [matrix~ 1 12] → 12× [biquad~ notch] → [matrix~ 12 1] → [Salida]
+Freqs: [65, 85, 125, 160, 250, 350, 500, 700, 1000, 2000, 3500, 6000] Hz
+Q: 30 (todos), Gain: -60 dB (notch profundo)
+```
+
+### Módulo 3: Reactive Auto-Notch (4 notches adaptativos)
+```
+[Señal] → [pfft~ spectral_analysis 2048] → 
+  [Peak Detect: peakamp~ + peakfreq~ + persistence] →
+  [4× Notch Generator: freq detectada → biquad~ notch] →
+  [Salida]
+Persistence: 500 ms, Threshold: +6 dB sobre media
+```
+
+### Módulo 4: Adaptive Filter (LMS) - Opcional
+```
+[Mic In] → [lms~ 128 taps μ=0.005] → [Estimación Feedback] → [-~] → [Salida]
+           ↑                                              ↓
+        [PA Out] ------------------------------------------┘
+Reference: PA Output (post-processing)
+Step size μ: 0.001 (estable) a 0.01 (rápido)
+```
+
+## Patch de ejemplo: Live Feedback Controller Pro
+
+Incluye:
+1. **Input Section**:
+   - Mic Gain (+48V phantom toggle)
+   - HPF 80 Hz (elimina rumble)
+   - Phase Invert (fix polarity)
+2. **Frequency Shifter**:
+   - Shift: -10 a +10 Hz (slider)
+   - Modulation: LFO 0.05-0.5 Hz, Depth 0-2 Hz
+   - Bypass toggle
+3. **Proactive Notch Bank (12 notches)**:
+   - Freq/Q/Gain por notch (editable)
+   - Presets: Sala pequeña/mediana/grande, Exterior, Wedges
+   - Learn Mode: Auto-detect room modes (noise burst + FFT)
+4. **Reactive Auto-Notch (4 notches)**:
+   - Sensitivity: Threshold +6 a +18 dB
+   - Persistence: 200-2000 ms
+   - Max Notch Depth: -30 a -80 dB
+   - Q: 20-100 (ajustable)
+   - Hold Time: 1-30 seg (antes liberar notch)
+5. **Adaptive Filter (LMS)**:
+   - Enable/Disable
+   - Filter Length: 64-512 taps
+   - Step Size (μ): 0.001-0.01
+   - Leakage Factor: 0-0.001
+   - Convergence Meter
+5. **Safety Net**:
+   - Peak Limiter: Ceiling -3 dBFS, Lookahead 2ms
+   - RMS Limiter: Threshold -6 dBFS, Ratio 10:1
+   - DC Block (HPF 10 Hz)
+   - Kill Switch (Mute instant)
+6. **Monitoring & Analysis**:
+   - Real-time Spectrum (fft~ + spectroscope~)
+   - Feedback Risk Meter (0-100%)
+   - Active Notches Display (freq, depth, Q)
+   - Gain Before Feedback Estimate (dB)
+   - Frequency Shifter Status
+   - Adaptive Filter Convergence
+6. **Presets**: Wedges, Sidefills, FOH, In-Ear, Conference, Instalación
+7. **MIDI/OSC Control**: Todos params remotables
+
+## Resumen
+
+- **Feedback** = Ganancia bucle ≥ 1 + Fase 0°
+- **Frequency Shifting** (±5 Hz) = +6-12 dB gain antes feedback
+- **Notch Bank Proactivo** = 8-12 notches en frecs conocidas
+- **Auto-Notch Reactivo** = Detecta + Inserta notch (persistencia 500ms)
+- **Adaptive Filter (LMS)** = Modela ruta acústica, resta feedback
+- **Frequency Shifting + Notches** = Combinación óptima
+- **Contextos**: Wedges (+12dB), FOH (+18dB), IEM (+10dB), Instalaciones
+- **Safety Net** = Limiter + DC Block + Kill Switch obligatorio
+
+## Ver También
+
+- **fshift~ / hilbert~** - Frequency shifting
+- **biquad~** - Notch filters
+- **pfft~ / peakamp~ / peakfreq~** - Spectral analysis
+- **lms~ / rls~** - Adaptive filters (externos)
+- **omx.lim~** - Safety limiter
+- **fft~ / ifft~** - Spectral processing
+

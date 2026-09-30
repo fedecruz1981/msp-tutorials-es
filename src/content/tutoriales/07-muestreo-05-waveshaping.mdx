@@ -1,0 +1,92 @@
+---
+title: "Tutorial 5: Waveshaping"
+description: "Síntesis por waveshaping: funciones de transferencia, distorsión armónica, lookup tables, chebyshev polynomials."
+section: "muestreo-grabacion"
+order: 19
+slug: "07-muestreo-05-waveshaping"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter05/"
+---
+
+# Tutorial de Muestreo 5: Waveshaping
+
+El **waveshaping** (formado de onda) es una técnica de síntesis donde una señal de entrada (usualmente una onda seno) pasa a través de una **función de transferencia** no lineal para generar nuevos armónicos.
+
+## Principio básico
+
+```
+salida = f(entrada)
+```
+
+Donde **f(x)** es la **función de transferencia** (lookup table).
+
+Si la entrada es una onda seno `sen(ωt)` y f(x) = x³, la salida contiene armónicos impares.
+
+## Polinomios de Chebyshev
+
+Los **polinomios de Chebyshev** generan armónicos específicos de forma controlada:
+
+- **T₀(x) = 1** → DC
+- **T₁(x) = x** → Fundamental
+- **T₂(x) = 2x² - 1** → 2º armónico
+- **T₃(x) = 4x³ - 3x** → 3º armónico
+- **Tₙ(x) = 2x·Tₙ₋₁(x) - Tₙ₋₂(x)**
+
+Combinando polinomios con pesos, se diseña cualquier espectro armónico.
+
+## Implementación en MSP
+
+### Método 1: buffer~ + index~
+1. Calcular función de transferencia en **buffer~**
+2. Usar **index~** para lookup (sin interpolación = más brillo)
+
+### Método 2: expr~ / expr
+- Evaluar polinomio directamente: `expr~ $f1*$f1*$f1` (x³)
+
+### Método 3: waveshaping~ (externo)
+- Objeto optimizado para waveshaping
+
+## Control del índice (Drive)
+
+El **índice de waveshaping** (gain de entrada) controla la **brillantez**:
+- **Índice bajo** → Pocos armónicos (suave)
+- **Índice alto** → Muchos armónicos (brillante/duro)
+- **Dinámico** → Envolvente en el índice = timbre evolutivo
+
+## Aliasing
+
+El waveshaping genera armónicos que pueden exceder **Nyquist** → **aliasing**.
+Soluciones:
+- **Sobremuestreo** (2x, 4x, 8x) + filtro anti-aliasing
+- **Band-limiting** de la función de transferencia
+- **Frecuencia fundamental baja** para dejar espacio a armónicos
+
+## Patch de ejemplo
+
+Incluye:
+1. Generador de polinomios de Chebyshev en **buffer~**
+2. Control de pesos de armónicos (sliders)
+3. **index~** para waveshaping
+4. Control de índice (drive) con envolvente
+5. Opción de sobremuestreo 4x
+
+## Aplicaciones
+
+- **Distorsión de guitarra**: Polinomios impares (x³, x⁵) + drive dinámico
+- **Síntesis de órgano**: Chebyshev para armónicos específicos
+- **FM simulado**: Waveshaping de fase
+- **Resonadores no lineales**: Funciones con resonancia
+
+## Resumen
+
+- **Waveshaping** = Función de transferencia no lineal
+- **Chebyshev** = Control preciso de armónicos individuales
+- **Índice/Drive** = Control de brillo (como FM)
+- **Aliasing** = Problema principal → sobremuestreo
+- **buffer~ + index~** = Implementación flexible en MSP
+
+## Ver También
+
+- **buffer~** - Tabla de transferencia
+- **index~** - Lookup sin interpolación
+- **expr~** - Evaluación de expresiones

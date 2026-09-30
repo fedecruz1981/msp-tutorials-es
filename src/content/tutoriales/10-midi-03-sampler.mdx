@@ -1,0 +1,144 @@
+---
+title: "Tutorial 3: Sampler MIDI"
+description: "Sampler controlado por MIDI: groove~ en poly~, mapeo de teclado, zonas de velocidad, capas, loop points, pitch tracking."
+section: "midi-msp"
+order: 32
+slug: "10-midi-03-sampler"
+originalUrl: "https://docs.cycling74.com/learn/articles/10_midichapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/10_midichapter03/"
+---
+
+# Tutorial MIDI 3: Sampler MIDI
+
+Este tutorial construye un **sampler polifónico** controlado por MIDI usando **groove~** dentro de **poly~**, con mapeo de teclado, capas de velocity y pitch tracking.
+
+## groove~ en poly~
+
+Cada voz del sampler usa **groove~** para reproducción de muestras:
+
+```
+[notein] → [poly~ sampler_voice 32] → Salida
+```
+
+### Ventajas de groove~ para sampling:
+- **Pitch tracking** automático (speed = 2^((note-root)/12))
+- **Loop points** configurables
+- **Múltiples salidas** (L/R, o más para round-robin)
+- **Control por señal** para modulación
+
+## Mapeo de teclado (Key Mapping)
+
+### Zonas (Splits):
+```
+Teclas 0-35  → Muestra A (Bajo)
+Teclas 36-60 → Muestra B (Medio)
+Teclas 61-127 → Muestra C (Agudo)
+```
+
+### Implementación:
+- **split** o **route** por rango de notas
+- Diferentes **buffer~** por zona
+- **Crossfade** en bordes (opcional)
+
+## Capas de Velocity (Velocity Layers)
+
+Múltiples muestras por nota, seleccionadas por velocity:
+
+```
+Velocity 1-40  → Capa 1 (Suave)
+Velocity 41-80 → Capa 2 (Media)
+Velocity 81-127 → Capa 3 (Fuerte)
+```
+
+### Implementación en voz:
+- **route** o **split** por velocity
+- Diferentes **buffer~** por capa
+- **Crossfade** entre capas adyacentes (suaviza transiciones)
+
+## Round Robin (Alternancia)
+
+Para realismo: múltiples grabaciones de la misma nota/velocity:
+```
+Golpe 1 → Muestra A1
+Golpe 2 → Muestra A2
+Golpe 3 → Muestra A3
+Golpe 4 → Muestra A1 (ciclo)
+```
+
+### Implementación:
+- **counter** por nota/velocity
+- **gate** o **selector~** para elegir muestra
+- **Reset** en note-off o tiempo
+
+## Pitch Tracking
+
+**groove~** ajusta **speed** según nota MIDI:
+
+```
+speed = 2 ^ ((note - root_note) / 12)
+```
+
+- **root_note**: Nota original de la muestra (ej. 60 = C3)
+- **note**: Nota MIDI entrante
+- **Resultado**: speed = 1.0 en root_note, 2.0 una octava arriba, 0.5 una octava abajo
+
+### Fine tuning:
+- **Detune** (centésimas): `speed × 2^(detune/1200)`
+- **Pitch bend**: Aplicado multiplicativamente al speed
+
+## Estructura de sampler_voice
+
+Entradas:
+1. Note (pitch)
+2. Velocity
+3. Gate
+
+Procesamiento:
+```
+Note → [Pitch tracking] → groove~ speed
+Velocity → [Scale + Curve] → Amplitud → [\*~] salida groove~
+Gate → [ADSR] → [\*~] VCA
+```
+
+Salidas: Audio L, Audio R (via out~ 1, out~ 2)
+
+## Patch de ejemplo: Sampler GM básico (128 programas)
+
+Incluye:
+1. **buffer~** bank: 128 muestras (GM drum kit + instrumentos)
+2. **poly~ sampler_voice 64** (64 voces para bateria + pads)
+3. **Key zones**: Splits automáticos por rango
+4. **Velocity layers**: 3 capas por zona (pp, mf, ff)
+5. **Round robin**: 4 alternancias per hit
+6. **Pitch tracking**: Root note por muestra almacenado en **coll**
+7. **Controles MIDI**: CC7 vol, CC10 pan, CC71 resonance, CC74 cutoff
+8. **Efectos send**: Reverb, delay por voz
+
+## Formatos de mapeo (SFZ, EXS, NKI)
+
+Para cargar librerías existentes:
+- **SFZ**: Texto plano, zonas + opcodes
+- **EXS24**: Logic Pro (binario + muestras)
+- **NKI**: Kontakt (propietario)
+
+### Parser SFZ básico en Max:
+- **text** + **route** para leer opcodes
+- **coll** para almacenar mapeo nota→archivo
+- **buffer~** carga dinámica vía **replace**
+
+## Resumen
+
+- **groove~ + poly~** = Sampler polifónico eficiente
+- **Key zones** = Diferentes muestras por región teclado
+- **Velocity layers** = Expresión dinámica realista
+- **Round robin** = Evita "machine gun effect"
+- **Pitch tracking** = speed = 2^((note-root)/12)
+- **SFZ/EXS** = Formatos estándar para librerías
+
+## Ver También
+
+- **groove~** - Reproductor multi-voz con pitch tracking
+- **poly~** - Polifonía
+- **buffer~** - Almacenamiento muestras
+- **coll** - Mapeo nota→archivo
+- **selector~** / **gate~** - Selección de capas

@@ -1,0 +1,45 @@
+---
+import { BASE } from '../../../lib/urls.mjs';
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+
+const section = 'midi-msp';
+const sectionTitle = 'MIDI y MSP';
+const sectionDescription = 'Mapeo de controladores MIDI, sintetizadores y samplers MIDI.';
+
+const tutorials = (await getCollection('tutorials')).filter(t => t.data.section === section).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Layout title={`${sectionTitle} | MSP Tutorials ES`} description={sectionDescription}>
+  <slot name="sidebar">
+    <Sidebar currentSlug={section} />
+  </slot>
+
+  <header class="section-header">
+    <h1>{sectionTitle}</h1>
+    <p>{sectionDescription}</p>
+  </header>
+
+  <nav class="chapter-list" aria-label="Capítulos de esta sección">
+    {tutorials.map(tutorial => (
+      <a href={`${BASE}/tutoriales/${tutorial.slug}/`} class="chapter-card">
+        <span class="chapter-number">Cap. {tutorial.data.order}</span>
+        <h3>{tutorial.data.title}</h3>
+        <p>{tutorial.data.description}</p>
+      </a>
+    ))}
+  </nav>
+
+<style>
+  .section-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
+  .section-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .section-header p { color: var(--color-text-muted); }
+  .chapter-list { display: flex; flex-direction: column; gap: 1rem; }
+  .chapter-card { display: flex; align-items: flex-start; gap: 1.5rem; background: var(--color-bg-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; text-decoration: none; color: var(--color-text); transition: all var(--transition); }
+  .chapter-card:hover { border-color: var(--color-primary); transform: translateX(4px); box-shadow: var(--shadow-md); text-decoration: none; }
+  .chapter-number { font-size: 0.75rem; font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; margin-top: 0.25rem; }
+  .chapter-card h3 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem; }
+  .chapter-card p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; line-height: 1.6; }
+</style>
+</Layout>

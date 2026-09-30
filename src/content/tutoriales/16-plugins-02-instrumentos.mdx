@@ -1,0 +1,149 @@
+---
+title: "Tutorial 2: Instrumentos"
+description: "Plug-ins de instrumentos VSTi/AUi: vst~ con MIDI, notein, poly~ para polifonía, multi-timbral, output routing, parameter automation."
+section: "plugins"
+order: 51
+slug: "16-plugins-02-instrumentos"
+originalUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter02/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter02/"
+---
+
+# Tutorial de Plug-ins 2: Instrumentos (VSTi/AUi)
+
+Los **plug-ins de instrumentos (VSTi, AUi)** generan sonido desde **MIDI**. En MSP se alojan en **vst~** / **plug~** con manejo especial de **MIDI**, **polifonía** y **routing de salidas**.
+
+## vst~ para Instrumentos (VSTi/AUi)
+
+### Diferencia con efectos:
+- **Entrada MIDI** (no audio) → Genera audio
+- **Salidas**: Estéreo o multi-salida (multi-out)
+- **Parámetros**: Incluyen controles de síntesis (osc, filter, env, etc.)
+
+### Carga:
+```
+[vst~ nombre_instrumento]
+```
+- Mismo objeto `vst~`, detecta tipo automáticamente
+- **Entradas**: MIDI (izquierda) + Audio sidechain (opcional)
+- **Salidas**: Audio out (pares) + params
+
+## Entrada MIDI a vst~
+
+### MIDI directo:
+```
+[notein] → [vst~]
+[ctlin] → [vst~]
+[bendin] → [vst~]
+```
+- **Conexión directa**: Objetos MIDI → inlet izquierdo vst~
+- **Canal MIDI**: Atributo `midichan` (default: omni)
+
+### MIDI desde poly~ (Polifonía):
+```
+[poly~ synth_voice 16]  ← cada voz tiene su vst~
+```
+- **Ver Tutorial 11** (poly~)
+- **Cada voz** = instancia vst~ independiente
+- **Note stealing** = poly~ gestiona
+
+## Salidas Múltiples (Multi-Output)
+
+### Plugins Multi-Timbral / Multi-Out:
+```
+[vst~ 8]  ← Argumento = número salidas (pares)
+```
+- **Salidas**: Out 1-2 (main), 3-4 (out 2), 5-6 (out 3), etc.
+- **Routing interno**: Plugin asigna partes a salidas
+
+### Routing en MSP:
+```
+[vst~ 8] → [out~ 1] [out~ 2] ... [out~ 8]
+  → [matrix~ 8 8] → Routing a mezclar, enviar, grabar
+```
+
+## Polifonía con poly~ + vst~
+
+### Arquitectura recomendada:
+```
+[notein] → [midiparse] → [poly~ instrument_voice 32]
+```
+
+### instrument_voice (subpatch):
+```
+[in 1] → [midiformat] → [vst~ instrument]
+[in 2] → [velocity] → [scale 0 127 0 1] → [vst~ param Vel]
+[out~ 1] [out~ 2] → Audio L/R
+```
+
+### Voice Stealing Inteligente:
+- **poly~** roba voz más antigua en release
+- **Sustain pedal** (CC64) → poly~ no roba voces sostenidas
+- **Priority**: `poly~` args `steal 1` `thief 1`
+
+## Automatización de Parámetros de Instrumento
+
+### Control por señal (Sample-accurate):
+```
+[line~] → [prepend set N] → [vst~]
+```
+- **Envelope → Filter Cutoff**: `line~` → `set FilterCutoff`
+- **LFO → Pitch**: `cycle~` → `scale` → `set Pitch`
+
+### MIDI CC → Parámetros:
+```
+[ctlin 74] → [scale 0 127 0 1] → [prepend set Cutoff] → [vst~]
+```
+- **Learn**: Click param en UI → Move MIDI controller
+
+### MPE (Polyphonic Expression):
+- **Per-note**: Pitch bend, Slide (CC74), Pressure
+- **vst~** pasa MPE a plugin si soporta
+- **poly~** + MPE = Expresión por voz real
+
+## Patch de ejemplo: Multi-Instrument Rack
+
+Incluye:
+1. **8 Slots de instrumentos** (vst~ con multi-out support)
+2. **Por slot**:
+   - Instrument selector (VSTi/AUi browser)
+   - MIDI Channel (1-16, Omni)
+   - Key Range (Low/High note split/layer)
+   - Vel Range (Velocity split/layer)
+   - Transpose (±36 semitonos)
+   - Output Routing (matrix~ 16×16)
+   - Volume / Pan / Mute / Solo
+3. **Keyboard Splits / Layers**:
+   - Zona 1: Piano (C-2 a C3)
+   - Zona 2: Strings (C3 a G5)
+   - Zona 3: Lead (G5+)
+   - Crossfade en bordes
+4. **MIDI Processing**:
+   - Arpeggiador por slot
+   - Chord generator
+   - Velocity curves (5 curvas)
+   - Humanize (timing + velocity)
+5. **Multi-Output Mixer** (16 ch):
+   - Per-slot: Volume, Pan, Mute, Solo
+   - Sends: Reverb, Delay, Chorus
+   - Insert FX por slot (vst~ effects chain)
+6. **Preset Manager**:
+   - Multi snapshots (pattrstorage)
+   - Morph entre setups
+   - Export/Import .json
+
+## Resumen
+
+- **vst~** = Host para VSTi/AUi (mismo que efectos)
+- **MIDI directo** = notein/ctlin/bendin → vst~
+- **Polifonía** = poly~ con vst~ por voz (32+ voces)
+- **Multi-out** = vst~ N (N pares salidas) + matrix~ routing
+- **MPE** = Expresión polifónica nativa
+- **Automatización** = line~/signal → set param, MIDI CC learn
+
+## Ver También
+
+- **vst~ / plug~** - Host VSTi/AUi/VST3
+- **poly~** - Polifonía (ver Tutorial 11)
+- **midiparse / midiformat** - MIDI parsing
+- **matrix~** - Routing multi-salida
+- **pattrstorage** - Preset management

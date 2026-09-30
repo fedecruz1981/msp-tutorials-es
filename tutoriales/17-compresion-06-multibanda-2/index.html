@@ -1,0 +1,424 @@
+<!DOCTYPE html><html lang="es" data-theme="light" data-astro-cid-ju4pidww><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="Astro v7.3.1"><link rel="canonical" href="https://fedecruz1981.github.io/msp-tutorials-es/tutoriales/17-compresion-06-multibanda-2/"><title>Tutorial 6: Compresión Multibanda 2 | MSP Tutorials ES</title><meta name="description" content="Aplicaciones avanzadas: mastering multibanda, de-essing multibanda, dynamic EQ multibanda, upward compression multibanda, sidechain multibanda, mastering chain."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (!theme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/msp-tutorials-es/assets/Sidebar.C4lDIUiC.css"><style>.tutorial-header[data-astro-cid-wfcvaqdp]{border-bottom:1px solid var(--color-border);margin-bottom:2rem;padding-bottom:1.5rem}.breadcrumb[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);text-decoration:none}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]:hover{color:var(--color-primary);text-decoration:underline}.breadcrumb[data-astro-cid-wfcvaqdp] span[data-astro-cid-wfcvaqdp][aria-current]{color:var(--color-text);font-weight:500}.tutorial-header[data-astro-cid-wfcvaqdp] h1[data-astro-cid-wfcvaqdp]{margin-bottom:.5rem;font-size:clamp(1.75rem,4vw,2.5rem)}.tutorial-meta[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);font-size:.875rem}.chapter-nav[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);flex-wrap:wrap;justify-content:space-between;gap:1rem;margin-top:3rem;padding-top:2rem;display:flex}.nav-link[data-astro-cid-wfcvaqdp]{background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);min-width:200px;max-width:350px;transition:all var(--transition);flex:1;padding:1rem 1.25rem;text-decoration:none;display:block}.nav-link[data-astro-cid-wfcvaqdp]:hover{border-color:var(--color-primary);box-shadow:var(--shadow-md);text-decoration:none;transform:translateY(-1px)}.nav-label[data-astro-cid-wfcvaqdp]{text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:.25rem;font-size:.7rem;font-weight:600;display:block}.nav-title[data-astro-cid-wfcvaqdp]{color:var(--color-text);font-size:.875rem;font-weight:500}.nav-link[data-astro-cid-wfcvaqdp].prev .nav-title[data-astro-cid-wfcvaqdp]:before{content:"← "}.nav-link[data-astro-cid-wfcvaqdp].next .nav-title[data-astro-cid-wfcvaqdp]:after{content:" →"}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:right}.tutorial-footer[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-muted);margin-top:3rem;padding-top:2rem;font-size:.875rem}.tutorial-footer[data-astro-cid-wfcvaqdp] p[data-astro-cid-wfcvaqdp]{margin:.5rem 0}.tutorial-footer[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-primary)}@media (width<=640px){.chapter-nav[data-astro-cid-wfcvaqdp]{flex-direction:column}.nav-link[data-astro-cid-wfcvaqdp]{text-align:center;max-width:none}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:center}}
+</style></head><body data-astro-cid-ju4pidww><a href="#main-content" class="skip-link" data-astro-cid-ju4pidww>Saltar al contenido principal</a><div class="page-wrapper" data-astro-cid-ju4pidww><header class="site-header" role="banner" data-astro-cid-ju4pidww><div class="header-inner" data-astro-cid-ju4pidww><a href="/msp-tutorials-es" class="site-logo" aria-label="MSP Tutorials ES - Inicio" data-astro-cid-ju4pidww><svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-ju4pidww><rect width="32" height="32" rx="6" fill="currentColor" data-astro-cid-ju4pidww></rect><path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round" data-astro-cid-ju4pidww></path></svg><span data-astro-cid-ju4pidww>MSP Tutorials</span></a><button class="theme-toggle" aria-label="Cambiar tema" id="theme-toggle" data-astro-cid-ju4pidww><svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><circle cx="12" cy="12" r="5" data-astro-cid-ju4pidww></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" data-astro-cid-ju4pidww></path></svg><svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" data-astro-cid-ju4pidww></path></svg></button></div></header><div class="main-grid" data-astro-cid-ju4pidww><aside class="sidebar" role="navigation" aria-label="Navegación de tutoriales" id="sidebar" data-astro-cid-ju4pidww><nav class="sidebar-nav" data-astro-cid-ju4pidww></nav></aside><main class="main-content" id="main-content" role="main" data-astro-cid-ju4pidww><article class="content-article" data-astro-cid-ju4pidww><nav class="sidebar-nav" aria-label="Tabla de contenidos" data-astro-cid-wv7whodv><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Introducción</div><a href="/msp-tutorials-es/tutoriales/01-msp-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>MSP: Introducción</a><a href="/msp-tutorials-es/tutoriales/02-como-funciona-audio-digital/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona el audio digital</a><a href="/msp-tutorials-es/tutoriales/03-como-funciona-msp/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona MSP</a><a href="/msp-tutorials-es/tutoriales/04-entrada-salida-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Entrada y salida de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Fundamentos</div><a href="/msp-tutorials-es/tutoriales/05-basico-01-tono-prueba/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Tono de prueba</a><a href="/msp-tutorials-es/tutoriales/05-basico-02-oscilador-ajustable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Oscilador ajustable</a><a href="/msp-tutorials-es/tutoriales/05-basico-03-oscilador-tabla-ondas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Oscilador de tabla de ondas</a><a href="/msp-tutorials-es/tutoriales/05-basico-04-enrutamiento-senales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Enrutamiento de señales</a><a href="/msp-tutorials-es/tutoriales/05-basico-05-repaso-fundamentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Repaso de fundamentos</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Síntesis aditiva y de modulación</div><a href="/msp-tutorials-es/tutoriales/06-sintesis-01-aditiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Síntesis aditiva</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-02-tremolo-modulacion-anillo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Trémolo y modulación en anillo</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-03-modulacion-amplitud/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de modulación de amplitud</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-04-vibrato-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Vibrato y FM</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-05-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Síntesis FM</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Muestreo y grabación</div><a href="/msp-tutorials-es/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Grabación y reproducción</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-02-multiples-puntos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Reproducción desde múltiples puntos</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-03-bucles/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Reproducción con bucles</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-04-tabla-ondas-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Tabla de ondas de longitud variable</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-05-waveshaping/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Waveshaping</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-06-archivos-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Grabar y reproducir archivos de audio</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-07-repaso/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Repaso de muestreo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Filtros y síntesis sustractiva</div><a href="/msp-tutorials-es/tutoriales/08-filtros-01-simples/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Filtros simples</a><a href="/msp-tutorials-es/tutoriales/08-filtros-02-tipo-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Filtros de tipo variable</a><a href="/msp-tutorials-es/tutoriales/08-filtros-03-estilo-analogico/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Síntesis estilo analógico</a><a href="/msp-tutorials-es/tutoriales/08-filtros-04-sustractiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Síntesis sustractiva</a><a href="/msp-tutorials-es/tutoriales/08-filtros-05-paralelos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Filtros en paralelo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Procesamiento de dinámicas</div><a href="/msp-tutorials-es/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Seguimiento de envolvente</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-02-procesamiento/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Procesamiento de dinámicas</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-03-distorsion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Distorsión</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>MIDI y MSP</div><a href="/msp-tutorials-es/tutoriales/10-midi-01-mapeo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Mapeo MIDI a MSP</a><a href="/msp-tutorials-es/tutoriales/10-midi-02-sintetizador/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Sintetizador MIDI</a><a href="/msp-tutorials-es/tutoriales/10-midi-03-sampler/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Sampler MIDI</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Polifonía y gestión de recursos</div><a href="/msp-tutorials-es/tutoriales/11-poli-01-poly-objeto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Uso del objeto poly~</a><a href="/msp-tutorials-es/tutoriales/11-poli-02-granular/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Síntesis granular</a><a href="/msp-tutorials-es/tutoriales/11-poli-03-datos-control-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Datos de control a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Secuenciación</div><a href="/msp-tutorials-es/tutoriales/12-secuenciacion-01-tasa-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Secuenciación a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Panoramización</div><a href="/msp-tutorials-es/tutoriales/13-pan-01-simple/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Panoramización simple</a><a href="/msp-tutorials-es/tutoriales/13-pan-02-estereo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Panoramización estéreo</a><a href="/msp-tutorials-es/tutoriales/13-pan-03-multicanal/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Panoramización multicanal</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Análisis</div><a href="/msp-tutorials-es/tutoriales/14-analisis-01-senales-medidores/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Señales y medidores</a><a href="/msp-tutorials-es/tutoriales/14-analisis-02-osciloscopio-espectroscopio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Osciloscopio y espectroscopio</a><a href="/msp-tutorials-es/tutoriales/14-analisis-03-fft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de la FFT</a><a href="/msp-tutorials-es/tutoriales/14-analisis-04-pfft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Procesamiento de señal con pfft~</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Retardos</div><a href="/msp-tutorials-es/tutoriales/15-retardos-01-lineas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Líneas de retardo</a><a href="/msp-tutorials-es/tutoriales/15-retardos-02-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Líneas de retardo con realimentación</a><a href="/msp-tutorials-es/tutoriales/15-retardos-03-ganancia-auto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Realimentación con control automático de ganancia</a><a href="/msp-tutorials-es/tutoriales/15-retardos-04-flanger/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Flanger</a><a href="/msp-tutorials-es/tutoriales/15-retardos-05-chorus/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Chorus</a><a href="/msp-tutorials-es/tutoriales/15-retardos-06-filtro-peine/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Filtro peine</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Plug-ins</div><a href="/msp-tutorials-es/tutoriales/16-plugins-01-efectos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Efectos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-02-instrumentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Instrumentos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-03-amxd/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Dispositivos AMXD</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Compresión</div><a href="/msp-tutorials-es/tutoriales/17-compresion-00-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Introducción: ¿Qué es la compresión?</a><a href="/msp-tutorials-es/tutoriales/17-compresion-01-limite-picos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Limitación de picos</a><a href="/msp-tutorials-es/tutoriales/17-compresion-02-basica/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Compresión básica</a><a href="/msp-tutorials-es/tutoriales/17-compresion-03-ajuste/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Ajuste de compresión</a><a href="/msp-tutorials-es/tutoriales/17-compresion-04-instrumentos-reales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Compresión en instrumentos reales</a><a href="/msp-tutorials-es/tutoriales/17-compresion-05-multibanda-1/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Compresión multibanda 1</a><a href="/msp-tutorials-es/tutoriales/17-compresion-06-multibanda-2/" class="sidebar-link active" aria-current="page" data-astro-cid-wv7whodv>Tutorial 6: Compresión multibanda 2</a><a href="/msp-tutorials-es/tutoriales/17-compresion-07-keying/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Keying</a><a href="/msp-tutorials-es/tutoriales/17-compresion-08-microsounds/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 8: Microsounds</a><a href="/msp-tutorials-es/tutoriales/17-compresion-09-ducking/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 9: Ducking</a><a href="/msp-tutorials-es/tutoriales/17-compresion-10-control-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 10: Control de realimentación</a></div></nav><header class="tutorial-header" data-astro-cid-wfcvaqdp><nav class="breadcrumb" aria-label="Navegación" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es" data-astro-cid-wfcvaqdp>Inicio</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><a href="/msp-tutorials-es/tutoriales/compresion/" data-astro-cid-wfcvaqdp>Compresión</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><span aria-current="page" data-astro-cid-wfcvaqdp>Tutorial 6: Compresión Multibanda 2</span></nav><h1 data-astro-cid-wfcvaqdp>Tutorial 6: Compresión Multibanda 2</h1><p class="tutorial-meta" data-astro-cid-wfcvaqdp>Capítulo 59 de 63 · Sección: Compresión</p><a href="https://docs.cycling74.com/learn/articles/17_msp_compress_06/" class="patcher-download" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-wfcvaqdp><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" data-astro-cid-wfcvaqdp></path></svg>Descargar patcher (.maxpat)</a></header><div class="tutorial-content" data-astro-cid-wfcvaqdp><h1 id="tutorial-de-compresión-6-compresión-multibanda-2---aplicaciones-avanzadas">Tutorial de Compresión 6: Compresión Multibanda 2 - Aplicaciones Avanzadas</h1>
+<p>Este tutorial explora <strong>aplicaciones avanzadas</strong> del procesamiento multibanda: mastering quirúrgico, de-essing multibanda, dynamic EQ multibanda, upward compression multibanda y sidechain multibanda.</p>
+<h2 id="mastering-multibanda-quirúrgico">Mastering Multibanda Quirúrgico</h2>
+<h3 id="filosofía-menos-es-más">Filosofía: “Menos es más”</h3>
+<ul>
+<li><strong>1-2 dB GR</strong> por banda máximo</li>
+<li><strong>Solo donde duele</strong> (no comprimir por comprimir)</li>
+<li><strong>A/B constante</strong> con bypass</li>
+</ul>
+<h3 id="flujo-de-trabajo-mastering">Flujo de trabajo Mastering:</h3>
+<ol>
+<li><strong>Escucha</strong> → Identifica problemas por banda</li>
+<li><strong>Solo banda</strong> → Ajusta threshold/ratio</li>
+<li><strong>A/B bypass</strong> → Verifica mejora real</li>
+<li><strong>Gain match</strong> → Compensación exacta</li>
+<li><strong>Limitar GR</strong> → 1-2 dB máx por banda</li>
+</ol>
+<h3 id="problemas-típicos-por-banda">Problemas típicos por banda:</h3>
+<table>
+<thead>
+<tr>
+<th>Banda</th>
+<th>Problema</th>
+<th>Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Low (20-100Hz)</strong></td>
+<td>Sub incontrolable, boom</td>
+<td>Ratio 1.5:1, Attack 30ms, GR 1-2dB</td>
+</tr>
+<tr>
+<td><strong>Low-Mid (100-500Hz)</strong></td>
+<td>Mud, cajón, falta definición</td>
+<td>Ratio 2:1, Attack 20ms, GR 1-2dB</td>
+</tr>
+<tr>
+<td><strong>Mid (500-2kHz)</strong></td>
+<td>Caja nasal, dureza vocales</td>
+<td>Ratio 2:1, Attack 15ms, GR 1dB</td>
+</tr>
+<tr>
+<td><strong>High-Mid (2-5kHz)</strong></td>
+<td>Dureza, presencia excesiva</td>
+<td>Ratio 2:1, Attack 10ms, GR 1dB</td>
+</tr>
+<tr>
+<td><strong>High (5-20kHz)</strong></td>
+<td>Sibilancias, hiss, falta aire</td>
+<td>Ratio 1.5:1, Attack 5ms, De-ess</td>
+</tr>
+</tbody>
+</table>
+<h2 id="de-essing-multibanda-quirúrgico">De-Essing Multibanda (Quirúrgico)</h2>
+<h3 id="wideband-vs-multiband-de-essing">Wideband vs Multiband De-Essing:</h3>
+<table>
+<thead>
+<tr>
+<th>Enfoque</th>
+<th>Ventajas</th>
+<th>Desventajas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wideband</strong></td>
+<td>Simple</td>
+<td>Afecta toda señal</td>
+</tr>
+<tr>
+<td><strong>Split-band (1 banda)</strong></td>
+<td>Solo reduce ess</td>
+<td>Requiere crossover</td>
+</tr>
+<tr>
+<td><strong>Multiband (3-4 bandas ess)</strong></td>
+<td>Quirúrgico por tipo ess</td>
+<td>Complejo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="de-essing-multibanda-3-bandas-ess">De-Essing Multibanda (3 bandas ess):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Entrada] → [Crossover: 3k / 6k / 10k] → </span></span>
+<span class="line"><span>  [Banda 3-6k: Ess suaves] → [Comp 5:1, Att 0.5ms, Rel 30ms] →</span></span>
+<span class="line"><span>  [Banda 6-10k: Ess duras] → [Comp 8:1, Att 0.3ms, Rel 20ms] →</span></span>
+<span class="line"><span>  [Banda 10-16k: Ess brillantes] → [Comp 5:1, Att 0.5ms, Rel 30ms] →</span></span>
+<span class="line"><span>  [Suma] → Salida</span></span></code></pre>
+<h3 id="detección-automática-de-frecuencia-ess">Detección automática de frecuencia ess:</h3>
+<ul>
+<li><strong>Análisis espectral</strong> → Peak detect 4-12 kHz</li>
+<li><strong>Auto-tune</strong> frequency bands a picos detectados</li>
+<li><strong>Adaptativo</strong> = Se adapta a diferente voces</li>
+</ul>
+<h2 id="dynamic-eq-multibanda-transparente">Dynamic EQ Multibanda (Transparente)</h2>
+<h3 id="diferencia-clave">Diferencia clave:</h3>
+<table>
+<thead>
+<tr>
+<th>Multiband Comp</th>
+<th>Dynamic EQ Multibanda</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Siempre procesando</td>
+<td>Solo actúa &gt; threshold</td>
+</tr>
+<tr>
+<td>Coloración constante</td>
+<td>Transparente hasta threshold</td>
+</tr>
+<tr>
+<td>Ratio fijo</td>
+<td>Gain variable (0 a -∞)</td>
+</tr>
+<tr>
+<td>Knee fijo</td>
+<td>Knee = ancho banda EQ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arquitectura-dynamic-eq-multibanda">Arquitectura Dynamic EQ Multibanda:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Entrada] → [Crossover 4 bandas] → </span></span>
+<span class="line"><span>  [Banda 1: Dynamic EQ] →</span></span>
+<span class="line"><span>  [Banda 2: Dynamic EQ] →</span></span>
+<span class="line"><span>  [Banda 3: Dynamic EQ] →</span></span>
+<span class="line"><span>  [Banda 4: Dynamic EQ] → [Suma]</span></span></code></pre>
+<h3 id="dynamic-eq-por-banda">Dynamic EQ por banda:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Banda] → [biquad~ peak EQ] → [Detector] → [Gain Computer] → [Gain Apply] → Salida</span></span>
+<span class="line"><span>    ↘ [Sidechain: biquad~ mismo freq] → [Detector: envelope follower]</span></span></code></pre>
+<h3 id="parámetros-por-banda-dynamic-eq">Parámetros por banda Dynamic EQ:</h3>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Rango</th>
+<th>Típico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frequency</strong></td>
+<td>20-20k</td>
+<td>Por banda</td>
+</tr>
+<tr>
+<td><strong>Gain Range</strong></td>
+<td>-12 a +12 dB</td>
+<td>±6 dB</td>
+</tr>
+<tr>
+<td><strong>Threshold</strong></td>
+<td>-40 a 0 dB</td>
+<td>-20 dB</td>
+</tr>
+<tr>
+<td><strong>Ratio</strong></td>
+<td>1:1 a ∞:1</td>
+<td>3:1</td>
+</tr>
+<tr>
+<td><strong>Attack</strong></td>
+<td>0.1-50 ms</td>
+<td>10 ms</td>
+</tr>
+<tr>
+<td><strong>Release</strong></td>
+<td>50-2000 ms</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td><strong>Q / Bandwidth</strong></td>
+<td>0.5-10</td>
+<td>1-2 oct</td>
+</tr>
+</tbody>
+</table>
+<h2 id="upward-compression-multibanda-expandir-detalles">Upward Compression Multibanda (Expandir Detalles)</h2>
+<h3 id="concepto">Concepto:</h3>
+<p><strong>Amplifica</strong> señal <strong>debajo</strong> del threshold (expandir rango dinámico hacia arriba).</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>Señal \&lt; Threshold: Gain = 1 + (Thresh - Signal) × (Ratio_up - 1)</span></span>
+<span class="line"><span>Señal ≥ Threshold: Gain = 1</span></span></code></pre>
+<h3 id="aplicaciones-multibanda">Aplicaciones Multibanda:</h3>
+<table>
+<thead>
+<tr>
+<th>Banda</th>
+<th>Upward Ratio</th>
+<th>Threshold</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Low</strong></td>
+<td>1.2:1</td>
+<td>-40 dB</td>
+<td>Sube sub sutil, peso</td>
+</tr>
+<tr>
+<td><strong>Low-Mid</strong></td>
+<td>1.3:1</td>
+<td>-35 dB</td>
+<td>Sube cuerpo, room</td>
+</tr>
+<tr>
+<td><strong>High-Mid</strong></td>
+<td>1.2:1</td>
+<td>-30 dB</td>
+<td>Sube presencia, detalle</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>1.1:1</td>
+<td>-25 dB</td>
+<td>Sube aire, reverb tail</td>
+</tr>
+</tbody>
+</table>
+<h3 id="combinación-downward--upward-dynamic-range-control-total">Combinación Downward + Upward (Dynamic Range Control Total):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>Downward (Thresh -12dB, Ratio 3:1)  → Controla picos</span></span>
+<span class="line"><span>Upward (Thresh -35dB, Ratio 1.3:1)  → Sube detalles</span></span></code></pre>
+<ul>
+<li><strong>Rango dinámico controlado</strong> en ambos extremos</li>
+<li><strong>Más transparente</strong> que solo downward + makeup</li>
+</ul>
+<h2 id="sidechain-multibanda-control-externo-por-banda">Sidechain Multibanda (Control Externo por Banda)</h2>
+<h3 id="concepto-1">Concepto:</h3>
+<p><strong>Sidechain independiente por banda</strong> = Control quirúrgico externo.</p>
+<h3 id="configuración">Configuración:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Sidechain Input] → [Crossover 4 bandas] → </span></span>
+<span class="line"><span>  [Detector Banda 1] → [Comp Banda 1 Sidechain] →</span></span>
+<span class="line"><span>  [Detector Banda 2] → [Comp Banda 2 Sidechain] →</span></span>
+<span class="line"><span>  [Detector Banda 3] → [Comp Banda 3 Sidechain] →</span></span>
+<span class="line"><span>  [Detector Banda 4] → [Comp Banda 4 Sidechain] →</span></span>
+<span class="line"><span>  [Suma] → Salida</span></span></code></pre>
+<h3 id="aplicaciones">Aplicaciones:</h3>
+<table>
+<thead>
+<tr>
+<th>Banda</th>
+<th>Sidechain Source</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Low</strong></td>
+<td>Kick drum</td>
+<td>Ducking sub/bajo</td>
+</tr>
+<tr>
+<td><strong>Low-Mid</strong></td>
+<td>Snare</td>
+<td>Ducking mud</td>
+</tr>
+<tr>
+<td><strong>High-Mid</strong></td>
+<td>Voz</td>
+<td>Ducking presencia</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>Hi-hat / Ess</td>
+<td>De-ess inteligente</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mastering-chain-multibanda-completa">Mastering Chain Multibanda Completa</h2>
+<h3 id="cadena-mastering-propuesta">Cadena Mastering Propuesta:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Entrada] → [EQ Correctivo] → [Multiband Comp 3-4 bandas] → </span></span>
+<span class="line"><span>  [Stereo Width M/S] → [Saturation Suave] → </span></span>
+<span class="line"><span>  [Limitador True Peak] → [Dither] → Salida</span></span></code></pre>
+<h3 id="configuración-mastering-grade">Configuración Mastering Grade:</h3>
+<h4 id="crossover">Crossover:</h4>
+<ul>
+<li><strong>Tipo</strong>: Linear Phase FIR (4096 taps) o Hybrid</li>
+<li><strong>Bandas</strong>: 4 (Low, Low-Mid, High-Mid, High)</li>
+<li><strong>Frecuencias</strong>: 100 / 500 / 5000 Hz (ajustables)</li>
+<li><strong>Latencia</strong>: Compensada (reportada a host)</li>
+</ul>
+<h4 id="por-banda">Por Banda:</h4>
+<table>
+<thead>
+<tr>
+<th>Banda</th>
+<th>Freq</th>
+<th>Thresh</th>
+<th>Ratio</th>
+<th>Att</th>
+<th>Rel</th>
+<th>Knee</th>
+<th>Makeup</th>
+<th>Sidechain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Low</strong></td>
+<td>&lt;100Hz</td>
+<td>-8dB</td>
+<td>1.5:1</td>
+<td>30ms</td>
+<td>Auto</td>
+<td>3dB</td>
+<td>Auto</td>
+<td>Mono Sum</td>
+</tr>
+<tr>
+<td><strong>Low-Mid</strong></td>
+<td>100-500</td>
+<td>-6dB</td>
+<td>2:1</td>
+<td>20ms</td>
+<td>Auto</td>
+<td>3dB</td>
+<td>Auto</td>
+<td>Stereo</td>
+</tr>
+<tr>
+<td><strong>High-Mid</strong></td>
+<td>500-5k</td>
+<td>-4dB</td>
+<td>2:1</td>
+<td>15ms</td>
+<td>150ms</td>
+<td>3dB</td>
+<td>Auto</td>
+<td>Stereo</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>&gt;5k</td>
+<td>-2dB</td>
+<td>1.5:1</td>
+<td>5ms</td>
+<td>100ms</td>
+<td>3dB</td>
+<td>Auto</td>
+<td>Stereo + De-ess</td>
+</tr>
+</tbody>
+</table>
+<h4 id="post-multiband">Post-Multiband:</h4>
+<ol>
+<li><strong>M/S Width</strong>: Width 100-120% (Mid/Side gain)</li>
+<li><strong>Saturation Suave</strong>: Tube/Tape 1-2% (armónicos 2º/3º)</li>
+<li><strong>Limitador True Peak</strong>: Ceiling -1 dBTP, ISP correction</li>
+<li><strong>Dither</strong>: 16/24 bit, Noise Shaped</li>
+</ol>
+<h2 id="patch-de-ejemplo-mastering-multiband-workstation">Patch de ejemplo: Mastering Multiband Workstation</h2>
+<p>Incluye:</p>
+<ol>
+<li><strong>Crossover Engine</strong>: LR4 IIR / Linear Phase FIR / Hybrid (selector)</li>
+<li><strong>4 Bandas</strong> (Low, Low-Mid, High-Mid, High):
+<ul>
+<li>Freq crossover editables (Linkwitz-Riley 4º)</li>
+<li>Solo/Mute/Bypass por banda</li>
+<li>Compresor completo (Threshold, Ratio, Att, Rel, Knee, Makeup, Auto-rel)</li>
+<li>Stereo Link 0-100%</li>
+<li>Sidechain: Internal / External / Mono Sum</li>
+<li>Detector: Peak / RMS / K-weighted</li>
+<li>Upward Comp: On/Off (Ratio_up, Thresh_up)</li>
+<li>Dynamic EQ Mode: On/Off (Gain range, Q)</li>
+</ul>
+</li>
+<li><strong>Crossover Engine</strong>:
+<ul>
+<li>LR4 IIR (Min Phase)</li>
+<li>Linear Phase FIR (latencia compensada)</li>
+<li>Hybrid (LR4 Low/Mid, FIR High)</li>
+<li>Oversampling 1x/2x/4x</li>
+</ul>
+</li>
+<li><strong>Master Section</strong>:
+<ul>
+<li>M/S Width (0-200%)</li>
+<li>Saturation (Tube/Tape/Soft Clip, 0-5%)</li>
+<li>True Peak Limiter (-1 dBTP, ISP corr)</li>
+<li>Dither (16/24/32, TPDF/NS)</li>
+</ul>
+</li>
+<li><strong>Metering Completo</strong>:
+<ul>
+<li>GR por banda (history 60s)</li>
+<li>LUFS por banda (I/M/S)</li>
+<li>True Peak / Sample Peak</li>
+<li>Correlation / Goniometer</li>
+<li>Spectrum Analyzer (pre/post)</li>
+</ul>
+</li>
+<li><strong>Standards Presets</strong>: Streaming (-14/-1), CD (-9/-0.3), Broadcast (-23/-2), Vinyl (-12/-1)</li>
+</ol>
+<h2 id="resumen">Resumen</h2>
+<ul>
+<li><strong>Mastering multibanda</strong> = Cirugía 1-2 dB GR por banda</li>
+<li><strong>De-essing multibanda</strong> = 3-4 bandas ess (quirúrgico)</li>
+<li><strong>Dynamic EQ multibanda</strong> = Transparente, solo &gt; threshold</li>
+<li><strong>Upward multibanda</strong> = Sube detalles (low-mid body, high air)</li>
+<li><strong>Sidechain multibanda</strong> = Control externo por banda</li>
+<li><strong>Mastering chain</strong> = EQ → Multiband → M/S → Saturation → Limit → Dither</li>
+<li><strong>Crossover LR4 / Linear Phase</strong> = Crítico para integridad</li>
+</ul>
+<h2 id="ver-también">Ver También</h2>
+<ul>
+<li><strong>omx.comp~</strong> - Compresor por banda</li>
+<li><strong>crossover~ / pfft~</strong> - Crossover engines</li>
+<li><strong>biquad~</strong> - Dynamic EQ bands</li>
+<li><strong>omx.lim~</strong> - Limitador final</li>
+<li><strong>matrix~</strong> - Routing bandas</li>
+<li><strong>Tutorial 5</strong> - Diseño crossover</li>
+</ul></div><nav class="chapter-nav" aria-label="Navegación entre capítulos" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link prev" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Capítulo anterior</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 5: Compresión Multibanda 1</span></a><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link next" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Siguiente capítulo</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 7: Keying</span></a></nav><footer class="tutorial-footer" data-astro-cid-wfcvaqdp><p data-astro-cid-wfcvaqdp>Contenido original: <a href="https://docs.cycling74.com/learn/articles/17_msp_compress_06/" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp>Cycling '74 MSP Tutorials</a></p><p data-astro-cid-wfcvaqdp>Traducción no oficial con fines educativos. Código y sintaxis MSP en inglés original.</p></footer></article></main></div><footer class="site-footer" role="contentinfo" data-astro-cid-ju4pidww><div class="footer-inner" data-astro-cid-ju4pidww><p data-astro-cid-ju4pidww>Traducción no oficial de los <a href="https://docs.cycling74.com/learn/series/msp-tutorials/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>MSP Tutorials</a> de Cycling '74.</p><p data-astro-cid-ju4pidww>Código y sintaxis de objetos MSP se mantienen en inglés original.</p><p class="license" data-astro-cid-ju4pidww>Contenido bajo licencia de Cycling '74. <a href="https://docs.cycling74.com/learn/license/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>Ver licencia</a></p></div></footer></div><script type="module">var e=document.getElementById(`theme-toggle`),t=document.documentElement;e.addEventListener(`click`,()=>{let e=t.getAttribute(`data-theme`)===`dark`?`light`:`dark`;t.setAttribute(`data-theme`,e),localStorage.setItem(`theme`,e)});var n=document.getElementById(`sidebar`),r=0;window.addEventListener(`scroll`,()=>{let e=window.pageYOffset;e>r&&e>100?n.classList.add(`scrolled`):n.classList.remove(`scrolled`),r=e});</script></body></html>

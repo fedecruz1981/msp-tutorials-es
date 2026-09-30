@@ -1,0 +1,133 @@
+---
+title: "Tutorial 5: Filtros en paralelo"
+description: "Redes de filtros paralelos y en serie, filter banks, crossovers, ecualización paramétrica, diseño de filtros complementarios."
+section: "filtros-sintesis-sustractiva"
+order: 26
+slug: "08-filtros-05-paralelos"
+originalUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter05/"
+---
+
+# Tutorial de Filtros 5: Filtros en Paralelo
+
+Este tutorial explora **redes de filtros** complejas: configuraciones en **paralelo**, en **serie**, **filter banks**, **crossovers** de audio y **ecualización paramétrica**.
+
+## Filtros en Paralelo
+
+Múltiples filtros reciben la **misma señal** y sus salidas se **suman**:
+
+```
+Entrada → [Filtro 1] → ┐
+           [Filtro 2] → ├→ Suma → Salida
+           [Filtro 3] → ┘
+```
+
+### Ventajas:
+- **Respuestas combinadas** imposibles con un solo filtro
+- **Control independiente** de cada banda
+- **Paralelismo** = procesamiento simultáneo (eficiente en MSP)
+
+### Aplicaciones:
+- **Filter bank** (banco de filtros) para análisis/espectro
+- **Ecualizador gráfico** (1/3 octava, 10+ bandas)
+- **Crossovers** de altavoces (LP + HP = respuesta plana)
+- **Formantes** = BP paralelos (como en Tutorial 4)
+
+## Filtros en Serie
+
+La salida de un filtro alimenta al **siguiente**:
+
+```
+Entrada → [Filtro 1] → [Filtro 2] → [Filtro 3] → Salida
+```
+
+### Efecto:
+- **Pendientes más pronunciadas** (órdenes se suman)
+- **2× LPF 12dB/oct** = 24dB/oct (Linkwitz-Riley)
+- **Control de fase** más complejo
+
+### Cuidados:
+- **Acumulación de ruido** y distorsión
+- **Desfasaje** acumulativo
+- **Orden** importa (HP→LP ≠ LP→HP para bandpass)
+
+## Filter Banks (Bancos de filtros)
+
+### Análisis (Analysis filter bank):
+```
+Entrada → [BPF1] → Envelope Follower → CV1
+           [BPF2] → Envelope Follower → CV2
+           ...
+```
+Usado para: **Vocoder**, análisis espectral, compresión multibanda.
+
+### Síntesis (Synthesis filter bank):
+```
+CV1 → [BPF1] → ┐
+CV2 → [BPF2] → ├→ Suma → Salida
+...
+```
+Usado para: **Resíntesis**, vocoder, modelado físico.
+
+## Crossovers de Audio
+
+Dividen el espectro para **altavoces multivia** (woofer, mid, tweeter).
+
+### Tipos:
+1. **Linkwitz-Riley** (24dB/oct, 4º orden): Suma = respuesta plana, fase coherente
+2. **Butterworth** (12/18/24dB): Suma = +3dB en crossover
+3. **Bessel**: Mejor respuesta de fase/impulso
+
+### En MSP:
+- **crossover~** (externo) o **biquad~** × 2 (LP + HP)
+- Frecuencias típicas: 200-500 Hz (woofer/mid), 2-5 kHz (mid/tweeter)
+
+## Ecualización Paramétrica
+
+Cada banda tiene 3 controles:
+1. **Frecuencia central** (Hz)
+2. **Ganancia** (dB, ±12-18 típico)
+3. **Q / Ancho de banda** (octavas)
+
+### Implementación en MSP:
+- **biquad~** por banda (peak/notch shelf)
+- **filtergraph~** para diseño gráfico
+- **cascade~** para múltiples bandas en serie
+
+### Tipos de curva:
+- **Peak/Bell**: Resonancia alrededor de Fc
+- **High/Low Shelf**: Afecta todo arriba/abajo de Fc
+- **Notch**: Rechaza banda estrecha (Q muy alto)
+
+## Filtros Complementarios
+
+Pares de filtros cuya **suma = respuesta plana** (unity gain):
+- **LP + HP** (mismo Fc, mismo orden) = Allpass
+- **BP + Notch** (mismo Fc, mismo Q) = Allpass
+- **Usos**: Crossovers, separación de señales, procesamiento paralelo
+
+## Patch de ejemplo: Ecualizador paramétrico 6 bandas
+
+Incluye:
+1. 6 × **biquad~** en serie (cascade~)
+2. **filtergraph~** para diseño visual
+3. Controles por banda: Freq, Gain, Q, Type (Peak/Shelf/Notch)
+4. **Bypass** global y por banda
+5. **Analizador espectral** (fft~) en tiempo real
+6. Presets: Flat, Bass Boost, Vocal, Mastering
+
+## Resumen
+
+- **Paralelo** = Suma de respuestas, control independiente
+- **Serie** = Pendientes mayores, fases acumuladas
+- **Filter banks** = Análisis + Síntesis (vocoder, multibanda)
+- **Crossovers** = División espectral para altavoces (Linkwitz-Riley)
+- **EQ Paramétrico** = Freq + Gain + Q por banda (biquad~)
+- **Complementarios** = LP+HP, BP+Notch = Allpass
+
+## Ver También
+
+- **biquad~** - Filtro biquad (base de EQ)
+- **cascade~** - Cascada de biquads
+- **filtergraph~** - Editor gráfico
+- **svf~** - Para filter banks simples

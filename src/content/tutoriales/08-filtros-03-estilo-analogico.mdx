@@ -1,0 +1,106 @@
+---
+title: "Tutorial 3: Síntesis estilo analógico"
+description: "Osciladores complejos: saw~, rect~, pulse~, tri~, noise~. Hard sync, FM, waveshaping para timbres analógicos."
+section: "filtros-sintesis-sustractiva"
+order: 24
+slug: "08-filtros-03-estilo-analogico"
+originalUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/08_filterchapter03/"
+---
+
+# Tutorial de Filtros 3: Síntesis Estilo Analógico
+
+Este tutorial cubre la generación de **formas de onda complejas** ricas en armónicos (tipo analógico) y su procesamiento con filtros para síntesis sustractiva clásica.
+
+## Osciladores de forma de onda rica
+
+MSP proporciona osciladores con armónicos integrados:
+
+| Objeto | Forma de onda | Armónicos | Uso típico |
+|--------|---------------|-----------|------------|
+| **saw~** | Sierra | Todos (1/n) | Brass, strings, bajos |
+| **rect~** | Pulso cuadrado | Impares (1/n) | Clarinet, hollow |
+| **pulse~** | Pulso ancho variable | Variable | PWM, timbres nasales |
+| **tri~** | Triangular | Impares (1/n²) | Suave, flauta |
+| **noise~** | Ruido blanco | Todos (iguales) | Percusión, viento |
+
+### pulse~: Ancho de pulso (PWM)
+- **Ancho 0.5** = Cuadrada (solo impares)
+- **Ancho ≠ 0.5** = Pares + impares
+- **Modulación de ancho** = Timbre evolutivo (PWM clásico)
+
+## Hard Sync (Sincronización dura)
+
+Conectar la salida de un oscilador **maestro** al inlet **sync** de un **esclavo**:
+
+```
+maestro (cycle~) → sync inlet de esclavo (saw~)
+```
+
+### Efecto:
+- El esclavo **reinicia su fase** cada ciclo del maestro
+- Crea **armónicos no armónicos** ricos
+- **Frecuencia esclavo > maestro** = timbres agresivos
+- **Barriendo frecuencia esclavo** = clásico "sync sweep"
+
+## FM de osciladores analógicos
+
+Similar a FM de senos, pero con **portadoras ricas**:
+- **saw~** como portadora + **cycle~** modulador
+- Genera **bandas laterales** alrededor de CADA armónico
+- Espectro extremadamente denso y complejo
+
+## Waveshaping para "analog warmth"
+
+Aplicar **saturación suave** (tanh, atan, polinomio) a osciladores:
+```
+salida = tanh(drive × saw~(f))
+```
+- **Drive bajo** = Compresión suave, 2º armónico
+- **Drive alto** = Distorsión, compresión dura
+
+## Patch de ejemplo: Sintetizador analógico de 2 osciladores
+
+Incluye:
+1. **Oscilador 1**: saw~ / pulse~ / tri~ seleccionable
+2. **Oscilador 2**: saw~ / rect~ / noise~ seleccionable
+3. **Hard sync**: Osc 1 → sync de Osc 2 (conmutable)
+4. **Mezcla**: Crossfade Osc 1 / Osc 2
+5. **Filtro**: svf~ (LP/BP/HP/Notch morfeable)
+6. **Envolventes**: ADSR separadas para filtro y amplitud
+7. **LFO**: Modulación de PW, frecuencia, cutoff
+8. **MIDI**: notein → frecuencia, velocity → envelope amount
+
+## Síntesis sustractiva clásica
+
+Arquitectura estándar:
+```
+Osciladores → Mezcla → Filtro (VCF) → VCA → Salida
+     ↓           ↓         ↓         ↓
+  Pitch      Balance   Cutoff    Level
+  Wave       Detune    Resonancia Env
+  Sync       Level     Env       Vel
+```
+
+### Parámetros clave:
+- **Cutoff**: Brillo (brillante ↔ oscuro)
+- **Resonancia (Q)**: Énfasis formántico, "wow"
+- **Filter Env**: Contour del timbre (attack, decay, sustain)
+- **Keyboard Tracking**: Cutoff sigue al pitch (0-100%)
+
+## Resumen
+
+- **saw~/pulse~/tri~/noise~** = Fuentes ricas en armónicos
+- **Hard sync** = Reinicio de fase → timbres agresivos
+- **PWM** = Modulación de ancho de pulso → movimiento
+- **svf~** = Filtro morfeable (LP/HP/BP/Notch)
+- **Arquitectura sustractiva** = Osc → Filtro → VCA
+- **Envolventes separadas** = Control independiente de timbre y amplitud
+
+## Ver También
+
+- **saw~** - Onda sierra
+- **pulse~** - Pulso con PWM
+- **tri~** - Onda triangular
+- **noise~** - Ruido blanco
+- **svf~** - Filtro estado-variable

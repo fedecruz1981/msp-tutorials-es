@@ -1,0 +1,230 @@
+---
+title: "Tutorial 6: Compresión Multibanda 2"
+description: "Aplicaciones avanzadas: mastering multibanda, de-essing multibanda, dynamic EQ multibanda, upward compression multibanda, sidechain multibanda, mastering chain."
+section: "compresion"
+order: 59
+slug: "17-compresion-06-multibanda-2"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_06/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_06/"
+---
+
+# Tutorial de Compresión 6: Compresión Multibanda 2 - Aplicaciones Avanzadas
+
+Este tutorial explora **aplicaciones avanzadas** del procesamiento multibanda: mastering quirúrgico, de-essing multibanda, dynamic EQ multibanda, upward compression multibanda y sidechain multibanda.
+
+## Mastering Multibanda Quirúrgico
+
+### Filosofía: "Menos es más"
+- **1-2 dB GR** por banda máximo
+- **Solo donde duele** (no comprimir por comprimir)
+- **A/B constante** con bypass
+
+### Flujo de trabajo Mastering:
+1. **Escucha** → Identifica problemas por banda
+2. **Solo banda** → Ajusta threshold/ratio
+3. **A/B bypass** → Verifica mejora real
+4. **Gain match** → Compensación exacta
+5. **Limitar GR** → 1-2 dB máx por banda
+
+### Problemas típicos por banda:
+
+| Banda | Problema | Solución |
+|-------|----------|----------|
+| **Low (20-100Hz)** | Sub incontrolable, boom | Ratio 1.5:1, Attack 30ms, GR 1-2dB |
+| **Low-Mid (100-500Hz)** | Mud, cajón, falta definición | Ratio 2:1, Attack 20ms, GR 1-2dB |
+| **Mid (500-2kHz)** | Caja nasal, dureza vocales | Ratio 2:1, Attack 15ms, GR 1dB |
+| **High-Mid (2-5kHz)** | Dureza, presencia excesiva | Ratio 2:1, Attack 10ms, GR 1dB |
+| **High (5-20kHz)** | Sibilancias, hiss, falta aire | Ratio 1.5:1, Attack 5ms, De-ess |
+
+## De-Essing Multibanda (Quirúrgico)
+
+### Wideband vs Multiband De-Essing:
+
+| Enfoque | Ventajas | Desventajas |
+|---------|----------|-------------|
+| **Wideband** | Simple | Afecta toda señal |
+| **Split-band (1 banda)** | Solo reduce ess | Requiere crossover |
+| **Multiband (3-4 bandas ess)** | Quirúrgico por tipo ess | Complejo |
+
+### De-Essing Multibanda (3 bandas ess):
+```
+[Entrada] → [Crossover: 3k / 6k / 10k] → 
+  [Banda 3-6k: Ess suaves] → [Comp 5:1, Att 0.5ms, Rel 30ms] →
+  [Banda 6-10k: Ess duras] → [Comp 8:1, Att 0.3ms, Rel 20ms] →
+  [Banda 10-16k: Ess brillantes] → [Comp 5:1, Att 0.5ms, Rel 30ms] →
+  [Suma] → Salida
+```
+
+### Detección automática de frecuencia ess:
+- **Análisis espectral** → Peak detect 4-12 kHz
+- **Auto-tune** frequency bands a picos detectados
+- **Adaptativo** = Se adapta a diferente voces
+
+## Dynamic EQ Multibanda (Transparente)
+
+### Diferencia clave:
+| Multiband Comp | Dynamic EQ Multibanda |
+|----------------|----------------------|
+| Siempre procesando | Solo actúa > threshold |
+| Coloración constante | Transparente hasta threshold |
+| Ratio fijo | Gain variable (0 a -∞) |
+| Knee fijo | Knee = ancho banda EQ |
+
+### Arquitectura Dynamic EQ Multibanda:
+```
+[Entrada] → [Crossover 4 bandas] → 
+  [Banda 1: Dynamic EQ] →
+  [Banda 2: Dynamic EQ] →
+  [Banda 3: Dynamic EQ] →
+  [Banda 4: Dynamic EQ] → [Suma]
+```
+
+### Dynamic EQ por banda:
+```
+[Banda] → [biquad~ peak EQ] → [Detector] → [Gain Computer] → [Gain Apply] → Salida
+    ↘ [Sidechain: biquad~ mismo freq] → [Detector: envelope follower]
+```
+
+### Parámetros por banda Dynamic EQ:
+| Parámetro | Rango | Típico |
+|-----------|-------|--------|
+| **Frequency** | 20-20k | Por banda |
+| **Gain Range** | -12 a +12 dB | ±6 dB |
+| **Threshold** | -40 a 0 dB | -20 dB |
+| **Ratio** | 1:1 a ∞:1 | 3:1 |
+| **Attack** | 0.1-50 ms | 10 ms |
+| **Release** | 50-2000 ms | Auto |
+| **Q / Bandwidth** | 0.5-10 | 1-2 oct |
+
+## Upward Compression Multibanda (Expandir Detalles)
+
+### Concepto:
+**Amplifica** señal **debajo** del threshold (expandir rango dinámico hacia arriba).
+```
+Señal \< Threshold: Gain = 1 + (Thresh - Signal) × (Ratio_up - 1)
+Señal ≥ Threshold: Gain = 1
+```
+
+### Aplicaciones Multibanda:
+
+| Banda | Upward Ratio | Threshold | Uso |
+|-------|--------------|-----------|-----|
+| **Low** | 1.2:1 | -40 dB | Sube sub sutil, peso |
+| **Low-Mid** | 1.3:1 | -35 dB | Sube cuerpo, room |
+| **High-Mid** | 1.2:1 | -30 dB | Sube presencia, detalle |
+| **High** | 1.1:1 | -25 dB | Sube aire, reverb tail |
+
+### Combinación Downward + Upward (Dynamic Range Control Total):
+```
+Downward (Thresh -12dB, Ratio 3:1)  → Controla picos
+Upward (Thresh -35dB, Ratio 1.3:1)  → Sube detalles
+```
+- **Rango dinámico controlado** en ambos extremos
+- **Más transparente** que solo downward + makeup
+
+## Sidechain Multibanda (Control Externo por Banda)
+
+### Concepto:
+**Sidechain independiente por banda** = Control quirúrgico externo.
+
+### Configuración:
+```
+[Sidechain Input] → [Crossover 4 bandas] → 
+  [Detector Banda 1] → [Comp Banda 1 Sidechain] →
+  [Detector Banda 2] → [Comp Banda 2 Sidechain] →
+  [Detector Banda 3] → [Comp Banda 3 Sidechain] →
+  [Detector Banda 4] → [Comp Banda 4 Sidechain] →
+  [Suma] → Salida
+```
+
+### Aplicaciones:
+
+| Banda | Sidechain Source | Efecto |
+|-------|------------------|--------|
+| **Low** | Kick drum | Ducking sub/bajo |
+| **Low-Mid** | Snare | Ducking mud |
+| **High-Mid** | Voz | Ducking presencia |
+| **High** | Hi-hat / Ess | De-ess inteligente |
+
+## Mastering Chain Multibanda Completa
+
+### Cadena Mastering Propuesta:
+```
+[Entrada] → [EQ Correctivo] → [Multiband Comp 3-4 bandas] → 
+  [Stereo Width M/S] → [Saturation Suave] → 
+  [Limitador True Peak] → [Dither] → Salida
+```
+
+### Configuración Mastering Grade:
+
+#### Crossover:
+- **Tipo**: Linear Phase FIR (4096 taps) o Hybrid
+- **Bandas**: 4 (Low, Low-Mid, High-Mid, High)
+- **Frecuencias**: 100 / 500 / 5000 Hz (ajustables)
+- **Latencia**: Compensada (reportada a host)
+
+#### Por Banda:
+
+| Banda | Freq | Thresh | Ratio | Att | Rel | Knee | Makeup | Sidechain |
+|-------|------|--------|-------|-----|-----|------|--------|-----------|
+| **Low** | \<100Hz | -8dB | 1.5:1 | 30ms | Auto | 3dB | Auto | Mono Sum |
+| **Low-Mid** | 100-500 | -6dB | 2:1 | 20ms | Auto | 3dB | Auto | Stereo |
+| **High-Mid** | 500-5k | -4dB | 2:1 | 15ms | 150ms | 3dB | Auto | Stereo |
+| **High** | >5k | -2dB | 1.5:1 | 5ms | 100ms | 3dB | Auto | Stereo + De-ess |
+
+#### Post-Multiband:
+1. **M/S Width**: Width 100-120% (Mid/Side gain)
+2. **Saturation Suave**: Tube/Tape 1-2% (armónicos 2º/3º)
+3. **Limitador True Peak**: Ceiling -1 dBTP, ISP correction
+4. **Dither**: 16/24 bit, Noise Shaped
+
+## Patch de ejemplo: Mastering Multiband Workstation
+
+Incluye:
+1. **Crossover Engine**: LR4 IIR / Linear Phase FIR / Hybrid (selector)
+2. **4 Bandas** (Low, Low-Mid, High-Mid, High):
+   - Freq crossover editables (Linkwitz-Riley 4º)
+   - Solo/Mute/Bypass por banda
+   - Compresor completo (Threshold, Ratio, Att, Rel, Knee, Makeup, Auto-rel)
+   - Stereo Link 0-100%
+   - Sidechain: Internal / External / Mono Sum
+   - Detector: Peak / RMS / K-weighted
+   - Upward Comp: On/Off (Ratio_up, Thresh_up)
+   - Dynamic EQ Mode: On/Off (Gain range, Q)
+5. **Crossover Engine**:
+   - LR4 IIR (Min Phase)
+   - Linear Phase FIR (latencia compensada)
+   - Hybrid (LR4 Low/Mid, FIR High)
+   - Oversampling 1x/2x/4x
+6. **Master Section**:
+   - M/S Width (0-200%)
+   - Saturation (Tube/Tape/Soft Clip, 0-5%)
+   - True Peak Limiter (-1 dBTP, ISP corr)
+   - Dither (16/24/32, TPDF/NS)
+7. **Metering Completo**:
+   - GR por banda (history 60s)
+   - LUFS por banda (I/M/S)
+   - True Peak / Sample Peak
+   - Correlation / Goniometer
+   - Spectrum Analyzer (pre/post)
+7. **Standards Presets**: Streaming (-14/-1), CD (-9/-0.3), Broadcast (-23/-2), Vinyl (-12/-1)
+
+## Resumen
+
+- **Mastering multibanda** = Cirugía 1-2 dB GR por banda
+- **De-essing multibanda** = 3-4 bandas ess (quirúrgico)
+- **Dynamic EQ multibanda** = Transparente, solo > threshold
+- **Upward multibanda** = Sube detalles (low-mid body, high air)
+- **Sidechain multibanda** = Control externo por banda
+- **Mastering chain** = EQ → Multiband → M/S → Saturation → Limit → Dither
+- **Crossover LR4 / Linear Phase** = Crítico para integridad
+
+## Ver También
+
+- **omx.comp~** - Compresor por banda
+- **crossover~ / pfft~** - Crossover engines
+- **biquad~** - Dynamic EQ bands
+- **omx.lim~** - Limitador final
+- **matrix~** - Routing bandas
+- **Tutorial 5** - Diseño crossover
+

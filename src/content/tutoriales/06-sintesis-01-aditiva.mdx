@@ -1,0 +1,88 @@
+---
+title: "Tutorial 1: Síntesis aditiva"
+description: "Combinación de tonos, generador de envolventes function, variedad de tonos complejos, experimentación con tonos complejos."
+section: "sintesis-aditiva-modulacion"
+order: 10
+slug: "06-sintesis-01-aditiva"
+originalUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter01/"
+---
+
+# Tutorial de Síntesis 1: Síntesis aditiva
+
+En los ejemplos de tutorial hasta este punto hemos sintetizado sonido usando formas de onda básicas. En los próximos capítulos exploraremos algunas otras técnicas de síntesis bien conocidas usando ondas sinusoidales. La mayoría de estas técnicas derivan de métodos de síntesis analógica pre-computadora, pero son sin embargo instructivas y útiles.
+
+## Combinando tonos
+
+Una onda seno contiene energía en una sola frecuencia. Dado que los tonos complejos, por definición, están compuestos de energía en varias (o muchas) frecuencias diferentes, una forma obvia de sintetizar tonos complejos es usar múltiples osciladores de onda seno y sumarlos.
+
+![Cuatro sinusoides sumadas para hacer un tono complejo](/images/synthchapter01a.png "Cuatro sinusoides sumadas para hacer un tono complejo")
+
+Por supuesto, puede sumar cualquier forma de onda para producir un tono compuesto, pero nos quedaremos con ondas seno en este ejemplo de tutorial. Sintetizar tonos complejos sumando ondas seno es un método algo tedioso, pero da control completo sobre la amplitud y frecuencia de cada componente (**parcial**) del tono complejo.
+
+En el patch del tutorial, sumamos seis osciladores coseno (**cycle~** objetos), con control independiente sobre la frecuencia, amplitud y fase de cada uno. Para simplificar el patch, diseñamos una **Abstracción** llamada `partial~` que nos permite especificar la frecuencia de cada parcial como una razón relativa a una frecuencia fundamental.
+
+![Contenido de la abstracción partial~](/images/synthchapter01b.png "Contenido de la abstracción partial~")
+
+Por ejemplo, si queremos que un parcial tenga una frecuencia el doble de la fundamental, solo escribimos `2.0` como argumento (o lo enviamos en el segundo inlet). De esta manera, si varias abstracciones `partial~` están recibiendo su valor de frecuencia fundamental (en el inlet izquierdo) de la misma fuente, sus frecuencias relativas se mantendrán iguales incluso cuando el valor de la frecuencia fundamental cambie.
+
+Por supuesto, para que el sonido sea muy interesante, las amplitudes de los parciales deben evolucionar con independencia relativa. Por lo tanto, en el patch principal, controlamos la amplitud de cada parcial con su propio **generador de envolventes**.
+
+## Generador de envolventes: function
+
+En el **Tutorial Básico 3** vio cómo crear una envolvente de amplitud enviando una lista de pares de números a un objeto **line~**, dándole así una sucesión de valores objetivo y tiempos de transición. Esta idea de crear una función de control a partir de una serie de segmentos de línea es útil en muchos contextos — generar envolventes de amplitud resulta ser un uso particularmente común — y se demuestra en el repaso en el **Tutorial Básico 5**, también.
+
+El objeto **function** es una gran ayuda para generar tales segmentos de línea, porque le permite dibujar la forma que quiere, así como definir el dominio y rango de la función (el valor numérico de sus dimensiones en los ejes *x* e *y*). Puede dibujar una función simplemente haciendo clic con el ratón donde quiere que aparezca cada punto de quiebre. Cuando **function** recibe un `bang`, envía una lista de pares valor-tiempo por su 2do outlet. Esa lista, cuando se usa como entrada al objeto **line~**, produce una señal cambiante que corresponde a la forma dibujada.
+
+Por cierto, **function** también es útil para propósitos no-de-señal en Max. Puede usarse como tabla de búsqueda interpoladora. Cuando recibe un número en su inlet, considera ese número como un valor *x* y busca el valor *y* correspondiente en la función dibujada (interpolando entre puntos de quiebre según sea necesario) y lo envía por el outlet izquierdo.
+
+## Una variedad de tonos complejos
+
+Incluso con solo seis parciales, se pueden hacer una variedad de timbres que van desde tonos 'realistas' tipo instrumento hasta combinaciones de frecuencias claramente artificiales. Los ajustes para algunos tonos diferentes se han almacenado en un objeto **preset** en el patcher del tutorial para que los pruebe. A continuación se proporciona una breve explicación de cada tono.
+
+- Haga clic en el icono de altavoz **ezdac~** para encender el audio. Haga clic en el **button** para reproducir un tono. Haga clic en uno de los presets almacenados en el objeto **preset** para cambiar los ajustes, luego haga clic en el botón de nuevo para oír el nuevo tono.
+
+**Preset 1.** Este tono no está realmente destinado a emular un instrumento real. Es solo un conjunto de parciales armónicamente relacionados, cada uno de los cuales tiene una envolvente de amplitud diferente. Observe cómo el timbre del tono cambia ligeramente a lo largo de su duración a medida que diferentes parciales pasan al primer plano. Si no puede notar realmente ese cambio de timbre, intente cambiar la duración de la nota a algo más largo usando el **number** box en la parte superior del patcher. Cambiar su valor a `8000` milisegundos, por ejemplo, le permitirá oír la nota evolucionar más lentamente.
+
+**Preset 2.** Este tono suena más bien como un órgano de iglesia. Los parciales son todas octavas de la fundamental, el ataque es moderadamente rápido pero no percusivo, y la amplitud del tono no disminuye mucho a lo largo de la nota. Puede ver y oír que los parciales superiores se extinguen más rápidamente que los inferiores.
+
+**Preset 3.** Este tono consiste en parciales armónicos ligeramente desafinados. El ataque es inmediato y la amplitud decae bastante rápido después del ataque inicial, dando a la nota un efecto percusivo o punteado.
+
+**Preset 4.** Las envolventes de amplitud para los parciales en este tono derivan de un análisis de una nota de trompeta en el registro grave. Por supuesto, estos son solo seis de los muchos parciales presentes en un sonido de trompeta real.
+
+**Preset 5.** Las envolventes de amplitud para los parciales de este tono derivan del mismo análisis de trompeta. Sin embargo, en este caso, solo se usan los armónicos impares. Esto crea un tono más como un clarinete, porque el tubo cilíndrico de un clarinete resuena los armónicos impares. Además, la duración más larga de esta nota ralentiza toda la envolvente, dándole un ataque más característicamente tipo clarinete.
+
+**Preset 6.** Este es un tono completamente artificial. El parcial más bajo entra primero, seguido por el sexto parcial un semitono más alto. Eventualmente entran los parciales restantes, con frecuencias que se encuentran entre el primero y sexto parcial, creando un cluster microtonal. El efecto de latido se debe a la interferencia entre estas ondas de frecuencias ligeramente diferentes.
+
+**Preset 7.** En este caso los parciales están espaciados un tono mayor aparte, y la amplitud de cada parcial sube y baja de manera que cree un efecto compuesto de un cluster de tonos enteros arpegiado. Aunque esto es claramente un acorde de tonos enteros en lugar de un solo tono, los ataques y decaimientos graduales y superpuestos causan que los tonos se fusionen bastante exitosamente.
+
+**Preset 8.** En este tono los parciales sugieren un espectro armónico lo suficientemente fuerte que aún tenemos una sensación de tono fundamental, pero están lo suficientemente desafinados que se asemejan al espectro inarmónico de una campana. El ataque percusivo, decaimiento rápido, y parciales que varían independientemente durante la porción de sostenido de la nota son también todos característicos de una campana de metal golpeada.
+
+Observe que cuando está sumando varias señales así, su suma a menudo excederá los límites de amplitud del objeto **dac~**, por lo que la amplitud general debe escalarse apropiadamente con un objeto **\*~**.
+
+## Experimente con tonos complejos
+
+- Usando estos tonos como puntos de partida, intente diseñar sus propios sonidos con este patch de síntesis aditiva. Varie los tonos cambiando la frecuencia fundamental, parciales, y duración de los tonos preset. También puede cambiar las envolventes haciendo clic y arrastrando en los puntos de quiebre en los objetos **function**:
+    
+- Haga clic en el objeto **function** para crear un nuevo punto de quiebre. Si hace clic y arrastra, las coordenadas x e y del punto se muestran en la parte superior del objeto, y puede mover inmediatamente el punto de quiebre a la posición que quiere.
+    
+- De manera similar, puede hacer clic y arrastrar en cualquier punto de quiebre existente para moverlo.
+    
+- Shift-clic en un punto existente para eliminarlo.
+    
+
+Aunque no se demuestra en este tutorial, también es posible crear, mover y eliminar puntos de quiebre en un **function** solo usando mensajes de Max. Vea la página de referencia del objeto **function** para detalles.
+
+El mensaje `setdomain`, seguido de un número, cambia la escala del eje x en el **function** sin cambiar la forma de la envolvente. Cuando cambia el número en el **number** box 'Duration', envía un mensaje `setdomain` al **function**.
+
+## Resumen
+
+La **síntesis aditiva** es el proceso de sintetizar nuevos tonos complejos sumando tonos simples (típicamente ondas seno). Dado que los tonos seno puros tienen energía en solo una frecuencia, son los bloques fundamentales de la síntesis aditiva, pero por supuesto cualquier señal puede sumarse. La señal suma puede necesitar ser escalada por algún valor de señal constante menor que 1 para evitar que sea recortada por el **dac~**.
+
+Para que el timbre de un tono complejo permanezca igual cuando su tono cambia, cada parcial debe mantener su relación con la frecuencia fundamental. Expresar la frecuencia de cada parcial en términos de una razón con respecto a (es decir, un multiplicador de) la frecuencia fundamental mantiene el espectro del tono incluso cuando la frecuencia fundamental cambia.
+
+Para que un tono complejo tenga un timbre interesante, la amplitud de los parciales debe cambiar con cierto grado de independencia. El objeto **function** le permite dibujar formas de control como envolventes de amplitud, y cuando **function** recibe un `bang` describe esa forma a un objeto **line~** para generar una señal de control correspondiente.
+
+## Ver También
+
+- **function** - Editor gráfico de puntos de quiebre de función

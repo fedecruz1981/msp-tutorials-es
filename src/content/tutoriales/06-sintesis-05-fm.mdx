@@ -1,0 +1,91 @@
+---
+title: "Tutorial 5: Síntesis FM"
+description: "Síntesis FM avanzada: múltiples operadores, algoritmos, realimentación, envolventes por operador, timbres dinámicos."
+section: "sintesis-aditiva-modulacion"
+order: 14
+slug: "06-sintesis-05-fm"
+originalUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter05/"
+---
+
+# Tutorial de Síntesis 5: Síntesis FM
+
+Este tutorial expande los conceptos básicos de FM introducidos en el tutorial anterior, explorando **múltiples operadores**, **algoritmos de conexión**, **realimentación** y **control dinámico de timbres**.
+
+## Múltiples Operadores
+
+Un **operador** en FM es un oscilador con su propia envolvente de amplitud. Los sintetizadores FM clásicos (DX7) usan 6 operadores.
+
+### Tipos de operadores:
+- **Portadoras**: Conectadas a la salida de audio
+- **Moduladores**: Conectados a inlets de frecuencia de otros operadores
+
+## Algoritmos FM
+
+Un **algoritmo** define cómo se conectan los operadores entre sí. El DX7 tiene 32 algoritmos predefinidos.
+
+Ejemplos de topologías:
+1. **En serie**: Mod → Mod → Portadora (apilamiento)
+2. **En paralelo**: Múltiples moduladores → Una portadora
+3. **Mixtos**: Combinaciones de serie y paralelo
+4. **Con realimentación**: Un operador se modula a sí mismo
+
+## Realimentación (Feedback)
+
+Cuando un operador modula su propia frecuencia, se genera un espectro similar a una **onda sierra** o **pulso**, dependiendo del nivel de feedback.
+
+- **Feedback bajo**: Añade armónicos impares (tipo onda cuadrada)
+- **Feedback alto**: Espectro rico, tipo sierra o ruido
+
+## Envolventes por Operador
+
+Cada operador tiene su propia **envolvente ADSR** (o más compleja). Esto permite:
+- **Evolución timbrística**: Armónicos que aparecen/desaparecen en el tiempo
+- **Ataques percusivos**: Moduladores con ataque rápido
+- **Sostenidos evolutivos**: Moduladores con decay largo
+
+## Ratio y Detune
+
+- **Ratio**: Relación entera o fraccionaria entre operadores
+- **Detune**: Desafinación leve (± few Hz) para engrosar el sonido
+
+## Patch de ejemplo: FM de 4 operadores
+
+El patch incluye:
+1. 4 operadores con frecuencias base y ratios ajustables
+2. 6 algoritmos seleccionables
+3. Control de feedback en operador 1
+4. Envolventes ADSR independientes por operador
+5. Control global de índice de modulación
+6. Teclado MIDI para control polifónico (vía **poly~**)
+
+## Diseño de timbres FM
+
+### Para sonidos de "campana":
+- Ratio portadora:modulador = 1:2 o 1:3
+- Índice alto (8-15) decaying rápido
+- Feedback moderado
+
+### Para sonidos de "bajo eléctrico":
+- Ratio 1:1 con detune ligero
+- Índice moderado (3-5)
+- Envolvente con attack rápido, sustain largo
+
+### Para "pads" brillantes:
+- Múltiples moduladores en paralelo
+- Ratios armónicos (1:2, 1:3, 1:4)
+- Índices evolucionando lentamente
+
+## Resumen
+
+- **Operadores** = Osciladores + envolventes
+- **Algoritmos** = Topologías de conexión (32 en DX7)
+- **Feedback** = Auto-modulación para ondas complejas
+- **Envolventes por operador** = Timbres dinámicos
+- **Ratio + Detune** = Control fino de armónicos
+
+## Ver También
+
+- **cycle~** - Oscilador base
+- **poly~** - Polifonía
+- **function** - Envolventes complejas

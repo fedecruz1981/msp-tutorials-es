@@ -1,0 +1,169 @@
+---
+title: "Tutorial 5: Compresión Multibanda 1"
+description: "Diseño de compresor multibanda: crossover design (LR4, linear phase), banda por banda, crossover artifacts, phase coherence, latency."
+section: "compresion"
+order: 58
+slug: "17-compresion-05-multibanda-1"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_05/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_05/"
+---
+
+# Tutorial de Compresión 5: Compresión Multibanda 1 - Diseño y Crossover
+
+La **compresión multibanda** divide la señal en **bandas de frecuencia** y comprime cada una independientemente. El **crossover** es el corazón del sistema.
+
+## ¿Por qué Multibanda?
+
+### Problemas que resuelve:
+- **Control selectivo**: Solo comprime rangos problemáticos
+- **Evita pumping**: Graves no disparan compresión de agudos
+- **Mastering quirúrgico**: Control quirúrgico por banda
+- **De-essing quirúrgico**: Solo banda 5-10 kHz
+
+### vs Compresor Broadband:
+| Broadband | Multibanda |
+|-----------|------------|
+| Todo señal afectada | Solo banda problemática |
+| Pumping inevitable | Control selectivo |
+| Un solo carácter | Carácter por banda |
+
+## Diseño del Crossover (Crítico)
+
+### Requisitos:
+1. **Suma perfecta** (Flat response when bypassed)
+2. **Fase coherente** (Linear phase o minimum phase matched)
+3. **Sin aliasing** (Oversampling si non-linear)
+4. **Latencia controlada** (Compensable)
+
+### Tipos de Crossover:
+
+| Tipo | Orden | Pendiente | Fase | Suma | Uso |
+|------|-------|-----------|------|------|-----|
+| **Linkwitz-Riley (LR)** | 2º (12dB) | 12 dB/oct | 180° | ✓ | General |
+| **Linkwitz-Riley (LR)** | 4º (24dB) | 24 dB/oct | 360° (0°) | ✓✓ | Mastering |
+| **Butterworth** | 2º/4º | 12/24 dB | 90°/180° | +3dB | Live/Analog |
+| **Bessel** | - | Suave | Lineal | ✗ | Phase critical |
+| **Linear Phase (FIR)** | - | Variable | 0° | ✓✓✓ | Mastering hi-end |
+
+### Linkwitz-Riley 4º Orden (Estándar Mastering):
+- **24 dB/oct** por banda
+- **Fase 360° = 0°** en crossover = Suma perfecta
+- **Implementación**: 2× biquad 2º orden en serie por filtro
+
+### Frecuencias de Crossover Estándar (3-4 bandas):
+
+| Config | Banda 1 | Banda 2 | Banda 3 | Banda 4 |
+|--------|---------|---------|---------|---------|
+| **3 bandas** | 20-200 Hz | 200-2000 Hz | 2-20 kHz | - |
+| **4 bandas** | 20-120 Hz | 120-500 Hz | 500-5000 Hz | 5-20 kHz |
+| **5 bandas** | 20-80 | 80-300 | 300-2000 | 2000-8000 | 8-20 kHz |
+
+## Implementación en MSP
+
+### Opción 1: matrix~ + biquad~ (Flexible)
+```
+[Entrada] → [matrix~ 1 4] → 4× [biquad~ LR4] → 4× [omx.comp~] → [matrix~ 4 1] → Salida
+```
+
+### Opción 2: crossover~ externo (Optimizado)
+- **crossover~** (Ircam, ICST, etc.)
+- **Maneja internamente** LR4, phase, delay compensation
+
+### Opción 3: pfft~ (Linear Phase FIR)
+```
+[pfft~ crossover 4096 4]
+  → FFT → FIR filters per band → IFFT → 4 outputs
+```
+- **Linear phase perfecto**
+- **Latencia alta** (4096 samples = 93ms @ 44.1k)
+- **CPU alto**
+
+## Artefactos del Crossover y Soluciones
+
+### 1. Phase Distortion (Minimum Phase):
+- **Problema**: Fase no lineal = coloración temporal
+- **Solución**: LR4 (phase matched) o Linear Phase FIR
+
+### 2. Pre-ringing (Linear Phase FIR):
+- **Problema**: Eco pre-transiente
+- **Solución**: Minimum phase LR4, o hybrid (LR4 low, FIR high)
+
+### 3. Aliasing (Non-linear processing en bandas):
+- **Problema**: Compresión = armónicos → aliasing
+- **Solución**: Oversampling 2x-4x en compresores
+
+### 4. Latencia Diferencial:
+- **Problema**: Bandas con distinta latencia = fase rota
+- **Solución**: Compensar delay en todas las bandas al máximo
+
+## Latencia y Compensación
+
+### Latencia por tipo:
+| Tipo | Latencia | Compensable |
+|------|----------|-------------|
+| **LR4 IIR** | ~0.5-2 ms | Sí (delay lines) |
+| **Linear Phase FIR** | 50-200 ms | Sí (reportada) |
+| **Hybrid** | 5-20 ms | Sí |
+
+### Compensación en MSP:
+```
+[Entrada] → [Delay compensación] → [Dry path]
+           ↘ [Multiband Wet] → [Wet path] → [+~] → Salida
+```
+
+## Diseño de Compresor por Banda
+
+### Parámetros típicos por banda (Mastering):
+
+| Banda | Freq | Ratio | Attack | Release | Thresh | Knee | Función |
+|-------|------|-------|--------|---------|--------|------|---------|
+| **Low** | \<120Hz | 1.5-2:1 | 30ms | Auto | -10dB | 3dB | Control sub, mono |
+| **Low-Mid** | 120-500 | 2:1 | 20ms | Auto | -8dB | 3dB | Control mud |
+| **High-Mid** | 500-5k | 2.5:1 | 10ms | 150ms | -6dB | 3dB | Presencia |
+| **High** | >5kHz | 1.5:1 | 5ms | 100ms | -4dB | 3dB | Aire, de-ess |
+
+### Sidechain por banda:
+- **Low**: Sidechain mono (L+R sumado)
+- **Mid/High**: Stereo linked
+
+## Patch de ejemplo: Multiband Compressor Mastering Grade
+
+Incluye:
+1. **Crossover Selector**: LR4 IIR / Linear Phase FIR / Hybrid
+2. **Bandas**: 3 / 4 / 5 (selector)
+3. **Frecuencias crossover**: Editables (sliders + num)
+4. **Por banda (4 instancias)**:
+   - Solo / Mute / Bypass
+   - Threshold, Ratio, Attack, Release, Knee, Makeup
+   - Stereo Link (0-100%)
+   - Sidechain: Interno / Externo / Mono Sum
+   - Detector: Peak / RMS
+   - Auto-Release: On/Off
+   - Gain Reduction Meter + History
+5. **Crossover Quality**:
+   - LR4 IIR (min phase)
+   - Linear Phase FIR (latencia reportada)
+   - Hybrid (LR4 Low/Mid, FIR High)
+   - Oversampling: 1x / 2x / 4x
+6. **Latency Compensation**: Auto / Manual / Off
+6. **Metering**: GR por banda, LUFS por banda, True Peak, Correlation
+7. **Presets**: Mastering, Mix Bus, Broadcast, Streaming, Vinyl
+
+## Resumen
+
+- **Crossover = Corazón** del multibanda
+- **LR4 4º orden** = Estándar mastering (suma perfecta, fase coherente)
+- **Linear Phase FIR** = Fase perfecta, latencia alta
+- **Hybrid** = LR4 low/mid + FIR high = Mejor compromiso
+- **Oversampling 2x-4x** = Evita aliasing en compresión
+- **Latencia compensada** = Esencial para parallel/dry-wet
+- **Por banda**: Parámetros adaptados (Low=lento, High=rápido)
+
+## Ver También
+
+- **omx.comp~** - Compresor por banda
+- **biquad~** - LR4 filters (2× series)
+- **crossover~** (externo) - Crossover optimizado
+- **pfft~** - Linear phase FIR crossover
+- **matrix~** - Routing bandas
+- **omx.lim~** - Limitador por banda

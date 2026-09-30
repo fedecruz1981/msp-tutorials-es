@@ -1,0 +1,267 @@
+---
+title: "Tutorial 9: Ducking"
+description: "Ducking avanzado: sidechain ducking, frequency-selective ducking, multiband ducking, MIDI-triggered ducking, tempo-sync ducking, creative ducking patterns."
+section: "compresion"
+order: 62
+slug: "17-compresion-09-ducking"
+originalUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_09/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/17_msp_compress_09/"
+---
+
+# Tutorial de Compresión 9: Ducking (Sidechaining Avanzado)
+
+El **ducking** es una forma específica de **keying/sidechaining** donde una señal **reduce el volumen** de otra automáticamente. Esencial en radio, podcast, EDM, producción musical y post-producción.
+
+## Ducking Fundamentals
+
+### Arquitectura Básica:
+```
+[Señal Principal (Ducked)] → [Compresor] → Salida
+                    ↑
+[Señal Trigger (Key)] → [Detector] → Controla Gain Reduction
+```
+
+### Parámetros Críticos Ducking:
+| Parámetro | Rango Típico | Función |
+|-----------|--------------|---------|
+| **Threshold** | -30 a -10 dB | Nivel trigger para empezar ducking |
+| **Ratio** | 4:1 - ∞:1 | Cuánto baja (∞:1 = mute total) |
+| **Attack** | 1-20 ms | Velocidad bajada (rápido = inmediato) |
+| **Release** | 100-2000 ms | Velocidad recuperación (lento = natural) |
+| **Knee** | 0-6 dB | Suavidad entrada ducking |
+| **Depth/Range** | -∞ a 0 dB | Cuánto baja máximo (Range control) |
+
+## Tipos de Ducking
+
+### 1. Ducking Clásico (Radio/Voiceover):
+```
+[Música] → [Compresor Ducking] → Salida
+            ↑
+[Voz/Presentador] → [Detector] → Baja música
+```
+- **Threshold**: -20 dB (nivel voz)
+- **Ratio**: 4:1 - 10:1
+- **Attack**: 5-10 ms (rápido, evita "pop" entrada voz)
+- **Release**: 500-2000 ms (lento, retorno suave)
+- **Depth**: -15 a -25 dB (cuánto baja música)
+
+### 2. Kick Ducking (EDM/Dance):
+```
+[Bass/Synth/Pad] → [Compresor] → Salida
+               ↑
+[Kick Drum] → [Detector] → Duck al ritmo
+```
+- **Threshold**: -15 a -25 dB
+- **Ratio**: 10:1 - ∞:1 (limitador)
+- **Attack**: 1-5 ms (ultra-rápido)
+- **Release**: **Tempo-sync** (1/4, 1/8, 1/16 nota)
+- **Depth**: -10 a -20 dB (no mute total, leave tail)
+
+### 3. Vocal Ducking (Producción Musical):
+```
+[Instrumental] → [Compresor] → Salida
+             ↑
+[Voz Principal] → [Detector] → Espacio para voz
+```
+- **Threshold**: -15 dB
+- **Ratio**: 3:1 - 5:1 (moderado)
+- **Attack**: 10-20 ms (deja transientes voz)
+- **Release**: 300-500 ms (natural)
+- **Sidechain HPF**: 150-200 Hz (ignora graves voz)
+- **Depth**: -6 a -12 dB (sutil, no mute)
+
+## Ducking Selectivo Frecuencial (Frequency-Selective Ducking)
+
+### Concepto:
+**Solo ciertas frecuencias** de la señal principal se duckean.
+
+### Arquitectura Multibanda:
+```
+[Señal Principal] → [Crossover 3-4 bandas] →
+  [Banda Low] → [Ducker Key: Kick] →
+  [Banda Mid] → [Ducker Key: Snare/Voz] →
+  [Banda High] → [Ducker Key: Hi-hat/Vocal Ess] →
+  [Suma] → Salida
+```
+
+### Ducking por Banda Típico:
+
+| Banda | Key Source | Threshold | Ratio | Depth | Uso |
+|-------|------------|-----------|-------|-------|-----|
+| **Low (20-100Hz)** | Kick | -20 dB | ∞:1 | -15 dB | Limpia sub para kick |
+| **Low-Mid (100-500Hz)** | Snare | -15 dB | 4:1 | -10 dB | Espacio snare |
+| **Mid (500-2kHz)** | Voz | -12 dB | 3:1 | -6 dB | Claridad vocal |
+| **High (2-10kHz)** | Hi-hat/Ess | -18 dB | 5:1 | -8 dB | De-ess inteligente |
+
+## Ducking Tempo-Sincronizado (Tempo-Sync Ducking)
+
+### Release Tempo-Sync:
+```
+Release_ms = 60000 / BPM × Beats
+```
+
+### Valores Típicos EDM (120 BPM):
+| Nota | Beats | Release | Uso |
+|------|-------|---------|-----|
+| **1/2** | 2.0 | 1000 ms | Ducking largo, pads |
+| **1/4** | 1.0 | 500 ms | Kick ducking estándar |
+| **1/8** | 0.5 | 250 ms | Kick ducking rápido |
+| **1/16** | 0.25 | 125 ms | Hi-hat ducking |
+| **1/32** | 0.125 | 62.5 ms | Micro-ducking, glitch |
+
+### Implementación MSP (Tempo Sync):
+```
+[translate] → [tempo] → [/ 60000] → [*~ beats] → [line~] → [Release time]
+```
+
+### Attack Tempo-Sync (Opcional):
+```
+Attack_ms = 60000 / BPM × Beats_attack
+```
+- **Attack 1/64** = 23 ms @ 120 BPM (muy rápido)
+- **Attack 1/32** = 47 ms
+
+## Ducking Multibanda (Multiband Ducking)
+
+### Arquitectura:
+```
+[Señal Principal] → [Crossover 4 bandas] →
+  [Low] → [Ducker: Key=Kick] →
+  [Low-Mid] → [Ducker: Key=Snare] →
+  [High-Mid] → [Ducker: Key=Voz] →
+  [High] → [Ducker: Key=Hi-hat] →
+  [Suma] → Salida
+```
+
+### Configuración por Banda:
+
+| Banda | Freq | Key Source | Thresh | Ratio | Att | Rel | Depth |
+|-------|------|------------|--------|-------|-----|-----|-------|
+| **Low** | \<100Hz | Kick | -20dB | ∞:1 | 2ms | 1/4 | -15dB |
+| **Low-Mid** | 100-500 | Snare | -15dB | 4:1 | 5ms | 1/8 | -8dB |
+| **High-Mid** | 500-5k | Voz | -10dB | 3:1 | 10ms | 200ms | -6dB |
+| **High** | >5k | Hi-hat | -18dB | 5:1 | 2ms | 1/16 | -5dB |
+
+## MIDI-Triggered Ducking (Ducking Disparado por MIDI)
+
+### Ventajas:
+- **Timing perfecto** (sample-accurate)
+- **Control total envelope** (Attack/Hold/Decay/Release)
+- **Velocity → Depth** (dinámico)
+- **No audio key needed** (limpio, preciso)
+
+### Implementación MSP:
+```
+[MIDI Note] → [notein] → [select note] → 
+  [function envelope] → [line~] → [Gain Computer] → [*~] → Salida
+```
+
+### Envelope Generator (function):
+```
+Attack: 1-10 ms
+Hold: 0-500 ms (duración duck)
+Decay: 50-2000 ms (release)
+Depth: Velocity → Depth (0-100%)
+```
+
+### MIDI Mapping Típico:
+| Nota MIDI | Función |
+|-----------|---------|
+| **C1 (36)** | Kick Duck (Bass) |
+| **D1 (38)** | Snare Duck (Mid) |
+| **F#1 (42)** | Hi-hat Duck (High) |
+| **C2 (48)** | Vocal Duck (Full) |
+
+## Creative Ducking Patterns (Patrones Creativos)
+
+### 1. Sidechain Reverb (Ducking Reverb):
+```
+[Reverb Send] → [Ducker: Key=Dry Signal] → Reverb Return
+```
+- **Dry signal ducks reverb** = Claridad, reverb "respira"
+- **Attack**: 10-20 ms, **Release**: 500-2000 ms
+
+### 2. Delay Ducking (Delay Ducking):
+```
+[Delay Return] → [Ducker: Key=Dry] → Delay Out
+```
+- **Evita** delay masking dry signal
+- **Feedback ducking** = Feedback ducks con dry
+
+### 3. Rhythmic Gate Ducking (Gate Rítmico):
+```
+[Pad/Sustain] → [Gate: Key=Ghost Kick] → Salida
+```
+- **Gate** en lugar de compresor
+- **Attack**: 1 ms, **Hold**: tempo-sync, **Release**: 50 ms
+
+### 4. Reverse Ducking (Swell Ducking):
+```
+[Señal] → [Compresor INVERTIDO] → Salida
+         ↑
+[Trigger] → [Detector] → Gain UP al detectar
+```
+- **Key fuerte** → Gain UP (swell)
+- **Uso**: "Bloom" pads, reverb swells
+
+### 5. Spectral Ducking (Ducking Espectral):
+```
+[Señal] → [FFT] → [Por bin: Duck si Key > Thresh] → [IFFT] → Salida
+```
+- **Ducking por bin FFT** = Quirúrgico frecuencial
+- **Solo frecuencias key** duckean frecuencias correspondientes
+
+## Patch de ejemplo: Ultimate Ducking Station
+
+Incluye:
+1. **Key Input Matrix**:
+   - 4 Key Inputs (Audio Ext / Ghost / MIDI / Interno)
+   - Key Router: Asigna keys a bandas
+2. **Ducking Engine** (4 Bandas + Broadband):
+   - Crossover LR4 (3/4/5 bandas)
+   - Por banda: Threshold, Ratio, Att, Rel, Knee, Depth, Stereo Link
+   - Key Source Selector (Ext 1-4 / Ghost / MIDI / Interno)
+   - Sidechain EQ por banda (HPF/BPF/LPF)
+4. **Ducking Modes**:
+   - Classic (Radio/VO)
+   - EDM Kick (Tempo-sync 1/4, 1/8, 1/16)
+   - Vocal Duck (Sidechain HPF 150Hz)
+   - Multiband (4 bandas, keys independientes)
+   - Spectral (FFT bin ducking)
+   - MIDI Trigger (Note → Envelope → Duck)
+   - Creative: Reverse, Gate, Swell, Spectral
+5. **Envelope Shaper** (Por banda):
+   - Attack/Hold/Decay/Release (function drawable)
+   - Tempo Sync (1/2, 1/4, 1/8, 1/16, dotted, triplet)
+   - Swing offset
+   - Depth/Range control
+5. **Ghost Generator**:
+   - MIDI → click~ → envelope
+   - Pattern Sequencer (16 steps, prob, velocity)
+   - Euclidean Rhythm Generator
+6. **Metering & Visualization**:
+   - GR per banda (history 60s)
+   - Key Activity (level + trigger LEDs)
+   - Ducking Depth visualization
+   - Tempo Sync indicator
+   - Envelope scope (real-time)
+
+## Resumen
+
+- **Ducking Clásico** = Radio/VO, Attack 5-10ms, Release 500-2000ms
+- **Kick Ducking EDM** = Tempo-sync Release (1/4, 1/8), Ratio ∞:1, Depth -15dB
+- **Vocal Ducking** = Sidechain HPF 150Hz, Ratio 3:1, Depth -6dB
+- **Multibanda** = Key independiente por banda (Low=Kick, Mid=Snare, High=Voz)
+- **Tempo-Sync** = Release = 60000/BPM × beats (1/4, 1/8, 1/16)
+- **MIDI Trigger** = Timing perfecto, envelope custom, velocity→depth
+- **Creativo**: Reverb Duck, Delay Duck, Gate Rhythmic, Reverse Swell, Spectral
+- **Ghost Trigger** = click~ + envelope = timing perfecto sin audio
+
+## Ver También
+
+- **omx.comp~** - Compresor con sidechain
+- **function / line~** - Envelope generator
+- **click~ / sah~** - Ghost trigger sample-accurate
+- **translate / tempo** - Tempo sync
+- **crossover~** - Multiband ducking
+- **gate~** - Rhythmic gate ducking

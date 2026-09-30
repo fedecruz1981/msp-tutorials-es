@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="es" data-theme="light" data-astro-cid-ju4pidww><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="Astro v7.3.1"><link rel="canonical" href="https://fedecruz1981.github.io/msp-tutorials-es/tutoriales/17-compresion-10-control-realimentacion/"><title>Tutorial 10: Control de Realimentación | MSP Tutorials ES</title><meta name="description" content="Feedback Control / Anti-Feedback: notch filtering automático, adaptive feedback suppression, frequency shifting, parametric notch banks, live sound, monitor control."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (!theme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/msp-tutorials-es/assets/Sidebar.C4lDIUiC.css"><style>.tutorial-header[data-astro-cid-wfcvaqdp]{border-bottom:1px solid var(--color-border);margin-bottom:2rem;padding-bottom:1.5rem}.breadcrumb[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);text-decoration:none}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]:hover{color:var(--color-primary);text-decoration:underline}.breadcrumb[data-astro-cid-wfcvaqdp] span[data-astro-cid-wfcvaqdp][aria-current]{color:var(--color-text);font-weight:500}.tutorial-header[data-astro-cid-wfcvaqdp] h1[data-astro-cid-wfcvaqdp]{margin-bottom:.5rem;font-size:clamp(1.75rem,4vw,2.5rem)}.tutorial-meta[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);font-size:.875rem}.chapter-nav[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);flex-wrap:wrap;justify-content:space-between;gap:1rem;margin-top:3rem;padding-top:2rem;display:flex}.nav-link[data-astro-cid-wfcvaqdp]{background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);min-width:200px;max-width:350px;transition:all var(--transition);flex:1;padding:1rem 1.25rem;text-decoration:none;display:block}.nav-link[data-astro-cid-wfcvaqdp]:hover{border-color:var(--color-primary);box-shadow:var(--shadow-md);text-decoration:none;transform:translateY(-1px)}.nav-label[data-astro-cid-wfcvaqdp]{text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:.25rem;font-size:.7rem;font-weight:600;display:block}.nav-title[data-astro-cid-wfcvaqdp]{color:var(--color-text);font-size:.875rem;font-weight:500}.nav-link[data-astro-cid-wfcvaqdp].prev .nav-title[data-astro-cid-wfcvaqdp]:before{content:"← "}.nav-link[data-astro-cid-wfcvaqdp].next .nav-title[data-astro-cid-wfcvaqdp]:after{content:" →"}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:right}.tutorial-footer[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-muted);margin-top:3rem;padding-top:2rem;font-size:.875rem}.tutorial-footer[data-astro-cid-wfcvaqdp] p[data-astro-cid-wfcvaqdp]{margin:.5rem 0}.tutorial-footer[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-primary)}@media (width<=640px){.chapter-nav[data-astro-cid-wfcvaqdp]{flex-direction:column}.nav-link[data-astro-cid-wfcvaqdp]{text-align:center;max-width:none}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:center}}
+</style></head><body data-astro-cid-ju4pidww><a href="#main-content" class="skip-link" data-astro-cid-ju4pidww>Saltar al contenido principal</a><div class="page-wrapper" data-astro-cid-ju4pidww><header class="site-header" role="banner" data-astro-cid-ju4pidww><div class="header-inner" data-astro-cid-ju4pidww><a href="/msp-tutorials-es" class="site-logo" aria-label="MSP Tutorials ES - Inicio" data-astro-cid-ju4pidww><svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-ju4pidww><rect width="32" height="32" rx="6" fill="currentColor" data-astro-cid-ju4pidww></rect><path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round" data-astro-cid-ju4pidww></path></svg><span data-astro-cid-ju4pidww>MSP Tutorials</span></a><button class="theme-toggle" aria-label="Cambiar tema" id="theme-toggle" data-astro-cid-ju4pidww><svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><circle cx="12" cy="12" r="5" data-astro-cid-ju4pidww></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" data-astro-cid-ju4pidww></path></svg><svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" data-astro-cid-ju4pidww></path></svg></button></div></header><div class="main-grid" data-astro-cid-ju4pidww><aside class="sidebar" role="navigation" aria-label="Navegación de tutoriales" id="sidebar" data-astro-cid-ju4pidww><nav class="sidebar-nav" data-astro-cid-ju4pidww></nav></aside><main class="main-content" id="main-content" role="main" data-astro-cid-ju4pidww><article class="content-article" data-astro-cid-ju4pidww><nav class="sidebar-nav" aria-label="Tabla de contenidos" data-astro-cid-wv7whodv><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Introducción</div><a href="/msp-tutorials-es/tutoriales/01-msp-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>MSP: Introducción</a><a href="/msp-tutorials-es/tutoriales/02-como-funciona-audio-digital/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona el audio digital</a><a href="/msp-tutorials-es/tutoriales/03-como-funciona-msp/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona MSP</a><a href="/msp-tutorials-es/tutoriales/04-entrada-salida-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Entrada y salida de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Fundamentos</div><a href="/msp-tutorials-es/tutoriales/05-basico-01-tono-prueba/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Tono de prueba</a><a href="/msp-tutorials-es/tutoriales/05-basico-02-oscilador-ajustable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Oscilador ajustable</a><a href="/msp-tutorials-es/tutoriales/05-basico-03-oscilador-tabla-ondas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Oscilador de tabla de ondas</a><a href="/msp-tutorials-es/tutoriales/05-basico-04-enrutamiento-senales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Enrutamiento de señales</a><a href="/msp-tutorials-es/tutoriales/05-basico-05-repaso-fundamentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Repaso de fundamentos</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Síntesis aditiva y de modulación</div><a href="/msp-tutorials-es/tutoriales/06-sintesis-01-aditiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Síntesis aditiva</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-02-tremolo-modulacion-anillo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Trémolo y modulación en anillo</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-03-modulacion-amplitud/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de modulación de amplitud</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-04-vibrato-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Vibrato y FM</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-05-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Síntesis FM</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Muestreo y grabación</div><a href="/msp-tutorials-es/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Grabación y reproducción</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-02-multiples-puntos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Reproducción desde múltiples puntos</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-03-bucles/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Reproducción con bucles</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-04-tabla-ondas-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Tabla de ondas de longitud variable</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-05-waveshaping/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Waveshaping</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-06-archivos-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Grabar y reproducir archivos de audio</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-07-repaso/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Repaso de muestreo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Filtros y síntesis sustractiva</div><a href="/msp-tutorials-es/tutoriales/08-filtros-01-simples/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Filtros simples</a><a href="/msp-tutorials-es/tutoriales/08-filtros-02-tipo-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Filtros de tipo variable</a><a href="/msp-tutorials-es/tutoriales/08-filtros-03-estilo-analogico/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Síntesis estilo analógico</a><a href="/msp-tutorials-es/tutoriales/08-filtros-04-sustractiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Síntesis sustractiva</a><a href="/msp-tutorials-es/tutoriales/08-filtros-05-paralelos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Filtros en paralelo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Procesamiento de dinámicas</div><a href="/msp-tutorials-es/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Seguimiento de envolvente</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-02-procesamiento/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Procesamiento de dinámicas</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-03-distorsion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Distorsión</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>MIDI y MSP</div><a href="/msp-tutorials-es/tutoriales/10-midi-01-mapeo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Mapeo MIDI a MSP</a><a href="/msp-tutorials-es/tutoriales/10-midi-02-sintetizador/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Sintetizador MIDI</a><a href="/msp-tutorials-es/tutoriales/10-midi-03-sampler/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Sampler MIDI</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Polifonía y gestión de recursos</div><a href="/msp-tutorials-es/tutoriales/11-poli-01-poly-objeto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Uso del objeto poly~</a><a href="/msp-tutorials-es/tutoriales/11-poli-02-granular/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Síntesis granular</a><a href="/msp-tutorials-es/tutoriales/11-poli-03-datos-control-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Datos de control a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Secuenciación</div><a href="/msp-tutorials-es/tutoriales/12-secuenciacion-01-tasa-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Secuenciación a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Panoramización</div><a href="/msp-tutorials-es/tutoriales/13-pan-01-simple/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Panoramización simple</a><a href="/msp-tutorials-es/tutoriales/13-pan-02-estereo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Panoramización estéreo</a><a href="/msp-tutorials-es/tutoriales/13-pan-03-multicanal/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Panoramización multicanal</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Análisis</div><a href="/msp-tutorials-es/tutoriales/14-analisis-01-senales-medidores/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Señales y medidores</a><a href="/msp-tutorials-es/tutoriales/14-analisis-02-osciloscopio-espectroscopio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Osciloscopio y espectroscopio</a><a href="/msp-tutorials-es/tutoriales/14-analisis-03-fft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de la FFT</a><a href="/msp-tutorials-es/tutoriales/14-analisis-04-pfft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Procesamiento de señal con pfft~</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Retardos</div><a href="/msp-tutorials-es/tutoriales/15-retardos-01-lineas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Líneas de retardo</a><a href="/msp-tutorials-es/tutoriales/15-retardos-02-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Líneas de retardo con realimentación</a><a href="/msp-tutorials-es/tutoriales/15-retardos-03-ganancia-auto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Realimentación con control automático de ganancia</a><a href="/msp-tutorials-es/tutoriales/15-retardos-04-flanger/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Flanger</a><a href="/msp-tutorials-es/tutoriales/15-retardos-05-chorus/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Chorus</a><a href="/msp-tutorials-es/tutoriales/15-retardos-06-filtro-peine/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Filtro peine</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Plug-ins</div><a href="/msp-tutorials-es/tutoriales/16-plugins-01-efectos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Efectos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-02-instrumentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Instrumentos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-03-amxd/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Dispositivos AMXD</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Compresión</div><a href="/msp-tutorials-es/tutoriales/17-compresion-00-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Introducción: ¿Qué es la compresión?</a><a href="/msp-tutorials-es/tutoriales/17-compresion-01-limite-picos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Limitación de picos</a><a href="/msp-tutorials-es/tutoriales/17-compresion-02-basica/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Compresión básica</a><a href="/msp-tutorials-es/tutoriales/17-compresion-03-ajuste/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Ajuste de compresión</a><a href="/msp-tutorials-es/tutoriales/17-compresion-04-instrumentos-reales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Compresión en instrumentos reales</a><a href="/msp-tutorials-es/tutoriales/17-compresion-05-multibanda-1/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Compresión multibanda 1</a><a href="/msp-tutorials-es/tutoriales/17-compresion-06-multibanda-2/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Compresión multibanda 2</a><a href="/msp-tutorials-es/tutoriales/17-compresion-07-keying/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Keying</a><a href="/msp-tutorials-es/tutoriales/17-compresion-08-microsounds/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 8: Microsounds</a><a href="/msp-tutorials-es/tutoriales/17-compresion-09-ducking/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 9: Ducking</a><a href="/msp-tutorials-es/tutoriales/17-compresion-10-control-realimentacion/" class="sidebar-link active" aria-current="page" data-astro-cid-wv7whodv>Tutorial 10: Control de realimentación</a></div></nav><header class="tutorial-header" data-astro-cid-wfcvaqdp><nav class="breadcrumb" aria-label="Navegación" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es" data-astro-cid-wfcvaqdp>Inicio</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><a href="/msp-tutorials-es/tutoriales/compresion/" data-astro-cid-wfcvaqdp>Compresión</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><span aria-current="page" data-astro-cid-wfcvaqdp>Tutorial 10: Control de Realimentación</span></nav><h1 data-astro-cid-wfcvaqdp>Tutorial 10: Control de Realimentación</h1><p class="tutorial-meta" data-astro-cid-wfcvaqdp>Capítulo 63 de 63 · Sección: Compresión</p><a href="https://docs.cycling74.com/learn/articles/17_msp_compress_10/" class="patcher-download" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-wfcvaqdp><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" data-astro-cid-wfcvaqdp></path></svg>Descargar patcher (.maxpat)</a></header><div class="tutorial-content" data-astro-cid-wfcvaqdp><h1 id="tutorial-de-compresión-10-control-de-realimentación-feedback-control--anti-feedback">Tutorial de Compresión 10: Control de Realimentación (Feedback Control / Anti-Feedback)</h1>
+<p>El <strong>control de realimentación (feedback control)</strong> o <strong>anti-feedback</strong> usa técnicas de compresión/filtraje adaptativo para <strong>eliminar aullidos (howling)</strong> en sistemas de refuerzo sonoro en vivo, monitores de escenario y sistemas PA.</p>
+<h2 id="el-problema-del-feedback">El Problema del Feedback</h2>
+<h3 id="mecanismo">Mecanismo:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Micrófono] → [PA System] → [Altavoz] → [Aire] → [Micrófono] → (Bucle)</span></span></code></pre>
+<h3 id="condición-de-oscilación">Condición de oscilación:</h3>
+<ul>
+<li><strong>Ganancia de bucle ≥ 1</strong> (0 dB)</li>
+<li><strong>Fase total = 0°</strong> (o múltiplo 360°)</li>
+<li><strong>Frecuencia</strong> = Donde ganancia y fase coinciden</li>
+</ul>
+<h3 id="resultado">Resultado:</h3>
+<ul>
+<li><strong>Aullido (Howling)</strong>: Tono puro en frecuencia resonante</li>
+<li><strong>Ringing</strong>: Decay lento post-señal (pre-feedback)</li>
+<li><strong>Frecuencias típicas</strong>: 1-4 kHz (formantes voz), 80-200 Hz (resonancia sala)</li>
+</ul>
+<h2 id="enfoques-anti-feedback">Enfoques Anti-Feedback</h2>
+<h3 id="1-notch-filtering-automático-auto-notching">1. Notch Filtering Automático (Auto-Notching)</h3>
+<h4 id="principio">Principio:</h4>
+<p><strong>Detecta frecuencia feedback</strong> → <strong>Inserta notch filter</strong> en esa frecuencia.</p>
+<h4 id="algoritmo">Algoritmo:</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [Análisis Espectral] → [Detección Pico Sostenido] → </span></span>
+<span class="line"><span>  [Freq Detectada] → [Notch Filter] → [Señal Procesada]</span></span></code></pre>
+<h4 id="detección">Detección:</h4>
+<ul>
+<li><strong>Pico espectral</strong> que <strong>persiste</strong> &gt; threshold tiempo (ej. 500ms)</li>
+<li><strong>Ganancia</strong> &gt; nivel referencia (ej. +6 dB sobre promedio)</li>
+<li><strong>Q alto</strong> = Estrecho (feedback tonal)</li>
+</ul>
+<h4 id="implementación-msp">Implementación MSP:</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [fft~ / pfft~] → [Peak Detect: peakamp~ peakfreq~] → </span></span>
+<span class="line"><span>  [Threshold + Persistence Check] → </span></span>
+<span class="line"><span>  [Notch Filter Bank: biquad~ notch] → [Salida]</span></span></code></pre>
+<h3 id="2-frequency-shifting-desplazamiento-frecuencial">2. Frequency Shifting (Desplazamiento Frecuencial)</h3>
+<h4 id="principio-1">Principio:</h4>
+<p><strong>Desplaza ligeramente</strong> toda la señal (ej. ±5 Hz) → <strong>Rompe coherencia fase</strong> en bucle.</p>
+<h4 id="efecto">Efecto:</h4>
+<ul>
+<li><strong>Rompe condición fase = 0°</strong> en frecuencias feedback</li>
+<li><strong>Permite +6 a +12 dB</strong> más ganancia antes feedback</li>
+<li><strong>Efecto secundario</strong>: Ligero “chorus” / desafinación (inaudible &lt; 10 Hz)</li>
+</ul>
+<h4 id="implementación">Implementación:</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [Frequency Shifter: hilbert~ / fshift~] → [Salida]</span></span>
+<span class="line"><span>Shift = ±5 Hz (configurable)</span></span></code></pre>
+<h4 id="en-msp">En MSP:</h4>
+<ul>
+<li><strong>fshift~</strong> (externo, Ircam) o <strong>hilbert~ + freqshift~</strong> custom</li>
+<li><strong>Shift adaptativo</strong>: Aumenta si detecta feedback inminente</li>
+</ul>
+<h3 id="3-parametric-notch-banks-bancos-de-notches-paramétricos">3. Parametric Notch Banks (Bancos de Notches Paramétricos)</h3>
+<h4 id="configuración-proactiva">Configuración Proactiva:</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [Notch 1] → [Notch 2] → [Notch 3] → ... → [Salida]</span></span>
+<span class="line"><span>   Freq 1    Freq 2    Freq 3</span></span>
+<span class="line"><span>   Q 30      Q 30      Q 30</span></span>
+<span class="line"><span>   Gain -∞   Gain -∞   Gain -∞</span></span></code></pre>
+<h4 id="frecuencias-problemáticas-comunes-sala-típica">Frecuencias Problemáticas Comunes (Sala típica):</h4>
+<table>
+<thead>
+<tr>
+<th>Frecuencia</th>
+<th>Causa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>60-80 Hz</strong></td>
+<td>Resonancia sala, HVAC</td>
+</tr>
+<tr>
+<td><strong>120-150 Hz</strong></td>
+<td>Resonancia caja, piso</td>
+</tr>
+<tr>
+<td><strong>250-350 Hz</strong></td>
+<td>Mud, resonancia media</td>
+</tr>
+<tr>
+<td><strong>500-800 Hz</strong></td>
+<td>Nasal, resonancia caja</td>
+</tr>
+<tr>
+<td><strong>1-2 kHz</strong></td>
+<td>Formantes voz, presencia</td>
+</tr>
+<tr>
+<td><strong>2.5-4 kHz</strong></td>
+<td>Feedback clásico, sibilancia</td>
+</tr>
+<tr>
+<td><strong>5-8 kHz</strong></td>
+<td>Sibilancia, brillo excesivo</td>
+</tr>
+</tbody>
+</table>
+<h4 id="auto-notching--notch-bank-híbrido">Auto-Notching + Notch Bank Híbrido:</h4>
+<ul>
+<li><strong>Notches fijos</strong> (profilácticos) en frecuencias conocidas</li>
+<li><strong>Auto-notches</strong> (reactivos) para frecuencias imprevistas</li>
+</ul>
+<h3 id="4-adaptive-feedback-suppression-supresión-adaptativa">4. Adaptive Feedback Suppression (Supresión Adaptativa)</h3>
+<h4 id="algoritmo-lmsrls-least-mean-squares">Algoritmo LMS/RLS (Least Mean Squares):</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Mic] → [Adaptive Filter] → [Estimación Feedback] → [Resta] → [Salida]</span></span>
+<span class="line"><span>                    ↑</span></span>
+<span class="line"><span>               [Referencia: PA Out]</span></span></code></pre>
+<h4 id="principio-2">Principio:</h4>
+<ul>
+<li><strong>Filtro adaptativo</strong> modela <strong>ruta acústica</strong> Mic→Altavoz→Mic</li>
+<li><strong>Resta estimación</strong> de feedback de señal micrófono</li>
+<li><strong>Convergencia</strong>: Continua (tracking cambios sala)</li>
+</ul>
+<h4 id="ventajas">Ventajas:</h4>
+<ul>
+<li><strong>Elimina feedback</strong> sin notches audibles</li>
+<li><strong>Preserva tono</strong> natural</li>
+<li><strong>Tracking</strong> cambios (gente moviéndose, temp/humedad)</li>
+</ul>
+<h4 id="en-msp-1">En MSP:</h4>
+<ul>
+<li><strong>lms~ / rls~</strong> (externos, Ircam, ICST)</li>
+<li><strong>Orden filtro</strong>: 64-256 taps</li>
+<li><strong>Step size (μ)</strong>: 0.001-0.01 (estabilidad vs velocidad)</li>
+</ul>
+<h2 id="aplicaciones-por-contexto">Aplicaciones por Contexto</h2>
+<h3 id="1-monitores-de-escena-stage-monitors--wedges">1. Monitores de Escena (Stage Monitors / Wedges):</h3>
+<ul>
+<li><strong>Problema</strong>: Micrófono vocal → Wedge → Micrófono</li>
+<li><strong>Solución</strong>: Notch bank 6-12 notches + Auto-notch 2-4</li>
+<li><strong>Gain antes feedback</strong>: +12-18 dB típico</li>
+</ul>
+<h3 id="2-sistema-principal-foh---front-of-house">2. Sistema Principal (FOH - Front of House):</h3>
+<ul>
+<li><strong>Problema</strong>: Micrófonos → PA Principal → Sala → Micrófonos</li>
+<li><strong>Solución</strong>: Frequency Shifter (±5 Hz) + Notch Bank 8-12</li>
+<li><strong>Gain antes feedback</strong>: +15-20 dB</li>
+</ul>
+<h3 id="3-sistemas-in-ear--auriculares">3. Sistemas In-Ear / Auriculares:</h3>
+<ul>
+<li><strong>Problema</strong>: Micrófono → IEM → Fuga acústica → Micrófono</li>
+<li><strong>Solución</strong>: Frequency Shifter (±3 Hz) + Limitador pico</li>
+</ul>
+<h3 id="4-conferencias--instalaciones-fijas">4. Conferencias / Instalaciones Fijas:</h3>
+<ul>
+<li><strong>Problema</strong>: Múltiples micrófonos abiertos</li>
+<li><strong>Solución</strong>: Auto-mixer + Feedback Suppression adaptativo</li>
+<li><strong>Auto-mixer</strong>: Gates + Gain sharing (Dugan, etc.)</li>
+</ul>
+<h2 id="implementación-msp-sistema-anti-feedback-completo">Implementación MSP: Sistema Anti-Feedback Completo</h2>
+<h3 id="arquitectura-modular">Arquitectura Modular:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Entrada Mic] → [Pre-Gain] → </span></span>
+<span class="line"><span>  [Frequency Shifter: ±5Hz] → </span></span>
+<span class="line"><span>  [Notch Bank Proactivo: 12 notches] → </span></span>
+<span class="line"><span>  [Auto-Notch Reactivo: 4 notches] → </span></span>
+<span class="line"><span>  [Adaptive Filter (LMS): Opcional] → </span></span>
+<span class="line"><span>  [Limitador Pico: -6 dBFS] → [Salida]</span></span></code></pre>
+<h3 id="módulo-1-frequency-shifter">Módulo 1: Frequency Shifter</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [fshift~ ±5Hz] → [Salida]</span></span>
+<span class="line"><span>Control: Shift Amount (0-10 Hz), Modulation (LFO 0.1Hz)</span></span></code></pre>
+<h3 id="módulo-2-proactive-notch-bank-12-notches-fijos">Módulo 2: Proactive Notch Bank (12 notches fijos)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [matrix~ 1 12] → 12× [biquad~ notch] → [matrix~ 12 1] → [Salida]</span></span>
+<span class="line"><span>Freqs: [65, 85, 125, 160, 250, 350, 500, 700, 1000, 2000, 3500, 6000] Hz</span></span>
+<span class="line"><span>Q: 30 (todos), Gain: -60 dB (notch profundo)</span></span></code></pre>
+<h3 id="módulo-3-reactive-auto-notch-4-notches-adaptativos">Módulo 3: Reactive Auto-Notch (4 notches adaptativos)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Señal] → [pfft~ spectral_analysis 2048] → </span></span>
+<span class="line"><span>  [Peak Detect: peakamp~ + peakfreq~ + persistence] →</span></span>
+<span class="line"><span>  [4× Notch Generator: freq detectada → biquad~ notch] →</span></span>
+<span class="line"><span>  [Salida]</span></span>
+<span class="line"><span>Persistence: 500 ms, Threshold: +6 dB sobre media</span></span></code></pre>
+<h3 id="módulo-4-adaptive-filter-lms---opcional">Módulo 4: Adaptive Filter (LMS) - Opcional</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Mic In] → [lms~ 128 taps μ=0.005] → [Estimación Feedback] → [-~] → [Salida]</span></span>
+<span class="line"><span>           ↑                                              ↓</span></span>
+<span class="line"><span>        [PA Out] ------------------------------------------┘</span></span>
+<span class="line"><span>Reference: PA Output (post-processing)</span></span>
+<span class="line"><span>Step size μ: 0.001 (estable) a 0.01 (rápido)</span></span></code></pre>
+<h2 id="patch-de-ejemplo-live-feedback-controller-pro">Patch de ejemplo: Live Feedback Controller Pro</h2>
+<p>Incluye:</p>
+<ol>
+<li><strong>Input Section</strong>:
+<ul>
+<li>Mic Gain (+48V phantom toggle)</li>
+<li>HPF 80 Hz (elimina rumble)</li>
+<li>Phase Invert (fix polarity)</li>
+</ul>
+</li>
+<li><strong>Frequency Shifter</strong>:
+<ul>
+<li>Shift: -10 a +10 Hz (slider)</li>
+<li>Modulation: LFO 0.05-0.5 Hz, Depth 0-2 Hz</li>
+<li>Bypass toggle</li>
+</ul>
+</li>
+<li><strong>Proactive Notch Bank (12 notches)</strong>:
+<ul>
+<li>Freq/Q/Gain por notch (editable)</li>
+<li>Presets: Sala pequeña/mediana/grande, Exterior, Wedges</li>
+<li>Learn Mode: Auto-detect room modes (noise burst + FFT)</li>
+</ul>
+</li>
+<li><strong>Reactive Auto-Notch (4 notches)</strong>:
+<ul>
+<li>Sensitivity: Threshold +6 a +18 dB</li>
+<li>Persistence: 200-2000 ms</li>
+<li>Max Notch Depth: -30 a -80 dB</li>
+<li>Q: 20-100 (ajustable)</li>
+<li>Hold Time: 1-30 seg (antes liberar notch)</li>
+</ul>
+</li>
+<li><strong>Adaptive Filter (LMS)</strong>:
+<ul>
+<li>Enable/Disable</li>
+<li>Filter Length: 64-512 taps</li>
+<li>Step Size (μ): 0.001-0.01</li>
+<li>Leakage Factor: 0-0.001</li>
+<li>Convergence Meter</li>
+</ul>
+</li>
+<li><strong>Safety Net</strong>:
+<ul>
+<li>Peak Limiter: Ceiling -3 dBFS, Lookahead 2ms</li>
+<li>RMS Limiter: Threshold -6 dBFS, Ratio 10:1</li>
+<li>DC Block (HPF 10 Hz)</li>
+<li>Kill Switch (Mute instant)</li>
+</ul>
+</li>
+<li><strong>Monitoring &amp; Analysis</strong>:
+<ul>
+<li>Real-time Spectrum (fft~ + spectroscope~)</li>
+<li>Feedback Risk Meter (0-100%)</li>
+<li>Active Notches Display (freq, depth, Q)</li>
+<li>Gain Before Feedback Estimate (dB)</li>
+<li>Frequency Shifter Status</li>
+<li>Adaptive Filter Convergence</li>
+</ul>
+</li>
+<li><strong>Presets</strong>: Wedges, Sidefills, FOH, In-Ear, Conference, Instalación</li>
+<li><strong>MIDI/OSC Control</strong>: Todos params remotables</li>
+</ol>
+<h2 id="resumen">Resumen</h2>
+<ul>
+<li><strong>Feedback</strong> = Ganancia bucle ≥ 1 + Fase 0°</li>
+<li><strong>Frequency Shifting</strong> (±5 Hz) = +6-12 dB gain antes feedback</li>
+<li><strong>Notch Bank Proactivo</strong> = 8-12 notches en frecs conocidas</li>
+<li><strong>Auto-Notch Reactivo</strong> = Detecta + Inserta notch (persistencia 500ms)</li>
+<li><strong>Adaptive Filter (LMS)</strong> = Modela ruta acústica, resta feedback</li>
+<li><strong>Frequency Shifting + Notches</strong> = Combinación óptima</li>
+<li><strong>Contextos</strong>: Wedges (+12dB), FOH (+18dB), IEM (+10dB), Instalaciones</li>
+<li><strong>Safety Net</strong> = Limiter + DC Block + Kill Switch obligatorio</li>
+</ul>
+<h2 id="ver-también">Ver También</h2>
+<ul>
+<li><strong>fshift~ / hilbert~</strong> - Frequency shifting</li>
+<li><strong>biquad~</strong> - Notch filters</li>
+<li><strong>pfft~ / peakamp~ / peakfreq~</strong> - Spectral analysis</li>
+<li><strong>lms~ / rls~</strong> - Adaptive filters (externos)</li>
+<li><strong>omx.lim~</strong> - Safety limiter</li>
+<li><strong>fft~ / ifft~</strong> - Spectral processing</li>
+</ul></div><nav class="chapter-nav" aria-label="Navegación entre capítulos" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link prev" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Capítulo anterior</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 9: Ducking</span></a></nav><footer class="tutorial-footer" data-astro-cid-wfcvaqdp><p data-astro-cid-wfcvaqdp>Contenido original: <a href="https://docs.cycling74.com/learn/articles/17_msp_compress_10/" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp>Cycling '74 MSP Tutorials</a></p><p data-astro-cid-wfcvaqdp>Traducción no oficial con fines educativos. Código y sintaxis MSP en inglés original.</p></footer></article></main></div><footer class="site-footer" role="contentinfo" data-astro-cid-ju4pidww><div class="footer-inner" data-astro-cid-ju4pidww><p data-astro-cid-ju4pidww>Traducción no oficial de los <a href="https://docs.cycling74.com/learn/series/msp-tutorials/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>MSP Tutorials</a> de Cycling '74.</p><p data-astro-cid-ju4pidww>Código y sintaxis de objetos MSP se mantienen en inglés original.</p><p class="license" data-astro-cid-ju4pidww>Contenido bajo licencia de Cycling '74. <a href="https://docs.cycling74.com/learn/license/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>Ver licencia</a></p></div></footer></div><script type="module">var e=document.getElementById(`theme-toggle`),t=document.documentElement;e.addEventListener(`click`,()=>{let e=t.getAttribute(`data-theme`)===`dark`?`light`:`dark`;t.setAttribute(`data-theme`,e),localStorage.setItem(`theme`,e)});var n=document.getElementById(`sidebar`),r=0;window.addEventListener(`scroll`,()=>{let e=window.pageYOffset;e>r&&e>100?n.classList.add(`scrolled`):n.classList.remove(`scrolled`),r=e});</script></body></html>

@@ -1,0 +1,151 @@
+---
+title: "Tutorial 1: Efectos"
+description: "Plug-ins de efectos VST/AU en MSP: vst~, plug~, parameter automation, preset management, MIDI control, latency compensation."
+section: "plugins"
+order: 50
+slug: "16-plugins-01-efectos"
+originalUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/16_pluginchapter01/"
+---
+
+# Tutorial de Plug-ins 1: Efectos (VST/AU)
+
+MSP soporta **plug-ins de efectos VST2/VST3/AU** vía el objeto **vst~** (y **plug~** para VST3), permitiendo usar efectos comerciales dentro de patches MSP.
+
+## Objeto vst~ (VST2/AU)
+
+### Carga básica:
+```
+[vst~ nombre_plugin]
+```
+- **Argumento**: Nombre del plugin (busca en carpetas VST/AU estándar)
+- **Sin argumento**: Abre diálogo de selección
+
+### Entradas/Salidas:
+- **Inlets**: Audio in (pares L/R) + MIDI/control
+- **Outlets**: Audio out (pares L/R) + parámetros/estado
+- **Canales**: Configurable (estéreo default, hasta 64)
+
+### Mensajes principales:
+| Mensaje | Función |
+|---------|---------|
+| `open nombre` | Cargar plugin |
+| `close` | Descargar plugin |
+| `bypass 1/0` | Bypass on/off |
+| `params` | Lista parámetros (salida outlet derecho) |
+| `get N` | Obtener valor parámetro N |
+| `set N valor` | Establecer parámetro N |
+| `program N` | Cargar programa/preset N |
+| `pgmnames` | Lista nombres programas |
+
+## Automatización de Parámetros
+
+### Control en tiempo real:
+```
+[ctlin] → [scale 0 127 0 1] → [prepend set N] → [vst~]
+```
+- **MIDI CC** → Escalado 0-1 → `set N` al vst~
+
+### Automatización por señal (Audio-rate):
+```
+[phasor~ 0.1] → [scale -1 1 0 1] → [vst~ param N]
+```
+- **Señal MSP** → Control sample-accurado
+- **Requiere**: Plugin soporte sample-accurate automation
+
+### Rampas suaves (line~):
+```
+[line~] → [prepend set N] → [vst~]
+```
+- **Transiciones suaves** entre valores
+- **Evita zipper noise** en plugins sensibles
+
+## Gestión de Presets
+
+### Programas internos del plugin:
+```
+[vst~] → [program 3]  (carga preset #3)
+[vst~] → [pgmnames]   (lista nombres → outlet derecho)
+```
+
+### Presets externos (Max presets):
+```
+[pattrstorage] → [vst~]  (pattr vincula parámetros)
+```
+- **pattr** vincula parámetros vst~ a storage
+- **Interpolación** entre presets (morphing)
+
+### Banks/Programs (VST):
+```
+[vst~] → [fxb nombre.fxb]  (carga bank)
+[vst~] → [fxp nombre.fxp]  (carga programa individual)
+```
+
+## Control MIDI
+
+### MIDI a vst~:
+```
+[midiin] → [vst~]  (envía MIDI directamente)
+```
+- **Note On/Off**, **CC**, **Pitch Bend**, **Aftertouch**
+- **Channel** configurable (atributo `midichan`)
+
+### MPE (MIDI Polyphonic Expression):
+- **vst~** soporta MPE si plugin lo soporta
+- **Per-note** pitch bend, timbre, pressure
+
+## Compensación de Latencia (Latency Compensation)
+
+### Problema:
+Plugins añaden **latencia** (look-ahead, FFT, etc.) → Desfase temporal
+
+### Solución en MSP:
+```
+[vst~] → [delay~ compensation_ms]  (en dry path)
+```
+- **Latencia reportada**: `[vst~] → [getlatency]` (ms)
+- **Compensación**: Delay en camino dry = latencia plugin
+- **Auto**: Atributo `latencycomp 1` (auto-compensa en Max 8+)
+
+## Patch de ejemplo: FX Rack con 8 Slots
+
+Incluye:
+1. **8× vst~** en serie/paralelo (selector routing)
+2. **Browser integrado**: File browser → drag&drop a slots
+3. **Por slot**:
+   - Plugin selector (browser + recent)
+   - Bypass (toggle)
+   - Input/Output gain
+   - Dry/Wet mix
+   - MIDI learn (CC → param)
+   - Latency display + auto-compensate toggle
+4. **Routing Matrix** (8×8 matrix~):
+   - Serial / Parallel / Send/Return
+   - Pre/Post fader sends
+5. **Global**:
+   - Tempo sync (transport → plugins)
+   - MIDI channel global + per-slot
+   - Bypass all / Solo slot
+6. **Preset Manager**:
+   - Snapshots completos (pattrstorage)
+   - Morph entre snapshots (crossfade params)
+   - Import/Export .json
+7. **MIDI Learn UI**: Click param → move CC → asignado
+
+## Resumen
+
+- **vst~** = Host VST2/AU en MSP (plug~ para VST3)
+- **Parámetros**: `set N valor`, `get N`, `params`, automatización señal
+- **Presets**: `program N`, `pgmnames`, pattrstorage para morphing
+- **MIDI**: Directo a vst~, MPE support
+- **Latencia**: `getlatency`, `delay~` compensación, `latencycomp 1`
+- **Routing**: matrix~ para racks complejos
+
+## Ver También
+
+- **vst~** - Host VST2/AU principal
+- **plug~** - Host VST3 (Max 8+)
+- **pattr / pattrstorage** - Gestión presets avanzada
+- **delay~** - Compensación latencia
+- **midiparse / midiformat** - MIDI parsing
+- **pattrmarker** - Interpolación presets

@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="es" data-theme="light" data-astro-cid-ju4pidww><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="Astro v7.3.1"><link rel="canonical" href="https://fedecruz1981.github.io/msp-tutorials-es/tutoriales/14-analisis-03-fft/"><title>Tutorial 3: Uso de la FFT | MSP Tutorials ES</title><meta name="description" content="FFT en MSP: fft~, ifft~, pfft~, real/imag, magnitude/phase, windowing, overlap, convolution, filtering, pitch shifting, spectral processing."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (!theme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/msp-tutorials-es/assets/Sidebar.C4lDIUiC.css"><style>.tutorial-header[data-astro-cid-wfcvaqdp]{border-bottom:1px solid var(--color-border);margin-bottom:2rem;padding-bottom:1.5rem}.breadcrumb[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);text-decoration:none}.breadcrumb[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]:hover{color:var(--color-primary);text-decoration:underline}.breadcrumb[data-astro-cid-wfcvaqdp] span[data-astro-cid-wfcvaqdp][aria-current]{color:var(--color-text);font-weight:500}.tutorial-header[data-astro-cid-wfcvaqdp] h1[data-astro-cid-wfcvaqdp]{margin-bottom:.5rem;font-size:clamp(1.75rem,4vw,2.5rem)}.tutorial-meta[data-astro-cid-wfcvaqdp]{color:var(--color-text-muted);font-size:.875rem}.chapter-nav[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);flex-wrap:wrap;justify-content:space-between;gap:1rem;margin-top:3rem;padding-top:2rem;display:flex}.nav-link[data-astro-cid-wfcvaqdp]{background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);min-width:200px;max-width:350px;transition:all var(--transition);flex:1;padding:1rem 1.25rem;text-decoration:none;display:block}.nav-link[data-astro-cid-wfcvaqdp]:hover{border-color:var(--color-primary);box-shadow:var(--shadow-md);text-decoration:none;transform:translateY(-1px)}.nav-label[data-astro-cid-wfcvaqdp]{text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:.25rem;font-size:.7rem;font-weight:600;display:block}.nav-title[data-astro-cid-wfcvaqdp]{color:var(--color-text);font-size:.875rem;font-weight:500}.nav-link[data-astro-cid-wfcvaqdp].prev .nav-title[data-astro-cid-wfcvaqdp]:before{content:"← "}.nav-link[data-astro-cid-wfcvaqdp].next .nav-title[data-astro-cid-wfcvaqdp]:after{content:" →"}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:right}.tutorial-footer[data-astro-cid-wfcvaqdp]{border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-muted);margin-top:3rem;padding-top:2rem;font-size:.875rem}.tutorial-footer[data-astro-cid-wfcvaqdp] p[data-astro-cid-wfcvaqdp]{margin:.5rem 0}.tutorial-footer[data-astro-cid-wfcvaqdp] a[data-astro-cid-wfcvaqdp]{color:var(--color-primary)}@media (width<=640px){.chapter-nav[data-astro-cid-wfcvaqdp]{flex-direction:column}.nav-link[data-astro-cid-wfcvaqdp]{text-align:center;max-width:none}.nav-link[data-astro-cid-wfcvaqdp].next{text-align:center}}
+</style></head><body data-astro-cid-ju4pidww><a href="#main-content" class="skip-link" data-astro-cid-ju4pidww>Saltar al contenido principal</a><div class="page-wrapper" data-astro-cid-ju4pidww><header class="site-header" role="banner" data-astro-cid-ju4pidww><div class="header-inner" data-astro-cid-ju4pidww><a href="/msp-tutorials-es" class="site-logo" aria-label="MSP Tutorials ES - Inicio" data-astro-cid-ju4pidww><svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" data-astro-cid-ju4pidww><rect width="32" height="32" rx="6" fill="currentColor" data-astro-cid-ju4pidww></rect><path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round" data-astro-cid-ju4pidww></path></svg><span data-astro-cid-ju4pidww>MSP Tutorials</span></a><button class="theme-toggle" aria-label="Cambiar tema" id="theme-toggle" data-astro-cid-ju4pidww><svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><circle cx="12" cy="12" r="5" data-astro-cid-ju4pidww></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" data-astro-cid-ju4pidww></path></svg><svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-ju4pidww><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" data-astro-cid-ju4pidww></path></svg></button></div></header><div class="main-grid" data-astro-cid-ju4pidww><aside class="sidebar" role="navigation" aria-label="Navegación de tutoriales" id="sidebar" data-astro-cid-ju4pidww><nav class="sidebar-nav" data-astro-cid-ju4pidww></nav></aside><main class="main-content" id="main-content" role="main" data-astro-cid-ju4pidww><article class="content-article" data-astro-cid-ju4pidww><nav class="sidebar-nav" aria-label="Tabla de contenidos" data-astro-cid-wv7whodv><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Introducción</div><a href="/msp-tutorials-es/tutoriales/01-msp-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>MSP: Introducción</a><a href="/msp-tutorials-es/tutoriales/02-como-funciona-audio-digital/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona el audio digital</a><a href="/msp-tutorials-es/tutoriales/03-como-funciona-msp/" class="sidebar-link " data-astro-cid-wv7whodv>Cómo funciona MSP</a><a href="/msp-tutorials-es/tutoriales/04-entrada-salida-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Entrada y salida de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Fundamentos</div><a href="/msp-tutorials-es/tutoriales/05-basico-01-tono-prueba/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Tono de prueba</a><a href="/msp-tutorials-es/tutoriales/05-basico-02-oscilador-ajustable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Oscilador ajustable</a><a href="/msp-tutorials-es/tutoriales/05-basico-03-oscilador-tabla-ondas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Oscilador de tabla de ondas</a><a href="/msp-tutorials-es/tutoriales/05-basico-04-enrutamiento-senales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Enrutamiento de señales</a><a href="/msp-tutorials-es/tutoriales/05-basico-05-repaso-fundamentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Repaso de fundamentos</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Síntesis aditiva y de modulación</div><a href="/msp-tutorials-es/tutoriales/06-sintesis-01-aditiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Síntesis aditiva</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-02-tremolo-modulacion-anillo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Trémolo y modulación en anillo</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-03-modulacion-amplitud/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Uso de modulación de amplitud</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-04-vibrato-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Vibrato y FM</a><a href="/msp-tutorials-es/tutoriales/06-sintesis-05-fm/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Síntesis FM</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Muestreo y grabación</div><a href="/msp-tutorials-es/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Grabación y reproducción</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-02-multiples-puntos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Reproducción desde múltiples puntos</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-03-bucles/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Reproducción con bucles</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-04-tabla-ondas-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Tabla de ondas de longitud variable</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-05-waveshaping/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Waveshaping</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-06-archivos-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Grabar y reproducir archivos de audio</a><a href="/msp-tutorials-es/tutoriales/07-muestreo-07-repaso/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Repaso de muestreo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Filtros y síntesis sustractiva</div><a href="/msp-tutorials-es/tutoriales/08-filtros-01-simples/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Filtros simples</a><a href="/msp-tutorials-es/tutoriales/08-filtros-02-tipo-variable/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Filtros de tipo variable</a><a href="/msp-tutorials-es/tutoriales/08-filtros-03-estilo-analogico/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Síntesis estilo analógico</a><a href="/msp-tutorials-es/tutoriales/08-filtros-04-sustractiva/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Síntesis sustractiva</a><a href="/msp-tutorials-es/tutoriales/08-filtros-05-paralelos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Filtros en paralelo</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Procesamiento de dinámicas</div><a href="/msp-tutorials-es/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Seguimiento de envolvente</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-02-procesamiento/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Procesamiento de dinámicas</a><a href="/msp-tutorials-es/tutoriales/09-dinamicas-03-distorsion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Distorsión</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>MIDI y MSP</div><a href="/msp-tutorials-es/tutoriales/10-midi-01-mapeo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Mapeo MIDI a MSP</a><a href="/msp-tutorials-es/tutoriales/10-midi-02-sintetizador/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Sintetizador MIDI</a><a href="/msp-tutorials-es/tutoriales/10-midi-03-sampler/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Sampler MIDI</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Polifonía y gestión de recursos</div><a href="/msp-tutorials-es/tutoriales/11-poli-01-poly-objeto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Uso del objeto poly~</a><a href="/msp-tutorials-es/tutoriales/11-poli-02-granular/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Síntesis granular</a><a href="/msp-tutorials-es/tutoriales/11-poli-03-datos-control-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Datos de control a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Secuenciación</div><a href="/msp-tutorials-es/tutoriales/12-secuenciacion-01-tasa-audio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Secuenciación a tasa de audio</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Panoramización</div><a href="/msp-tutorials-es/tutoriales/13-pan-01-simple/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Panoramización simple</a><a href="/msp-tutorials-es/tutoriales/13-pan-02-estereo/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Panoramización estéreo</a><a href="/msp-tutorials-es/tutoriales/13-pan-03-multicanal/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Panoramización multicanal</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Análisis</div><a href="/msp-tutorials-es/tutoriales/14-analisis-01-senales-medidores/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Señales y medidores</a><a href="/msp-tutorials-es/tutoriales/14-analisis-02-osciloscopio-espectroscopio/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Osciloscopio y espectroscopio</a><a href="/msp-tutorials-es/tutoriales/14-analisis-03-fft/" class="sidebar-link active" aria-current="page" data-astro-cid-wv7whodv>Tutorial 3: Uso de la FFT</a><a href="/msp-tutorials-es/tutoriales/14-analisis-04-pfft/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Procesamiento de señal con pfft~</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Retardos</div><a href="/msp-tutorials-es/tutoriales/15-retardos-01-lineas/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Líneas de retardo</a><a href="/msp-tutorials-es/tutoriales/15-retardos-02-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Líneas de retardo con realimentación</a><a href="/msp-tutorials-es/tutoriales/15-retardos-03-ganancia-auto/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Realimentación con control automático de ganancia</a><a href="/msp-tutorials-es/tutoriales/15-retardos-04-flanger/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Flanger</a><a href="/msp-tutorials-es/tutoriales/15-retardos-05-chorus/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Chorus</a><a href="/msp-tutorials-es/tutoriales/15-retardos-06-filtro-peine/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Filtro peine</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Plug-ins</div><a href="/msp-tutorials-es/tutoriales/16-plugins-01-efectos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Efectos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-02-instrumentos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Instrumentos</a><a href="/msp-tutorials-es/tutoriales/16-plugins-03-amxd/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Dispositivos AMXD</a></div><div class="sidebar-section" data-astro-cid-wv7whodv><div class="sidebar-section-title" data-astro-cid-wv7whodv>Compresión</div><a href="/msp-tutorials-es/tutoriales/17-compresion-00-introduccion/" class="sidebar-link " data-astro-cid-wv7whodv>Introducción: ¿Qué es la compresión?</a><a href="/msp-tutorials-es/tutoriales/17-compresion-01-limite-picos/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 1: Limitación de picos</a><a href="/msp-tutorials-es/tutoriales/17-compresion-02-basica/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 2: Compresión básica</a><a href="/msp-tutorials-es/tutoriales/17-compresion-03-ajuste/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 3: Ajuste de compresión</a><a href="/msp-tutorials-es/tutoriales/17-compresion-04-instrumentos-reales/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 4: Compresión en instrumentos reales</a><a href="/msp-tutorials-es/tutoriales/17-compresion-05-multibanda-1/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 5: Compresión multibanda 1</a><a href="/msp-tutorials-es/tutoriales/17-compresion-06-multibanda-2/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 6: Compresión multibanda 2</a><a href="/msp-tutorials-es/tutoriales/17-compresion-07-keying/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 7: Keying</a><a href="/msp-tutorials-es/tutoriales/17-compresion-08-microsounds/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 8: Microsounds</a><a href="/msp-tutorials-es/tutoriales/17-compresion-09-ducking/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 9: Ducking</a><a href="/msp-tutorials-es/tutoriales/17-compresion-10-control-realimentacion/" class="sidebar-link " data-astro-cid-wv7whodv>Tutorial 10: Control de realimentación</a></div></nav><header class="tutorial-header" data-astro-cid-wfcvaqdp><nav class="breadcrumb" aria-label="Navegación" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es" data-astro-cid-wfcvaqdp>Inicio</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><a href="/msp-tutorials-es/tutoriales/analisis/" data-astro-cid-wfcvaqdp>Análisis</a><span aria-hidden="true" data-astro-cid-wfcvaqdp>/</span><span aria-current="page" data-astro-cid-wfcvaqdp>Tutorial 3: Uso de la FFT</span></nav><h1 data-astro-cid-wfcvaqdp>Tutorial 3: Uso de la FFT</h1><p class="tutorial-meta" data-astro-cid-wfcvaqdp>Capítulo 42 de 63 · Sección: Análisis</p><a href="https://docs.cycling74.com/learn/articles/14_analysischapter03/" class="patcher-download" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-wfcvaqdp><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" data-astro-cid-wfcvaqdp></path></svg>Descargar patcher (.maxpat)</a></header><div class="tutorial-content" data-astro-cid-wfcvaqdp><h1 id="tutorial-de-análisis-3-uso-de-la-fft">Tutorial de Análisis 3: Uso de la FFT</h1>
+<p>La <strong>Transformada Rápida de Fourier (FFT)</strong> convierte señales del <strong>dominio del tiempo</strong> al <strong>dominio de la frecuencia</strong>, permitiendo procesamiento espectral: filtrado, convolución, pitch-shifting, time-stretching, análisis.</p>
+<h2 id="fft-en-msp-objetos-básicos">FFT en MSP: Objetos básicos</h2>
+<h3 id="fft--ifft-par-básico">fft~ / ifft~ (Par básico)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[señal] → [fft~ size] → [real] [imag] → [procesamiento] → [ifft~ size] → [señal]</span></span></code></pre>
+<ul>
+<li><strong>Tamaño</strong>: Potencia de 2 (256, 512, 1024, 2048, 4096, 8192)</li>
+<li><strong>Salidas fft~</strong>: 1=Real, 2=Imaginaria (señales a tasa de control/frame)</li>
+<li><strong>Entradas ifft~</strong>: 1=Real, 2=Imaginaria</li>
+<li><strong>Ventana</strong>: Automática (Hann) con overlap 2x</li>
+</ul>
+<h3 id="magnitud--fase-más-intuitivo">Magnitud / Fase (Más intuitivo):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[real] [imag] → [cartopol~] → [magnitud] [fase]</span></span>
+<span class="line"><span>[magnitud] [fase] → [poltocar~] → [real] [imag]</span></span></code></pre>
+<ul>
+<li><strong>cartopol~</strong>: Cartesian → Polar (magnitud, fase en radianes)</li>
+<li><strong>poltocar~</strong>: Polar → Cartesian</li>
+</ul>
+<h2 id="pfft-fft-con-patching---recomendado">pfft~ (FFT con patching) - RECOMENDADO</h2>
+<h3 id="ventajas-pfft">Ventajas pfft~:</h3>
+<ul>
+<li><strong>Subpatch</strong> para procesamiento espectral</li>
+<li><strong>Gestión automática</strong> de overlap/window</li>
+<li><strong>Inlets/Outlets</strong> = señales de audio (rate = SR/FFT_size × overlap)</li>
+<li><strong>Argumentos</strong>: <code>pfft~ subpatch size overlap window</code></li>
+</ul>
+<h3 id="estructura-pfft">Estructura pfft~:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[pfft~ spectral_proc 1024 4 hann]</span></span>
+<span class="line"><span>  → Inlets: in 1 (audio), in 2... (params)</span></span>
+<span class="line"><span>  → Outlets: out 1 (audio), out 2... (analysis)</span></span>
+<span class="line"><span>  → Inside: fftin~ 1, fftout~ 1, procesamiento</span></span></code></pre>
+<h3 id="objetos-dentro-de-pfft">Objetos dentro de pfft~:</h3>
+<ul>
+<li><strong>fftin~ N</strong> → Entrada N (real, imag)</li>
+<li><strong>fftout~ N</strong> → Salida N (real, imag)</li>
+<li><strong>fftinfo~</strong> → Info: framecount, framesize, overlap</li>
+<li><strong>frameaccum~</strong> / <strong>framedelta~</strong> / <strong>framereverse~</strong> - Utilidades temporales</li>
+</ul>
+<h2 id="procesamiento-espectral-básico">Procesamiento Espectral Básico</h2>
+<h3 id="1-filtrado-espectral-máscara">1. Filtrado Espectral (Máscara):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[fftin~ 1] → [cartopol~] → [*~ mask] → [poltocar~] → [fftout~ 1]</span></span></code></pre>
+<ul>
+<li><strong>mask</strong> = 1 (pass), 0 (stop) por bin</li>
+<li><strong>Suavizado</strong> de máscara evita artefactos</li>
+</ul>
+<h3 id="2-convolución-convolution">2. Convolución (Convolution):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[fftin~ 1] → [cartopol~] → [*~ IR_magnitud] → [poltocar~] → [fftout~ 1]</span></span>
+<span class="line"><span>       ↘ [fftin~ 2] → [cartopol~] → [*~ IR_fase]    → [poltocar~] → [fftout~ 2]</span></span></code></pre>
+<ul>
+<li><strong>IR</strong> = Impulse Response (pre-cargada en buffer~)</li>
+<li><strong>Multiplicación compleja</strong> = Convolución en tiempo</li>
+</ul>
+<h3 id="3-pitch-shifting-phase-vocoder">3. Pitch Shifting (Phase Vocoder):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[fftin~] → [cartopol] → [frameaccum~] → [phase correction] → [poltocar] → [fftout]</span></span></code></pre>
+<ul>
+<li><strong>frameaccum~</strong> = Acumula fase entre frames</li>
+<li><strong>Phase correction</strong> = Mantiene coherencia de fase</li>
+<li><strong>Ratio</strong> = pitch_shift_factor (2 = octava arriba, 0.5 = abajo)</li>
+</ul>
+<h3 id="4-time-stretching">4. Time Stretching:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>[fftin~] → [cartopol] → [framedelta~] → [phase vocoder] → [framereverse~] → [fftout]</span></span></code></pre>
+<ul>
+<li><strong>framedelta~</strong> = Diferencia fase entre frames</li>
+<li><strong>Rate control</strong> = Velocidad reproducción (0.5 = 2x largo)</li>
+</ul>
+<h2 id="windowing-y-overlap">Windowing y Overlap</h2>
+<h3 id="tamaño-fft-trade-off">Tamaño FFT (Trade-off):</h3>
+<table>
+<thead>
+<tr>
+<th>Tamaño</th>
+<th>Resolución Freq</th>
+<th>Resolución Temporal</th>
+<th>Latencia</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256</td>
+<td>~172 Hz</td>
+<td>~5.8 ms</td>
+<td>Baja</td>
+<td>Pitch shift, transientes</td>
+</tr>
+<tr>
+<td>512</td>
+<td>~86 Hz</td>
+<td>~11.6 ms</td>
+<td>Media</td>
+<td>General</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>~43 Hz</td>
+<td>~23 ms</td>
+<td>Media</td>
+<td>Filtrado, pitch shift</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>~21 Hz</td>
+<td>~46 ms</td>
+<td>Alta</td>
+<td>Análisis armónico</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>~10 Hz</td>
+<td>~93 ms</td>
+<td>Muy alta</td>
+<td>Separación tonal fina</td>
+</tr>
+</tbody>
+</table>
+<h3 id="overlap-factor">Overlap Factor:</h3>
+<ul>
+<li><strong>2x (50%)</strong>: Mínimo para reconstrucción perfecta (Hann)</li>
+<li><strong>4x (75%)</strong>: Mejor calidad (pitch shift, stretch)</li>
+<li><strong>8x (87.5%)</strong>: Máxima calidad (phase vocoder pro)</li>
+<li><strong>CPU</strong> ∝ overlap factor</li>
+</ul>
+<h2 id="aplicaciones-prácticas">Aplicaciones Prácticas</h2>
+<h3 id="1-ecualizador-espectral-graphic-eq">1. Ecualizador Espectral (Graphic EQ):</h3>
+<ul>
+<li>31 bandas (1/3 octava) → ganancia por banda</li>
+<li>Suavizado entre bandas (interpolación)</li>
+</ul>
+<h3 id="2-noise-reduction-spectral-gating">2. Noise Reduction (Spectral Gating):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>Magnitud → [Threshold gate] → Gain (0-1) por bin</span></span></code></pre>
+<ul>
+<li><strong>Noise profile</strong> = Medición ruido solo</li>
+<li><strong>Gate</strong> = Magnitud &lt; threshold × noise_profile → atenuar</li>
+</ul>
+<h3 id="3-vocal-removal--isolation">3. Vocal Removal / Isolation:</h3>
+<ul>
+<li><strong>Center cancel</strong> (L-R) = Elimina centro (vocales)</li>
+<li><strong>Side isolate</strong> (L+R cancel) = Aísla centro</li>
+</ul>
+<h3 id="4-spectral-morphing-cross-síntesis">4. Spectral Morphing (Cross-síntesis):</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>Fuente A mag × Fuente B fase → Híbrido</span></span>
+<span class="line"><span>Fuente A mag × Fuente A fase mod B → Timbre morph</span></span></code></pre>
+<h2 id="patch-de-ejemplo-spectral-processor-pfft">Patch de ejemplo: Spectral Processor pfft~</h2>
+<p>Incluye:</p>
+<ol>
+<li><strong>pfft~ spectral_fx 1024 4 hann</strong></li>
+<li><strong>Módulos conmutables</strong>:
+<ul>
+<li>Spectral Gate (noise reduction)</li>
+<li>Spectral EQ (32 bandas)</li>
+<li>Convolver (IR selector)</li>
+<li>Pitch Shifter (±2 oct, formants)</li>
+<li>Time Stretcher (0.25x-4x)</li>
+<li>Spectral Freeze (hold frame)</li>
+<li>Spectral Blur (desenfoque temporal)</li>
+<li>Cross-síntesis (A mag × B phase)</li>
+</ul>
+</li>
+<li><strong>Control</strong>: MIDI/OSC para todos params</li>
+<li><strong>Visualización</strong>: spectroscope~ pre/post</li>
+<li><strong>CPU monitor</strong>: pfft~ load</li>
+</ol>
+<h2 id="resumen">Resumen</h2>
+<ul>
+<li><strong>fft~/ifft~</strong> = Básicos, manual window/overlap</li>
+<li><strong>pfft~</strong> = Recomendado: auto-window, overlap, subpatch</li>
+<li><strong>cartopol~/poltocar~</strong> = Real/Imag ↔ Mag/Fase</li>
+<li><strong>fftin~/fftout~</strong> = I/O dentro pfft~</li>
+<li><strong>frameaccum~/framedelta~</strong> = Utilidades fase temporal</li>
+<li><strong>Overlap 4x+</strong> = Calidad para pitch/stretch</li>
+<li><strong>CPU</strong> ∝ FFT_size × Overlap</li>
+</ul>
+<h2 id="ver-también">Ver También</h2>
+<ul>
+<li><strong>pfft~</strong> - FFT patching (principal)</li>
+<li><strong>fft~ / ifft~</strong> - FFT básico</li>
+<li><strong>cartopol~ / poltocar~</strong> - Coordenadas</li>
+<li><strong>fftin~ / fftout~ / fftinfo~</strong> - I/O pfft~</li>
+<li><strong>frameaccum~ / framedelta~ / framereverse~</strong> - Fase temporal</li>
+<li><strong>fftinfo~</strong> - Info frame</li>
+</ul></div><nav class="chapter-nav" aria-label="Navegación entre capítulos" data-astro-cid-wfcvaqdp><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link prev" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Capítulo anterior</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 2: Osciloscopio y espectroscopio</span></a><a href="/msp-tutorials-es/tutoriales/undefined/" class="nav-link next" data-astro-cid-wfcvaqdp><span class="nav-label" data-astro-cid-wfcvaqdp>Siguiente capítulo</span><span class="nav-title" data-astro-cid-wfcvaqdp>Tutorial 4: Procesamiento de señal con pfft~</span></a></nav><footer class="tutorial-footer" data-astro-cid-wfcvaqdp><p data-astro-cid-wfcvaqdp>Contenido original: <a href="https://docs.cycling74.com/learn/articles/14_analysischapter03/" target="_blank" rel="noopener" data-astro-cid-wfcvaqdp>Cycling '74 MSP Tutorials</a></p><p data-astro-cid-wfcvaqdp>Traducción no oficial con fines educativos. Código y sintaxis MSP en inglés original.</p></footer></article></main></div><footer class="site-footer" role="contentinfo" data-astro-cid-ju4pidww><div class="footer-inner" data-astro-cid-ju4pidww><p data-astro-cid-ju4pidww>Traducción no oficial de los <a href="https://docs.cycling74.com/learn/series/msp-tutorials/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>MSP Tutorials</a> de Cycling '74.</p><p data-astro-cid-ju4pidww>Código y sintaxis de objetos MSP se mantienen en inglés original.</p><p class="license" data-astro-cid-ju4pidww>Contenido bajo licencia de Cycling '74. <a href="https://docs.cycling74.com/learn/license/" target="_blank" rel="noopener" data-astro-cid-ju4pidww>Ver licencia</a></p></div></footer></div><script type="module">var e=document.getElementById(`theme-toggle`),t=document.documentElement;e.addEventListener(`click`,()=>{let e=t.getAttribute(`data-theme`)===`dark`?`light`:`dark`;t.setAttribute(`data-theme`,e),localStorage.setItem(`theme`,e)});var n=document.getElementById(`sidebar`),r=0;window.addEventListener(`scroll`,()=>{let e=window.pageYOffset;e>r&&e>100?n.classList.add(`scrolled`):n.classList.remove(`scrolled`),r=e});</script></body></html>

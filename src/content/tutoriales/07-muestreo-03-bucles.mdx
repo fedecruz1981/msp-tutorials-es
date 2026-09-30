@@ -1,0 +1,80 @@
+---
+title: "Tutorial 3: Reproducción con bucles"
+description: "Configuración de bucles en groove~ y play~, loop points, crossfade de bucles, loop modes."
+section: "muestreo-grabacion"
+order: 17
+slug: "07-muestreo-03-bucles"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter03/"
+---
+
+# Tutorial de Muestreo 3: Reproducción con Bucles
+
+El **bucle (looping)** es fundamental en el muestreo para crear sonidos sostenidos a partir de muestras cortas. Este tutorial cubre la configuración de puntos de bucle, modos de bucle y técnicas de crossfade.
+
+## Puntos de Bucle (Loop Points)
+
+En **groove~** y **play~**:
+- **loopstart**: Inicio del bucle (ms)
+- **loopend**: Fin del bucle (ms)
+- **loop 1**: Activa el bucle
+- **loop 0**: Desactiva el bucle
+
+## Modos de Bucle
+
+### 1. Bucle simple (Forward)
+Reproduce de loopstart a loopend, luego salta a loopstart.
+
+### 2. Bucle bidireccional (Palindrome/Back-and-forth)
+Reproduce hacia adelante, luego hacia atrás, alternando.
+
+### 3. Bucle con crossfade
+Suaviza la transición entre fin e inicio del bucle.
+
+## Crossfade de Bucles
+
+Para evitar clics en el punto de bucle:
+- **Duración típica**: 5-50 ms
+- **Forma**: Equal power (raíz cuadrada) o lineal
+- **Implementación**: Dos reproductores desfasados + crossfade
+
+En **groove~**: El crossfade interno se configura con `loopinterp` (ms).
+
+## Detección automática de puntos de bucle
+
+Técnicas para encontrar buenos puntos de bucle:
+1. **Cruce por cero**: Buscar donde la forma de onda cruza 0
+2. **Coincidencia de pendiente**: Misma pendiente en inicio y fin
+3. **Correlación**: Máxima similitud entre segmentos
+
+## Patch de ejemplo
+
+Incluye:
+1. **waveform~** para visualizar y seleccionar puntos de bucle
+2. Controles de loopstart/loopend numéricos y gráficos
+3. Selector de modo de bucle
+4. Control de crossfade
+5. Comparación A/B con y sin crossfade
+
+## Sostenido de notas (Sustain Loop)
+
+Para instrumentos muestreados:
+- **Attack**: Reproducción única (sin bucle)
+- **Sustain**: Sección con bucle (loop)
+- **Release**: Reproducción final (sin bucle)
+
+Se implementa cambiando `loop 1/0` en puntos específicos de la envolvente.
+
+## Resumen
+
+- **Loop points**: loopstart, loopend en ms
+- **Modos**: Forward, Palindrome, Crossfade
+- **Crossfade**: Elimina clics (5-50 ms típicos)
+- **Sustain loop**: Para instrumentos muestreados realistas
+- **waveform~**: Herramienta visual para edición de bucles
+
+## Ver También
+
+- **groove~** - Reproductor con bucle
+- **play~** - Reproducción con bucle
+- **waveform~** - Visualización/edición de bucles

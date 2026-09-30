@@ -1,0 +1,75 @@
+---
+title: "Tutorial 1: Grabación y reproducción"
+description: "Entrada de audio con adc~, almacenamiento con buffer~, grabación con record~, reproducción con index~ y play~ a velocidad variable."
+section: "muestreo-grabacion"
+order: 15
+slug: "07-muestreo-01-grabacion-reproduccion"
+originalUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter01/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/07_samplingchapter01/"
+---
+
+# Tutorial de Muestreo 1: Grabación y Reproducción
+
+El próximo grupo de tutoriales introduce conceptos para la reproducción dentro de MSP de **muestras** (samples) de audio. Las muestras pueden grabarse y reproducirse de diversas maneras, dependiendo de sus requisitos, y pueden accederse ya sea desde la memoria de la computadora o como un archivo de audio en su disco duro.
+
+## Entrada de sonido: adc~
+
+Así como el objeto **dac~** existe para sacar sonido de su computadora (a sus auriculares o altavoces), existe un objeto para meter audio del mundo real **dentro** de su computadora: el objeto de conversión analógico-a-digital llamado **adc~**. Reconoce todos los mismos mensajes que el objeto **dac~**, pero en lugar de enviar señal a las salidas de audio de la computadora, **adc~** recibe señal de las entradas de audio, y envía la señal entrante por sus outlets. Así como **dac~** tiene una versión de interfaz de usuario llamada **ezdac~**, hay una versión icónica de **adc~** llamada **ezadc~**.
+
+![adc~ y ezadc~ obtienen sonido de las entradas de audio y lo envían como señal](/images/samplingchapter01a.png "adc~ y ezadc~ obtienen sonido de las entradas de audio y lo envían como señal")
+
+Para usar el objeto **adc~**, necesita enviar sonido de alguna fuente a la computadora. El sonido puede venir de cualquier fuente de nivel de línea como un reproductor multimedia, o de un micrófono — su computadora puede tener un micrófono integrado, o puede usar un micrófono estándar vía un preamplificador. Si tiene una interfaz de audio externa, puede seleccionarla desde la ventana Estado de Audio y usar las entradas en ese dispositivo también.
+
+- Haga doble clic en el objeto **adc~** para abrir la ventana Estado de Audio. Asegúrese de que el menú desplegable *Input Source* muestre el dispositivo de entrada que quiere. Dependiendo de su sistema computadora, tarjeta de audio y controlador, puede que no tenga opción de dispositivo de entrada — no hay de qué preocuparse.
+    
+- En la sección del patcher del tutorial etiquetada `1`, haga clic en el toggle encima del objeto **adc~** para encender el audio. Si quiere oír el sonido de entrada reproducido directamente por las salidas, ajuste el objeto **gain~** marcado *Audio thruput level*. Si está usando el micrófono interno en su computadora, tenga cuidado con la realimentación (feedback) al reproducir sonido por los altavoces integrados al mismo tiempo.
+    
+
+## Almacenando audio en MSP: buffer~
+
+En la parte inferior del patch observe el objeto llamado **buffer~**. Aunque no está conectado al resto de la lógica del patcher, el objeto **buffer~** proporciona la funcionalidad central de este patcher — almacena los datos de muestra del sonido con el que trabajaremos. En MSP, toda reproducción de muestras desde la memoria de la computadora tiene lugar a través de objetos **buffer~**. El objeto se crea con un `name` como su argumento, que es arbitrario. Este nombre es usado por otros objetos para **acceder** a los datos de audio en el objeto **buffer~**. Así que en nuestro caso, nuestro **buffer~** se llama `soundbyte`; cualquier objeto en el patcher que necesite reproducir o grabar en ese trozo de memoria de muestra también debe configurarse para usar `soundbyte` como su nombre de **buffer~**. El segundo argumento a **buffer~** establece la longitud inicial de la muestra en milisegundos. En nuestro tutorial, trabajaremos con una muestra de audio de 2 segundos (2000 milisegundos).
+
+## Grabando un sonido: record~
+
+Existe una variedad de objetos para acceder a los datos en un **buffer~**. En la sección del patch etiquetada `2` (en la esquina superior izquierda), el objeto **record~** toma una señal MSP y la **escribe** en el **buffer~** designado por el argumento del objeto.
+
+Cuando **record~** recibe un entero no-cero en su inlet izquierdo, comienza a grabar la señal conectada a su inlet de grabación; un `0` detiene la grabación. Puede especificar puntos de inicio y fin de grabación dentro del **buffer~** enviando números en los dos inlets derechos de **record~**. Si no especifica puntos de inicio y fin, la grabación llenará todo el **buffer~**. Observe que la longitud de la grabación está limitada por la longitud del **buffer~**.
+
+En el patch del tutorial, **record~** dejará de grabar después de 2 segundos (2000 ms). Hemos incluido un `bang` retardado para apagar el **toggle** después de dos segundos, pero esto es solo para que el **toggle** muestre correctamente el estado de **record~**. No es necesario detener **record~** explícitamente, porque se detendrá automáticamente cuando alcance su punto final o el final del **buffer~**.
+
+- Asegúrese de que tiene sonido entrando a la computadora, luego haga clic en el **toggle** para grabar dos segundos del sonido entrante. Si quiere, puede hacer doble clic en el **buffer~** después para ver la señal grabada.
+
+## Leyendo a través de un buffer~: index~
+
+Una vez que mete sonido en un objeto **buffer~**, existen varios objetos en MSP para **leer** los datos de vuelta como una señal MSP. Además, puede guardar su grabación en un archivo de audio haciendo clic en el mensaje `write` adjunto al **buffer~** en la esquina inferior derecha.
+
+La forma más simple de reproducir el contenido de un **buffer~** es usar el objeto **index~**, mostrado en el área del patcher del tutorial etiquetada `3`. El objeto **index~** recibe una `signal` como su entrada, que representa un número de muestra. Busca esa muestra en su **buffer~** asociado, y envía el valor de esa muestra por su outlet como señal. El objeto **count~** solo envía un valor de señal que aumenta en uno con cada muestra. Así que, si envía la salida de **count~** — una corriente constante de números crecientes — a la entrada de **index~** — que los tratará como números de muestra — **index~** leerá directamente a través del **buffer~**, reproduciéndolo a la tasa de muestreo actual.
+
+- Suba el slider **gain~** etiquetado `Indexed level`, y haga clic en el **button** marcado `Play` para reproducir el sonido en el **buffer~**. Puede cambiar el número de muestra inicial enviando un número de inicio diferente a **count~**. Recuerde que estos valores están en **muestras**, no milisegundos, así que dependiendo de la tasa de muestreo de su hardware de audio diferentes números significarán cosas diferentes. Por ejemplo, para reproducir la muestra comenzando a la mitad del **buffer~** en hardware de computadora calidad CD regular, usaría el valor `44100`.
+
+## Reproducción a velocidad variable: play~
+
+Mientras que el objeto **index~** es útil para simplemente reproducir una muestra hacia adelante a velocidad normal, parte de la diversión creativa del muestreo es la habilidad de manipular la reproducción de muestras de diferentes maneras. El objeto **play~** (mostrado en la sección del patcher etiquetada `4`) le permite acceder al contenido de un objeto **buffer~** muy como si fuera una cinta analógica, con la entrada de señal a **play~** estableciendo la posición del cabezal de reproducción.
+
+Al igual que **index~**, el objeto **play~** recibe una señal en su inlet que indica una posición que usa para reproducir audio fuera de su **buffer~** asociado. El objeto **play~** difiere de **index~** en dos formas importantes, sin embargo. Primero, la unidad de tiempo para el objeto **play~** está en milisegundos, permitiendo una comprensión más fácil de dónde está reproduciendo en la muestra. Segundo, cuando **play~** recibe una posición que cae entre dos muestras en el **buffer~** interpola entre esos dos valores. Por esta razón, puede leer a través de un **buffer~** a cualquier velocidad enviando una señal creciente o decreciente a **play~**, y este interpolará entre muestras según sea necesario.
+
+Debido a que el objeto **play~** emite el valor de muestra que correlaciona con el tiempo dado en su inlet de señal, para oír algo, ese tiempo necesita estar cambiando constantemente; esto es similar a la forma en que funciona una grabadora de cinta... una señal constante enviada a un objeto **play~** es el equivalente a una grabadora de cinta en "pausa". La forma más obvia de usar el objeto **play~** es enviarle una señal linealmente creciente (o decreciente) desde un objeto **line~**, como se muestra en el patcher del tutorial.
+
+Leer de 0 a 2000 (posición en milisegundos en el **buffer~**) en un tiempo de 2000 ms produce reproducción normal. Leer de 0 a 2000 en 4000 ms produce reproducción a media velocidad, y así sucesivamente. Generar una rampa con el objeto **line~** que va de alto a bajo (ej. de 2000 ms de vuelta a 0 ms) reproducirá el audio hacia atrás.
+
+- Haga clic en los diferentes objetos **message** box para oír el sonido reproducido en varias combinaciones de velocidad/dirección. Apague el audio cuando haya terminado.
+
+Aunque no se demuestra en este patch de tutorial, vale la pena notar que podría usar otras señales como entrada a **play~** para lograr aceleraciones y desaceleraciones, como una curva exponencial desde un objeto **curve~** o incluso una sinusoide apropiadamente escalada desde un objeto **cycle~**.
+
+## Resumen
+
+El sonido que entra en la computadora entra a MSP vía el objeto **adc~**. El objeto **record~** almacena el sonido entrante — o cualquier otra señal — en un **buffer~**. Puede grabar en todo el **buffer~**, o puede grabar en cualquier porción de él especificando posiciones de inicio y fin del buffer en los dos inlets derechos de **record~**. Para reproducción simple a velocidad normal del sonido en un **buffer~**, puede usar los objetos **count~** y **index~** para leerlo a la tasa de muestreo actual. Use los objetos **line~** y **play~** para reproducción a velocidad variable y/o para leer a través del **buffer~** en ambas direcciones.
+
+## Ver También
+
+- **adc~** - Entrada de audio y encendido/apagado
+- **ezadc~** - Encendido/apagado de audio; convertidor analógico-a-digital
+- **buffer~** - Almacenar muestras de audio
+- **index~** - Reproducción de muestra sin interpolación
+- **play~** - Reproducción de muestra basada en posición
+- **record~** - Grabar sonido en un buffer

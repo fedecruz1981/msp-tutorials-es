@@ -1,0 +1,69 @@
+---
+title: "Tutorial 3: Uso de modulación de amplitud"
+description: "Síntesis AM clásica con portadora y modulador, índice de modulación, bandas laterales y envolventes."
+section: "sintesis-aditiva-modulacion"
+order: 12
+slug: "06-sintesis-03-modulacion-amplitud"
+originalUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter03/"
+patcherUrl: "https://docs.cycling74.com/learn/articles/06_synthesischapter03/"
+---
+
+# Tutorial de Síntesis 3: Uso de Modulación de Amplitud
+
+La **modulación de amplitud (AM)** es una técnica clásica de síntesis donde la amplitud de una onda portadora es variada por una onda moduladora. A diferencia de la modulación en anillo, en la AM clásica la portadora permanece presente en la salida.
+
+## Diferencia entre AM y Modulación en Anillo
+
+- **Modulación en Anillo**: Solo bandas laterales (portadora suprimida)
+- **AM Clásica**: Portadora + bandas laterales
+
+La AM se logra sumando un offset DC a la señal moduladora antes de multiplicar:
+```
+salida = portadora × (1 + índice × modulador)
+```
+
+## Índice de Modulación
+
+El **índice de modulación** controla la profundidad de la modulación:
+- **0**: Sin modulación (solo portadora)
+- **1**: Modulación al 100% (bandas laterales a -6dB respecto a la portadora)
+- **> 1**: Sobremodulación (distorsión, bandas laterales adicionales)
+
+## Bandas Laterales en AM
+
+Para una portadora a fc y modulador a fm:
+- **Portadora**: fc (siempre presente)
+- **Banda lateral superior**: fc + fm
+- **Banda lateral inferior**: fc - fm
+
+Con índices mayores a 1, aparecen bandas laterales de orden superior:
+- fc ± 2×fm, fc ± 3×fm, etc.
+
+## Patch de ejemplo
+
+El patch demuestra:
+1. Control independiente de frecuencias de portadora y modulador
+2. Control de índice de modulación (0 a 10)
+3. Envolventes de amplitud separadas para portadora y modulador
+4. Visualización del espectro resultante
+
+## Aplicaciones musicales
+
+- **Timbres metálicos**: Índices altos con frecuencias no armónicas
+- **Campanas y percusión**: Envolventes percusivas en el modulador
+- **Efectos de radio**: Simulación de transmisión AM
+- **Pads evolutivos**: Modulación lenta con envolventes complejas
+
+## Resumen
+
+- **AM = Portadora × (1 + índice × Modulador)**
+- La **portadora** siempre está presente en la salida
+- El **índice de modulación** controla la amplitud de las bandas laterales
+- Índices > 1 crean **sobremodulación** con armónicos adicionales
+- Útil para timbres metálicos, percusión y pads evolutivos
+
+## Ver También
+
+- **\*~** - Multiplicación de señales
+- **cycle~** - Oscilador
+- **line~** - Generador de envolventes
