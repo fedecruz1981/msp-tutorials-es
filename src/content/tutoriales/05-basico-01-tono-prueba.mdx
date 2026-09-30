@@ -48,7 +48,7 @@ La mejor manera de producir una forma de onda periódica es con **cycle~**. Este
 
 Puede dirigir **cycle~** a leer de una lista de valores que usted proporcione (en forma de un archivo de audio), o si no proporciona una, leerá a través de su propia tabla que representa un ciclo de una onda coseno con amplitud de 1. Le mostraremos cómo proporcionar su propia forma de onda en un tutorial posterior; por ahora usaremos la forma de onda coseno.
 
-![Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1](/images/basicchapter01b.webp "Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1")
+![Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1](/images/basicchapter01b.png "Gráfico de 512 números describiendo un ciclo de una onda coseno con amplitud 1")
 
 El objeto **cycle~** recibe un valor de frecuencia (en Hz) en su inlet izquierdo, y determina por sí mismo qué tan rápido debe leer a través de la lista para enviar una señal con la frecuencia deseada.
 
@@ -64,7 +64,7 @@ El objeto **cycle~** tiene una frecuencia predeterminada de 0 Hz. Así que para 
 
 Si conectáramos directamente nuestro objeto **cycle~** a un objeto **dac~** y encendemos el audio, podríamos dañar fácilmente nuestros altavoces o, más importante, nuestros oídos. Los objetos MSP que generan audio (como **cycle~**) generalmente lo hacen en un rango dinámico normalizado de -1 a 1, que el objeto **dac~** interpretará como la señal más fuerte posible. Para evitar estos peligros, es importante tener un objeto en medio para controlar la amplitud de la señal que va a nuestros altavoces. El slider **gain~** realiza precisamente esa función:
 
-![El slider gain~ en la sección de sliders de la Paleta de Objetos](/images/basicchapter01c.webp "El slider gain~ en la sección de sliders de la Paleta de Objetos")
+![El slider gain~ en la sección de sliders de la Paleta de Objetos](/images/basicchapter01c.png "El slider gain~ en la sección de sliders de la Paleta de Objetos")
 
 El slider **gain~** **multiplica** su señal entrante por un factor basado en la posición del slider que, para todo menos los extremos superiores del objeto, es un número menor que 1. Como resultado, el objeto **gain~** casi siempre **atenúa** (o baja) el volumen de lo que entra, muy parecido a un fader en una mesa de mezclas analógica. El objeto **gain~** es en varios aspectos una versión gráfica de un objeto **\*~**, que veremos en un tutorial posterior.
 
@@ -92,7 +92,7 @@ Si no oye ningún sonido proveniente de su computadora cuando inicia el **dac~**
 
 Si aún no oye nada, elija **Estado de Audio** en el menú Opciones y verifique que un controlador y salida válidos estén elegidos en los menús desplegables. Si no lo están, elíjalo. (Vea el tutorial de **Audio I/O** para más información.)
 
-![Ventana Estado de Audio](/images/basicchapter01d.webp "Ventana Estado de Audio")
+![Ventana Estado de Audio](/images/basicchapter01d.png "Ventana Estado de Audio")
 
 Siempre puede verificar si los problemas de audio se originan en su patch o en el sistema de audio abriendo el patch *Audiotester* en el menú `Extras`. Este patch proporciona una fuente de audio simple así como pantallas de cualquier entrada activa. Si seleccionar *Oscillator* o *Pink noise* del menú de fuente de señal no produce sonido, el problema está en alguna parte de la configuración de audio.
 

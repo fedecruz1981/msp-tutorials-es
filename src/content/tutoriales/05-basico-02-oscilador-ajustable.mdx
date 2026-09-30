@@ -18,19 +18,19 @@ En este tutorial veremos cómo controlar la amplitud de las señales con las que
 
 Como vimos en nuestro último tutorial, el objeto **dac~** representa la **salida** final de nuestra red de señal de audio; cualquier cosa que quiera que salga de sus altavoces (o entre en sus auriculares) eventualmente debe encontrar su camino a un objeto **dac~**. Ahora, cualquier señal que quiera escuchar — una señal que envíe a **dac~** — debe estar en el rango de amplitud de -1.0 a +1.0. Cualquier valor que exceda esos límites será recortado por el **dac~** (es decir, limitado bruscamente a 1 o -1). Esto causará (en la mayoría de los casos, distorsión bastante objetable) del sonido. La mayoría de los objetos MSP que **generan** sonido lo hacen en el rango de -1.0 a 1.0:
 
-![La salida predeterminada de cycle~ tiene amplitud de 1](/images/basicchapter02a.webp "La salida predeterminada de cycle~ tiene amplitud de 1")
+![La salida predeterminada de cycle~ tiene amplitud de 1](/images/basicchapter02a.png "La salida predeterminada de cycle~ tiene amplitud de 1")
 
 Como resultado, aprender a ajustar la amplitud de la señal es importante para que tengamos control sobre el volumen que enviamos a la salida.
 
 Para controlar el nivel de una señal simplemente multiplica cada muestra por un factor de escalado. Por ejemplo, para reducir a la mitad la amplitud de una señal simplemente la multiplica por 0.5. (Aunque sería matemáticamente equivalente dividir la amplitud de la señal por 2, la multiplicación es un procedimiento computacional más eficiente que la división.)
 
-![Amplitud ajustada por multiplicación](/images/basicchapter02b.webp "Amplitud ajustada por multiplicación")
+![Amplitud ajustada por multiplicación](/images/basicchapter02b.png "Amplitud ajustada por multiplicación")
 
 El objeto **\*~** en MSP multiplica la señal en su inlet izquierdo por lo que entre en el derecho. Esto puede ser un número constante o una señal. Si deseamos cambiar la amplitud de una señal continuamente a lo largo del tiempo, podemos suministrar una señal cambiante en el inlet derecho de **\*~**. Al cambiar continuamente el valor en el inlet derecho de **\*~**, podemos fundir el sonido entrada o salida, crear un efecto de crescendo o diminuendo, etc.
 
 - En el patcher del tutorial, inicie el audio haciendo clic en el **message** box etiquetado `start`. No oirá nada todavía, porque los objetos **\*~** en el patch están multiplicando su entrada por `0`, resultando en silencio. En el área del patcher etiquetada `1`, escriba el número `300` en la caja de número de punto flotante etiquetada `Frequency`. En el **number** box etiquetado `Amplitude`, escriba `0.2`. Debería oír una onda seno de 300 Hz sonando suavemente desde su dispositivo de audio. Haga clic en el **number** box `Amplitude` a la **derecha** del punto decimal y arrastre el valor hacia arriba y abajo. Debería oír la onda seno fundirse en entrada y salida en volumen, tal como lo hizo en el último tutorial cuando manipulamos el slider **gain~**. Sin embargo, puede oír algo menos agradable al cambiar el volumen, es decir, una serie de clics en el sonido. Esto se llama **ruido de cremallera** (zipper noise), y resulta de cambios bruscos drásticos en amplitud que causan discontinuidades en la señal:
 
-![Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal](/images/basicchapter02c.webp "Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal")
+![Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal](/images/basicchapter02c.png "Cambio instantáneo de amplitud causa una distorsión ruidosa de la señal")
 
 Antes de abordar ese problema, establezca el volumen en el **number** box a una amplitud cómoda, y arrastre en el **number** box etiquetado `Frequency`. Mientras oye el tono del oscilador subir y bajar, también puede oír una forma de ruido de cremallera debido a los cambios bruscos en frecuencia. Si vamos a estar controlando continuamente cualquiera de estos parámetros (la frecuencia del objeto **cycle~** o la amplitud de salida del objeto **\*~**), puede que queramos modificar esos parámetros usando una señal en lugar de enviar mensajes de Max.
 

@@ -83,7 +83,7 @@ En el patch de ejemplo, `Oscillator B` combina una frecuencia constante (suminis
 
 En su mayor parte, el desplazamiento de fase de una onda de audio aislada no tiene un efecto perceptible sustancial. Por ejemplo, una onda seno en el rango de audio suena exactamente como una onda coseno, aunque hay una diferencia de fase teórica de un cuarto de ciclo. Por esa razón, no nos hemos preocupado por el inlet de fase más a la derecha del objeto **cycle~** hasta ahora.
 
-![Una onda seno desplazada por un cuarto de ciclo es una onda coseno](/images/basicchapter04a.webp "Una onda seno desplazada por un cuarto de ciclo es una onda coseno")
+![Una onda seno desplazada por un cuarto de ciclo es una onda coseno](/images/basicchapter04a.png "Una onda seno desplazada por un cuarto de ciclo es una onda coseno")
 
 Sin embargo, hay algunas razones muy útiles para controlar el desplazamiento de fase de una onda. Por ejemplo, al dejar la frecuencia de **cycle~** en `0`, y aumentando continuamente su desplazamiento de fase, puede cambiar su valor instantáneo (justo como si tuviera una frecuencia positiva). El desplazamiento de fase de una sinusoide usualmente se refiere en grados (un ciclo completo es 360°) o **radianes** (un ciclo completo es 2π radianes de longitud). En el objeto **cycle~**, la fase se refiere en ciclos de onda; así que un desplazamiento de π radianes es 1/2 de un ciclo, o `0.5`. En otras palabras, a medida que la fase varía de 0 a 2π radianes, varía de `0` a `1` ciclos de onda. Esta forma de describir la fase es conveniente ya que nos permite usar el rango de señal común de 0 a 1.
 

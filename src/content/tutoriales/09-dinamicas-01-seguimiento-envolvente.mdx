@@ -18,7 +18,7 @@ Hemos aprendido trabajando con MSP que el audio digital se representa como una c
 
 Usamos el término envolvente en diseño de sintetizadores para referirnos a la forma dinámica general del sonido. Por ejemplo, un sonido que se funde suavemente y luego se desvanece en la misma cantidad de tiempo podría decirse que tiene una envolvente triangular. Un sonido con un ataque corto, un sostenido largo, y un desvanecimiento corto podría verse como un trapecio. De manera similar, podemos tomar cualquier fuente de sonido y, con un poco de trabajo, abstraer su envolvente:
 
-![Forma de onda (arriba) y envolvente (abajo)](/images/dynamicschapter01a.webp "Forma de onda (arriba) y envolvente (abajo)")
+![Forma de onda (arriba) y envolvente (abajo)](/images/dynamicschapter01a.png "Forma de onda (arriba) y envolvente (abajo)")
 
 Para crear la envolvente arriba, miramos las muestras dentro de la forma de onda y rastreamos su amplitud **promedio** a lo largo del tiempo. Hay varias estrategias para hacer esto en MSP, involucrando un trío de objetos que nos permiten suavizar señales de audio basadas en diferentes parámetros.
 
@@ -46,7 +46,7 @@ El objeto **deltaclip~** funciona de manera diferente a **rampsmooth~** y **slid
 
 Si pasamos una ráfaga de ruido a través de las diferentes técnicas de seguimiento de envolvente mostradas en nuestro patcher del tutorial, podemos ver la diferencia entre las curvas que generan:
 
-![Diferentes seguidores de envolvente en una ráfaga de ruido](/images/dynamicschapter01b.webp "Diferentes seguidores de envolvente en una ráfaga de ruido")
+![Diferentes seguidores de envolvente en una ráfaga de ruido](/images/dynamicschapter01b.png "Diferentes seguidores de envolvente en una ráfaga de ruido")
 
 Cada una de estas técnicas de seguimiento de envolvente tienen diferentes aplicaciones musicales y sonoras y tienen diferentes firmas. Un seguidor de envolvente logarítmico controlando el volumen de un sintetizador, por ejemplo, tendría un sonido muy diferente que uno lineal.
 

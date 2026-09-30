@@ -16,13 +16,13 @@ En los ejemplos de tutorial hasta este punto hemos sintetizado sonido usando for
 
 Una onda seno contiene energía en una sola frecuencia. Dado que los tonos complejos, por definición, están compuestos de energía en varias (o muchas) frecuencias diferentes, una forma obvia de sintetizar tonos complejos es usar múltiples osciladores de onda seno y sumarlos.
 
-![Cuatro sinusoides sumadas para hacer un tono complejo](/images/synthchapter01a.webp "Cuatro sinusoides sumadas para hacer un tono complejo")
+![Cuatro sinusoides sumadas para hacer un tono complejo](/images/synthchapter01a.png "Cuatro sinusoides sumadas para hacer un tono complejo")
 
 Por supuesto, puede sumar cualquier forma de onda para producir un tono compuesto, pero nos quedaremos con ondas seno en este ejemplo de tutorial. Sintetizar tonos complejos sumando ondas seno es un método algo tedioso, pero da control completo sobre la amplitud y frecuencia de cada componente (**parcial**) del tono complejo.
 
 En el patch del tutorial, sumamos seis osciladores coseno (**cycle~** objetos), con control independiente sobre la frecuencia, amplitud y fase de cada uno. Para simplificar el patch, diseñamos una **Abstracción** llamada `partial~` que nos permite especificar la frecuencia de cada parcial como una razón relativa a una frecuencia fundamental.
 
-![Contenido de la abstracción partial~](/images/synthchapter01b.webp "Contenido de la abstracción partial~")
+![Contenido de la abstracción partial~](/images/synthchapter01b.png "Contenido de la abstracción partial~")
 
 Por ejemplo, si queremos que un parcial tenga una frecuencia el doble de la fundamental, solo escribimos `2.0` como argumento (o lo enviamos en el segundo inlet). De esta manera, si varias abstracciones `partial~` están recibiendo su valor de frecuencia fundamental (en el inlet izquierdo) de la misma fuente, sus frecuencias relativas se mantendrán iguales incluso cuando el valor de la frecuencia fundamental cambie.
 

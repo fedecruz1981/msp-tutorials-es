@@ -18,7 +18,7 @@ En este patch de tutorial, veremos cómo usar una tabla de ondas distinta a una 
 
 En este patch de tutorial, el objeto **dac~** que se usaba en ejemplos anteriores ha sido reemplazado por un botón con un icono de altavoz. Este es el objeto **ezdac~**, un objeto de interfaz de usuario disponible en la **Barra de Herramientas de la Ventana Patcher Superior**.
 
-![ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas](/images/basicchapter03a.webp "ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas")
+![ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas](/images/basicchapter03a.png "ezdac~ es un botón de encendido/apagado para audio, disponible en la Barra de Herramientas")
 
 El **ezdac~** funciona muy parecido a **dac~**, excepto que hacer clic en él enciende o apaga el audio. También puede responder a mensajes `start` y `stop` en su inlet izquierdo, como **dac~**. Sin embargo, a diferencia de **dac~**, está cableado directamente a los canales de salida 1 y 2 en su dispositivo de audio, lo que podría no hacerlo apropiado para trabajar con sonido multicanal. Para nuestros tutoriales, sin embargo, debería estar bien. El botón **ezdac~** se resalta cuando el audio está encendido.
 
@@ -44,11 +44,11 @@ Hay varios otros objetos que pueden usar los datos en un **buffer~**, como verá
 
 En el patch de ejemplo previo, usamos **line~** para hacer una señal que cambia linealmente enviándole una lista de dos números. El primer número en la lista era un valor objetivo y el segundo era la cantidad de tiempo, en milisegundos, para que **line~** llegara al valor objetivo.
 
-![line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)](/images/basicchapter03b.webp "line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)")
+![line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)](/images/basicchapter03b.png "line~ recibe un valor objetivo (1.) y una cantidad de tiempo para llegar allí (100 ms)")
 
 Si queremos, podemos enviar a **line~** una lista más larga que contenga muchos pares de números valor-tiempo (hasta 64 pares de números). De esta manera, podemos hacer que un objeto **line~** realice una función más elaborada compuesta de muchos segmentos de línea adyacentes. Después de completar el primer segmento de línea, **line~** procede inmediatamente hacia el siguiente valor objetivo en la lista, tomando la cantidad especificada de tiempo para llegar allí. De esta manera, podemos crear curvas de función para sintetizadores que comúnmente se denominan **envolventes**.
 
-![Una función compuesta de segmentos de línea - una 'envolvente' clásica](/images/basicchapter03c.webp "Una función compuesta de segmentos de línea - una 'envolvente' clásica")
+![Una función compuesta de segmentos de línea - una 'envolvente' clásica](/images/basicchapter03c.png "Una función compuesta de segmentos de línea - una 'envolvente' clásica")
 
 Los usuarios de sintetizadores están familiarizados con el uso de este tipo de función para generar envolventes como las curvas 'ADSR' que controlan el ataque, decaimiento, sostenido y liberación de la amplitud de un sonido independientemente. Eso es lo que estamos haciendo en este patch de ejemplo, aunque podemos elegir cuántos segmentos de línea deseamos usar para la envolvente.
 
@@ -58,7 +58,7 @@ Los usuarios de sintetizadores están familiarizados con el uso de este tipo de 
 
 Cada vez que dos o más señales se conectan al mismo inlet de señal, esas señales se suman y su suma es usada por el objeto receptor.
 
-![Múltiples señales se suman (mezclan) en un inlet de señal](/images/basicchapter03d.webp "Múltiples señales se suman (mezclan) en un inlet de señal")
+![Múltiples señales se suman (mezclan) en un inlet de señal](/images/basicchapter03d.png "Múltiples señales se suman (mezclan) en un inlet de señal")
 
 La adición de señales digitales es equivalente a mezcla de ganancia unitaria en audio analógico. Es importante notar que incluso si todas sus señales tienen amplitud menor o igual a 1, la suma de tales señales puede fácilmente exceder 1. En MSP está bien tener una señal con una amplitud que exceda 1 en cualquier lugar dentro de la cadena de señal, pero antes de enviar la señal a **dac~** debe escalarla (usualmente con un objeto **\*~**) para mantener su amplitud menor o igual a 1. Una señal con amplitud mayor que 1 será distorsionada por **dac~**.
 

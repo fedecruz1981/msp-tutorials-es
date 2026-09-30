@@ -43,7 +43,7 @@ El objeto **lores~** implementa un filtro **pasa-bajos** en una señal de audio 
 
 La frecuencia de corte de un filtro pasa-bajos determina la frecuencia en la que el audio se atenúa 3 dB. La cantidad de resonancia, cuando es mayor que `0.`, controla un pico de resonación (frecuencias aumentadas) inmediatamente por debajo del corte. Si graficamos la respuesta del filtro en un gráfico con el eje *X* representando frecuencia y el eje *Y* representando ganancia, se vería así:
 
-![Un filtro pasa-bajos con y sin resonancia: A y B son las frecuencias de corte; C muestra el pico de resonancia](/images/filterchapter01a.webp "Un filtro pasa-bajos con y sin resonancia: A y B son las frecuencias de corte; C muestra el pico de resonancia")
+![Un filtro pasa-bajos con y sin resonancia: A y B son las frecuencias de corte; C muestra el pico de resonancia](/images/filterchapter01a.png "Un filtro pasa-bajos con y sin resonancia: A y B son las frecuencias de corte; C muestra el pico de resonancia")
 
 - Con el sonido sonando, ajuste el **number** box etiquetado 'Resonance' en el área del patcher `2`. Observe cómo a medida que la resonación se acerca a `1` el timbre en la frecuencia de resonancia se vuelve muy fuerte. Ajuste la frecuencia de corte con la resonancia establecida en un número alto. Observe cómo ahora puede "barrer" el filtro audiblemente basándose en oír la resonancia.
 
@@ -55,7 +55,7 @@ Así como un filtro pasa-bajos pasa frecuencias bajas, un filtro **pasa-banda** 
 
 - Con el **dial** controlando la frecuencia central a las 12 en punto, haga clic en el **number** box etiquetado 'Q' en el área del patcher `3`. Escriba el número `3` y presione enter. Escuche los resultados. Pruebe otros números positivos, como `6`, `10`, o `0.5`. Observe que cuanto mayor es el número, menos frecuencias pasan a través del filtro. Si es necesario, ajuste la 'Gain' con el **number** box a la izquierda.
     
-    ![Filtro pasa-banda con valores Q de 0.5, 1.0, 3.0, y 30.0 respectivamente](/images/filterchapter01b.webp "Filtro pasa-banda con valores Q de 0.5, 1.0, 3.0, y 30.0 respectivamente")
+    > **Figura no reproducida:** *Filtro pasa-banda con valores Q de 0.5, 1.0, 3.0, y 30.0 respectivamente.* Consulta la documentación original de Cycling '74 en [docs.cycling74.com/learn/articles/08_filterchapter01/](https://docs.cycling74.com/learn/articles/08_filterchapter01/).
     
 
 ## El filtro de variable de estado: svf~
@@ -64,7 +64,7 @@ Así como un filtro pasa-bajos pasa frecuencias bajas, un filtro **pasa-banda** 
 
 El objeto MSP **svf~** simula un filtro analógico de **variable de estado** (state-variable). Debido a la forma en que los filtros se cablean usando componentes electrónicos, la diferencia entre un tipo de filtro y otro a menudo es simplemente una cuestión de cómo cablea (o dónde 'toca') el circuito. Un filtro de variable de estado es un filtro que le permite tocar energía de varios lugares en el filtro, obteniendo cuatro filtros simultáneos por el precio de uno. El objeto **svf~** le da cuatro sonidos filtrados: una salida **pasa-bajos**, una salida **pasa-altos** (highpass), una salida **pasa-banda**, y una salida **notch**. La salida notch debe reflejar la respuesta del filtro pasa-banda equivalente. Los filtros notch a menudo se llaman filtros **bandstop** o **bandreject**. Un gráfico de estas posibilidades muestra sus respuestas en frecuencia:
 
-![Las salidas de un filtro de variable de estado: pasa-bajos, pasa-altos, pasa-banda, notch](/images/filterchapter01c.webp "Las salidas de un filtro de variable de estado: pasa-bajos, pasa-altos, pasa-banda, notch")
+> **Figura no reproducida:** *Las salidas de un filtro de variable de estado: pasa-bajos, pasa-altos, pasa-banda, notch.* Consulta la documentación original de Cycling '74 en [docs.cycling74.com/learn/articles/08_filterchapter01/](https://docs.cycling74.com/learn/articles/08_filterchapter01/).
 
 - Juegue con diferentes combinaciones de los filtros en el tutorial, mezclándolos de diferentes maneras con diferentes ajustes. En el próximo tutorial, veremos la construcción de arreglos de filtros más complejos.
 
@@ -74,17 +74,17 @@ Los filtros, dicho simplemente, son algoritmos que alteran el espectro de frecue
 
 Como ejemplo, digamos que queríamos recortar los agudos en una señal de audio. Si graficamos una forma de onda, podemos intuir la diferencia visual entre contenido de baja frecuencia y alta frecuencia:
 
-![Dos formas de onda, una con baja frecuencia, una con muchas frecuencias altas](/images/filterchapter01d.webp "Dos formas de onda, una con baja frecuencia, una con muchas frecuencias altas")
+![Dos formas de onda, una con baja frecuencia, una con muchas frecuencias altas](/images/filterchapter01d.png "Dos formas de onda, una con baja frecuencia, una con muchas frecuencias altas")
 
 Como podemos ver, la forma de onda superior (almacenada en el **buffer~** llamado `lowfrequency`, contiene una onda seno a 50 Hz. La forma de onda inferior (en el **buffer~** `highfrequency`) contiene un tono FM complejo con muchas frecuencias altas. Si quisiéramos recortar los agudos en la forma de onda inferior, podríamos pensar en cómo se ve: las frecuencias altas se ven como ángulos más agudos cuando se grafican en el tiempo. Para recortar frecuencias altas, podríamos **suavizar** esta forma de onda. Una forma de suavizar una señal es **promediarla** a lo largo del tiempo.
 
 Digamos que tomamos una señal mucho más simple, la de una sola muestra de `1` en un mar de `0`. Esto se llama un **impulso**:
 
-![Un impulso en una señal de audio](/images/filterchapter01e.webp "Un impulso en una señal de audio")
+![Un impulso en una señal de audio](/images/filterchapter01e.png "Un impulso en una señal de audio")
 
 Un impulso tiene una respuesta en frecuencia equivalente a ruido puro... hipotéticamente, todas las frecuencias están presentes a volumen igual (piense en un 'clic' en una señal de audio digital o cualquier otra ráfaga corta de sonido). Así que contiene muchas frecuencias altas. Si quisiéramos suavizar esta señal, podríamos **promediar** cada muestra con la muestra previa en esta señal:
 
-![Nuestro impulso, suavizado sobre una muestra](/images/filterchapter01f.webp "Nuestro impulso, suavizado sobre una muestra")
+![Nuestro impulso, suavizado sobre una muestra](/images/filterchapter01f.png "Nuestro impulso, suavizado sobre una muestra")
 
 Esto tiene el resultado de manchar la energía del impulso a través de dos muestras. Como resultado, su respuesta en frecuencia contendrá mucha menos energía de alta frecuencia; de hecho, es casi como si hubiéramos bajado la tasa de muestreo: un clic que dura una muestra a 44,100 Hz contiene energía hasta 22,050 Hz; por derivación, un clic que dura **dos** muestras a esa tasa de muestreo es lo mismo que un clic de una muestra a la mitad de esa tasa, es decir, solo tiene energía hasta 11,025 Hz.
 
@@ -108,7 +108,7 @@ yₙ = 0.5xₙ + 0.5yₙ₋₁
 
 Este filtro usa la muestra **saliente** previa del filtro como parte del filtro en sí; al implementar realimentación (feedback) en el filtro, obtenemos un efecto mucho más fuerte:
 
-![Nuestro impulso, promediado con la muestra de salida previa](/images/filterchapter01g.webp "Nuestro impulso, promediado con la muestra de salida previa")
+![Nuestro impulso, promediado con la muestra de salida previa](/images/filterchapter01g.png "Nuestro impulso, promediado con la muestra de salida previa")
 
 Esta ecuación define un filtro **recursivo**; como resultado, el efecto del filtro se disipa más allá del orden del filtro. Mientras que nuestra primera ecuación esparció la energía de nuestro clic de una muestra sobre dos muestras, esta nueva ecuación esparce la energía sobre muchas, debido al promedio. Considere cómo el clic interactúa con la ecuación:
 

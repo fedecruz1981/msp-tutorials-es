@@ -58,7 +58,7 @@ Ahora que tenemos un oscilador produciendo el tono deseado, necesitamos proporci
 
 Elegimos la envolvente mostrada a continuación, compuesta de segmentos de línea recta. (Vea el **Tutorial Básico 3**.)
 
-![Envolvente de amplitud 'tipo guitarra'](/images/basicchapter05a.webp "Envolvente de amplitud 'tipo guitarra'")
+![Envolvente de amplitud 'tipo guitarra'](/images/basicchapter05a.png "Envolvente de amplitud 'tipo guitarra'")
 
 Esta envolvente de amplitud se impone en la salida de **cycle~** con una combinación de **line~** y **\*~**. Un **metro** se usa para disparar la envolvente una vez por segundo, y el **metro** se apaga después de un retraso de 10 segundos.
 
@@ -78,6 +78,6 @@ Finalmente, necesitamos usar una envolvente de amplitud más para crear un **dim
 
 Por lo tanto, usamos cinco segmentos de línea para simular una curva que disminuye a la mitad cada dos segundos. (El objeto **curve~** hará esto automáticamente.)
 
-![Envolvente de amplitud global disminuyendo a la mitad cada dos segundos](/images/basicchapter05b.webp "Envolvente de amplitud global disminuyendo a la mitad cada dos segundos")
+![Envolvente de amplitud global disminuyendo a la mitad cada dos segundos](/images/basicchapter05b.png "Envolvente de amplitud global disminuyendo a la mitad cada dos segundos")
 
 Esta envolvente de amplitud global se inserta en la red de señal para escalar ambos tonos suavemente por un factor de .03125 en 10 segundos.

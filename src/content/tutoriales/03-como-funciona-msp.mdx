@@ -18,7 +18,7 @@ Los objetos MSP se conectan mediante patch cords de manera similar, pero su inte
 
 El siguiente ejemplo ilustra la distinción entre un patch de Max en el que se envían mensajes versus una red de señal en la que se establece una relación continua.
 
-![Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante](/images/msphowmspworks01.webp "Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante")
+![Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante](/images/msphowmspworks01.png "Los mensajes de Max ocurren en un instante específico; los objetos MSP están en comunicación constante")
 
 En el ejemplo de Max a la izquierda, el **number box** no sabe sobre el número 0.75 almacenado en el objeto **float**. Cuando el usuario hace clic en el **button**, el objeto **float** envía su valor almacenado. Solo entonces el **number box** recibe, muestra y envía el número `0.75`. En el ejemplo de MSP a la derecha, sin embargo, cada outlet que está conectado como parte de la red de señal está contribuyendo constantemente su valor actual a la ecuación. Así, incluso sin que se envíe ningún mensaje Max específico, el objeto **\*~** está recibiendo la salida de los dos objetos **sig~**, y cualquier objeto conectado al outlet de **\*~** estaría recibiendo el producto `0.75`.
 
@@ -30,7 +30,7 @@ La unidad básica de tiempo para programar eventos en Max es el milisegundo (0.0
 
 El audio digital, sin embargo, debe procesarse a una tasa mucho más rápida — comúnmente 44,100 veces por segundo por canal de audio. La forma en que MSP maneja esto es calcular, de forma continua, todos los números que se necesitarán para producir los próximos milisegundos de audio. Estos cálculos son realizados por cada objeto, basándose en la configuración de la red de señal.
 
-![Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)](/images/msphowmspworks02.webp "Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)")
+![Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)](/images/msphowmspworks02.png "Un oscilador (cycle~), y un amplificador (\*~) controlado por otro oscilador (phasor~)")
 
 En este ejemplo, un oscilador de forma de onda coseno con una frecuencia de 2000 Hz (el objeto **cycle~**) tiene su amplitud escalada (cada muestra es multiplicada por algún número en el objeto **\*~**) y luego se envía al convertidor digital-a-analógico (**dac~**). A lo largo de cada segundo, la onda sierra (sub-audio) de la salida del objeto **phasor~** envía una rampa continua de valores crecientes de `0` a `1`. Esos números crecientes se usarán como el operando derecho en el **\*~** para cada muestra de la forma de onda de audio, y el resultado será que el tono de 2000 Hz se desvanecerá linealmente desde el silencio a la amplitud completa cada segundo. Para cada milisegundo de audio, MSP debe producir aproximadamente 44 valores de muestra (asumiendo una tasa de muestreo de audio de 44,100 Hz), así que para cada muestra debe buscar el valor apropiado en cada oscilador y multiplicar esos dos valores para producir la muestra de salida.
 
@@ -42,25 +42,25 @@ Nota: Dado que puede especificar tiempo en Max en milisegundos de punto flotante
 
 Algunos objetos MSP existen específicamente para proporcionar un enlace entre Max y MSP — y para traducir entre la tasa de control y la tasa de audio. Estos objetos (como **sig~** y **line~**) reciben mensajes de Max en sus inlets, pero sus outlets se conectan a la red de señal; o inversamente, algunos objetos (como **snapshot~**) se conectan a la red de señal y pueden "espiar" (pero solo tan frecuentemente como una vez por milisegundo) el valor(es) presente(s) en un punto particular de la red de señal.
 
-![Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal](/images/msphowmspworks03.webp "Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal")
+![Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal](/images/msphowmspworks03.png "Suministrar un mensaje de Max a la red de señal, u obtener un mensaje de Max de una señal")
 
 Estos objetos son muy importantes porque le dan a Max, y a usted el usuario, control directo sobre lo que ocurre en la red de señal.
 
-![Control de interfaz de usuario sobre la amplitud de la señal](/images/msphowmspworks04.webp "Control de interfaz de usuario sobre la amplitud de la señal")
+![Control de interfaz de usuario sobre la amplitud de la señal](/images/msphowmspworks04.png "Control de interfaz de usuario sobre la amplitud de la señal")
 
 Algunos inlets de objetos MSP aceptan tanto entrada de señal como mensajes de Max. Pueden conectarse como parte de una red de señal, y también pueden recibir instrucciones o modificaciones vía mensajes de Max.
 
 Por ejemplo, el objeto **dac~** (convertidor digital-a-analógico), para reproducir la señal de audio, puede encenderse y apagarse con los mensajes `start` y `stop` de Max.
 
-![Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet](/images/msphowmspworks05.webp "Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet")
+![Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet](/images/msphowmspworks05.png "Algunos objetos MSP pueden recibir señales de audio y mensajes de Max en el mismo inlet")
 
 Y el objeto **cycle~** (oscilador) puede recibir su frecuencia como un mensaje `float` o `int` de Max, o puede recibir su frecuencia de otro objeto MSP (aunque no puede hacer ambas cosas al mismo tiempo, porque la entrada de audio puede pensarse como suministrando constantemente valores que anularían inmediatamente el efecto del mensaje float o int).
 
-![Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito](/images/msphowmspworks06.webp "Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito")
+![Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito](/images/msphowmspworks06.png "Algunos objetos MSP pueden recibir mensajes de Max o señales para el mismo propósito")
 
 Así ve que un patch de Max (o subpatch) puede contener tanto objetos Max como objetos MSP. Para una organización clara, es frecuentemente útil encapsular un proceso completo, como una red de señal, en un subpatch para que aparezca como un solo objeto en otro patch de Max.
 
-![La encapsulación puede clarificar relaciones en un patch de Max](/images/msphowmspworks07.webp "La encapsulación puede clarificar relaciones en un patch de Max")
+![La encapsulación puede clarificar relaciones en un patch de Max](/images/msphowmspworks07.png "La encapsulación puede clarificar relaciones en un patch de Max")
 
 ## Limitaciones de MSP
 
