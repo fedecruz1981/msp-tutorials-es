@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../lib/urls.mjs';
 import Layout from '../layouts/Layout.astro';
 import Sidebar from '../components/Sidebar.astro';
 ---
@@ -16,76 +17,76 @@ import Sidebar from '../components/Sidebar.astro';
       <div class="stat"><span class="stat-number">14</span><span class="stat-label">Secciones</span></div>
       <div class="stat"><span class="stat-number">100%</span><span class="stat-label">En español</span></div>
     </div>
-    <a href="/tutoriales/01-msp-introduccion/" class="cta-button">Comenzar tutoriales →</a>
+    <a href="{BASE}/tutoriales/01-msp-introduccion/" class="cta-button">Comenzar tutoriales →</a>
   </header>
 
   <nav class="sections-grid" aria-label="Secciones del tutorial">
-    <a href="/tutoriales/01-msp-introduccion/" class="section-card">
+    <a href="{BASE}/tutoriales/01-msp-introduccion/" class="section-card">
       <h3>1. Introducción</h3>
       <p>Conceptos fundamentales de MSP, audio digital y configuración de E/S</p>
       <span class="chapter-count">4 capítulos</span>
     </a>
-    <a href="/tutoriales/05-basico-01-tono-prueba/" class="section-card">
+    <a href="{BASE}/tutoriales/05-basico-01-tono-prueba/" class="section-card">
       <h3>2. Fundamentos</h3>
       <p>Osciladores, control de amplitud, tablas de ondas y enrutamiento de señales</p>
       <span class="chapter-count">5 capítulos</span>
     </a>
-    <a href="/tutoriales/06-sintesis-01-aditiva/" class="section-card">
+    <a href="{BASE}/tutoriales/06-sintesis-01-aditiva/" class="section-card">
       <h3>3. Síntesis Aditiva y Modulación</h3>
       <p>Síntesis aditiva, trémolo, modulación en anillo, AM, vibrato y FM</p>
       <span class="chapter-count">5 capítulos</span>
     </a>
-    <a href="/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="section-card">
+    <a href="{BASE}/tutoriales/07-muestreo-01-grabacion-reproduccion/" class="section-card">
       <h3>4. Muestreo y Grabación</h3>
       <p>Grabación, reproducción, bucles, waveshaping y archivos de audio</p>
       <span class="chapter-count">7 capítulos</span>
     </a>
-    <a href="/tutoriales/08-filtros-01-simples/" class="section-card">
+    <a href="{BASE}/tutoriales/08-filtros-01-simples/" class="section-card">
       <h3>5. Filtros y Síntesis Sustractiva</h3>
       <p>Filtros paso-bajo, paso-banda, estado-variable y síntesis sustractiva</p>
       <span class="chapter-count">5 capítulos</span>
     </a>
-    <a href="/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="section-card">
+    <a href="{BASE}/tutoriales/09-dinamicas-01-seguimiento-envolvente/" class="section-card">
       <h3>6. Procesamiento de Dinámicas</h3>
       <p>Seguimiento de envolvente, compresión, limitación y distorsión</p>
       <span class="chapter-count">3 capítulos</span>
     </a>
-    <a href="/tutoriales/10-midi-01-mapeo/" class="section-card">
+    <a href="{BASE}/tutoriales/10-midi-01-mapeo/" class="section-card">
       <h3>7. MIDI y MSP</h3>
       <p>Mapeo de controladores MIDI, sintetizadores y samplers MIDI</p>
       <span class="chapter-count">3 capítulos</span>
     </a>
-    <a href="/tutoriales/11-poli-01-poly-objeto/" class="section-card">
+    <a href="{BASE}/tutoriales/11-poli-01-poly-objeto/" class="section-card">
       <h3>8. Polifonía y Recursos</h3>
       <p>Objeto poly~, síntesis granular y datos de control a tasa de audio</p>
       <span class="chapter-count">3 capítulos</span>
     </a>
-    <a href="/tutoriales/12-secuenciacion-01-tasa-audio/" class="section-card">
+    <a href="{BASE}/tutoriales/12-secuenciacion-01-tasa-audio/" class="section-card">
       <h3>9. Secuenciación</h3>
       <p>Secuenciación precisa a tasa de audio con generadores de rampa</p>
       <span class="chapter-count">1 capítulo</span>
     </a>
-    <a href="/tutoriales/13-pan-01-simple/" class="section-card">
+    <a href="{BASE}/tutoriales/13-pan-01-simple/" class="section-card">
       <h3>10. Panoramización</h3>
       <p>Pan simple, estéreo y multicanal para sistemas de altavoces</p>
       <span class="chapter-count">3 capítulos</span>
     </a>
-    <a href="/tutoriales/14-analisis-01-senales-medidores/" class="section-card">
+    <a href="{BASE}/tutoriales/14-analisis-01-senales-medidores/" class="section-card">
       <h3>11. Análisis</h3>
       <p>Medidores, osciloscopio, espectroscopio, FFT y pfft~</p>
       <span class="chapter-count">4 capítulos</span>
     </a>
-    <a href="/tutoriales/15-retardos-01-lineas/" class="section-card">
+    <a href="{BASE}/tutoriales/15-retardos-01-lineas/" class="section-card">
       <h3>12. Retardos</h3>
       <p>Líneas de retardo, flanger, chorus, filtro peine y control de ganancia</p>
       <span class="chapter-count">6 capítulos</span>
     </a>
-    <a href="/tutoriales/16-plugins-01-efectos/" class="section-card">
+    <a href="{BASE}/tutoriales/16-plugins-01-efectos/" class="section-card">
       <h3>13. Plug-ins</h3>
       <p>Efectos VST, instrumentos VST y dispositivos AMXD para Max for Live</p>
       <span class="chapter-count">3 capítulos</span>
     </a>
-    <a href="/tutoriales/17-compresion-00-introduccion/" class="section-card">
+    <a href="{BASE}/tutoriales/17-compresion-00-introduccion/" class="section-card">
       <h3>14. Compresión (objetos omx)</h3>
       <p>Limitación, compresión multibanda, keying, ducking y más</p>
       <span class="chapter-count">11 capítulos</span>

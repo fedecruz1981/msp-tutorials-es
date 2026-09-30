@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../../lib/urls.mjs';
 import { getCollection, getEntry, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Sidebar from '../../components/Sidebar.astro';
@@ -46,9 +47,9 @@ const nextTutorial = tutorial.data.order < 63 ? (await getCollection('tutorials'
 
   <header class="tutorial-header">
     <nav class="breadcrumb" aria-label="Navegación">
-      <a href="/">Inicio</a>
+      <a href={BASE}>Inicio</a>
       <span aria-hidden="true">/</span>
-      <a href={`/tutoriales/${currentSection?.slug}/`}>{currentSection?.title}</a>
+      <a href={`${BASE}/tutoriales/${currentSection?.slug}/`}>{currentSection?.title}</a>
       <span aria-hidden="true">/</span>
       <span aria-current="page">{tutorial.data.title}</span>
     </nav>
@@ -72,13 +73,13 @@ const nextTutorial = tutorial.data.order < 63 ? (await getCollection('tutorials'
 
   <nav class="chapter-nav" aria-label="Navegación entre capítulos">
     {prevTutorial && (
-      <a href={`/tutoriales/${prevTutorial.slug}/`} class="nav-link prev">
+      <a href={`${BASE}/tutoriales/${prevTutorial.slug}/`} class="nav-link prev">
         <span class="nav-label">Capítulo anterior</span>
         <span class="nav-title">{prevTutorial.data.title}</span>
       </a>
     )}
     {nextTutorial && (
-      <a href={`/tutoriales/${nextTutorial.slug}/`} class="nav-link next">
+      <a href={`${BASE}/tutoriales/${nextTutorial.slug}/`} class="nav-link next">
         <span class="nav-label">Siguiente capítulo</span>
         <span class="nav-title">{nextTutorial.data.title}</span>
       </a>

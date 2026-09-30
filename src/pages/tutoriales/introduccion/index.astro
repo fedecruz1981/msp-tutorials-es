@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../../../lib/urls.mjs';
 import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
 import Sidebar from '../../../components/Sidebar.astro';
@@ -22,7 +23,7 @@ const tutorials = (await getCollection('tutorials')).filter(t => t.data.section 
 
   <nav class="chapter-list" aria-label="Capítulos de esta sección">
     {tutorials.map(tutorial => (
-      <a href={`/tutoriales/${tutorial.slug}/`} class="chapter-card">
+      <a href={`${BASE}/tutoriales/${tutorial.slug}/`} class="chapter-card">
         <span class="chapter-number">Cap. {tutorial.data.order}</span>
         <h3>{tutorial.data.title}</h3>
         <p>{tutorial.data.description}</p>
