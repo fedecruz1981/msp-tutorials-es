@@ -36,7 +36,7 @@ Estos son los datos de atribución que exige la licencia CC BY 4.0 (§3(a)):
 | Texto de los 63 tutoriales | Traducción (material adaptado) del contenido CC BY 4.0 de Cycling '74 |
 | Figuras y capturas de los capítulos (`public/images/`) | Reproducidas del material original, también bajo CC BY 4.0 |
 | Archivos `.maxpat` de ejemplo | **No** se redistribuyen: cada capítulo enlaza al recurso oficial |
-| Código fuente del sitio (Astro, componentes, estilos, scripts) | Obra propia del autor de este repositorio |
+| Código fuente del sitio (Astro, componentes, estilos, scripts) | Obra propia del autor de este repositorio, bajo licencia **MIT** (ver `LICENSE`) |
 
 Dato adicional: el **código fuente** incluido en las descargas de cada artículo de Cycling '74
 está licenciado **MIT** (© 2024 Cycling '74), según el aviso de licencia de la documentación. Ese

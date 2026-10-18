@@ -124,6 +124,11 @@ El aviso completo (atribución, privacidad, marcas, correcciones y retiro de con
 [`AVISO-LEGAL.md`](./AVISO-LEGAL.md) y publicado en el sitio:
 <https://fedecruz1981.github.io/msp-tutorials-es/aviso-legal/>.
 
+**Código del sitio:** el código propio del repositorio (Astro, componentes, estilos y scripts) está
+bajo licencia **MIT** ([`LICENSE`](./LICENSE)). Esa licencia **no** cubre el contenido de los
+tutoriales ni las figuras, que son material adaptado CC BY 4.0: el detalle está en
+[`NOTICE.md`](./NOTICE.md).
+
 ## Sitio publicado
 
 - **Producción:** https://fedecruz1981.github.io/msp-tutorials-es/
