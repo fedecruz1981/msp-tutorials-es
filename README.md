@@ -66,8 +66,7 @@ npm run preview    # Previsualiza el build
 ```text
 /
 ├── public/
-│   ├── images/                  # Imágenes y capturas
-│   └── patchers/                # Patchers .maxpat descargables
+│   └── images/                  # 63 figuras de los tutoriales (CC BY 4.0)
 ├── src/
 │   ├── components/              # Sidebar y componentes de UI
 │   ├── content/
@@ -76,8 +75,10 @@ npm run preview    # Previsualiza el build
 │   └── pages/
 │       ├── index.astro          # Portada
 │       ├── buscar.astro         # Página de búsqueda
+│       ├── aviso-legal.astro    # Atribución, licencia CC BY 4.0 y privacidad
 │       ├── 404.astro
 │       └── tutoriales/          # Secciones y rutas de cada capítulo
+├── AVISO-LEGAL.md               # Aviso legal completo (atribución y contacto)
 ├── src/content.config.ts        # Tipado y validación del contenido
 ├── astro.config.mjs
 └── package.json
@@ -88,7 +89,7 @@ npm run preview    # Previsualiza el build
 - ✅ Traducción completa de los 63 capítulos
 - ✅ Sitio estático construido y verificado (80 páginas)
 - ✅ Publicado en producción en GitHub Pages
-- 🚧 Imágenes ya descargadas localmente; patchers `.maxpat` pendientes
+- 🚧 Patchers `.maxpat` pendientes (hoy se enlaza el recurso oficial de cada capítulo)
 - 🚧 La búsqueda (índice de `search-index.json`) aún no genera resultados en el sitio publicado
 
 ## Roadmap
@@ -102,19 +103,29 @@ El roadmap se gestiona como [Issues del repositorio](https://github.com/fedecruz
 - [ ] Descargar los patchers `.maxpat` de cada capítulo
 - [ ] Incorporar la comprobación del build a CI (pendiente de permisos para subir workflows)
 
-## Créditos y atribución
+## Créditos, atribución y licencia
 
-El contenido original pertenece a **Cycling '74** y está sujeto a sus términos y condiciones. Este proyecto es una **traducción independiente con fines educativos**: no redistribuye los archivos `.maxpat` originales ni el material audiovisual; enlaza a ellos desde cada capítulo.
+Los 63 tutoriales originales son de **Cycling '74** y están publicados bajo licencia
+**[Creative Commons Atribución 4.0 Internacional (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)**
+(ver el [aviso de licencia de su documentación](https://docs.cycling74.com/learn/license/)):
 
-- Tutoriales originales: [docs.cycling74.com/learn/series/msp-tutorials](https://docs.cycling74.com/learn/series/msp-tutorials/)
-- Max/MSP: [cycling74.com](https://cycling74.com)
+- **Obra original:** [MSP Tutorials](https://docs.cycling74.com/learn/series/msp-tutorials/) — **© 2024 Cycling '74**
+- **Este repositorio:** traducción al español (material adaptado) de esos artículos, publicada bajo **la misma licencia CC BY 4.0**
+- **Modificación:** se traduce el texto; los nombres de objetos y la sintaxis de Max se mantienen sin traducir, y cada capítulo enlaza su artículo original (`originalUrl`)
+- **Figuras:** las imágenes de `public/images/` provienen de los tutoriales originales (también CC BY 4.0)
+- **Patchers `.maxpat`:** no se redistribuyen; cada capítulo enlaza al recurso oficial de Cycling '74
+- **Sin garantías:** el material se ofrece «tal cual» (CC BY 4.0, §5)
 
-## Licencia
+CC BY 4.0 **permite el uso comercial**: este proyecto no agrega restricciones, solo la obligación de
+mantener la atribución. Max, MSP y Max/MSP son marcas de Cycling '74 y **no** están cubiertas por la
+licencia.
 
-Los derechos sobre el contenido original pertenecen a sus autores (Cycling '74). El código de este sitio (estructura, componentes y configuración de Astro) es de uso libre con fines educativos. Antes de distribuir el contenido traducido, revisa los términos de Cycling '74.
+El aviso completo (atribución, privacidad, marcas, correcciones y retiro de contenido) está en
+[`AVISO-LEGAL.md`](./AVISO-LEGAL.md) y publicado en el sitio:
+<https://fedecruz1981.github.io/msp-tutorials-es/aviso-legal/>.
 
 ## Sitio publicado
 
 - **Producción:** https://fedecruz1981.github.io/msp-tutorials-es/
-- **Rama servida:** `gh-pages` (se construye desde `dist/` y se publica con `deploy-ghpages.js`).
+- **Rama servida:** `gh-pages` (se construye desde `dist/` con `npm run build` —que encadena `astro build` y `scripts/rebase-dist.mjs`— y se publica copiando `dist/` en esa rama).
 - `main` contiene el sitio fuente; `npm run build` compila y ejecuta `scripts/rebase-dist.mjs`, que antepone el base path a las rutas relativas en el HTML generado.
